@@ -24,26 +24,55 @@ Enterprise-grade RESTful API cloud platform with full-stack integration for [Arc
 
 ### **Full-Stack Integration**
 
-This backend seamlessly integrates with [Arcana Angular](https://github.com/jrjohn/arcana-angular) (Architecture Rating: 9.4/10):
+This backend provides a unified API platform for multi-platform clients:
+
+#### **Platform Support**
+
+| Platform | Repository | Technology Stack | Status |
+|----------|-----------|------------------|--------|
+| **Web** | [Arcana Angular](https://github.com/jrjohn/arcana-angular) | Angular 20.3, TypeScript, Signals | ✅ Production Ready |
+| **Android** | [Arcana Android](https://github.com/jrjohn/arcana-android) | Kotlin, Jetpack Compose, MVVM | 🚧 In Development |
+| **iOS** | [Arcana iOS](https://github.com/jrjohn/arcana-ios) | Swift, SwiftUI, Combine | 🚧 In Development |
+
+#### **Architecture Overview**
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                  Arcana Angular Frontend                     │
-│  Angular 20.3 | Signals | Offline-First | Type-Safe         │
-│  - MVVM Pattern with UDF (100% compliant)                   │
-│  - 4-Layer Caching (Memory/LRU/IndexedDB/Remote)            │
-│  - 374 Unit Tests (48% coverage, 99.5% pass rate)           │
-└─────────────────────┬───────────────────────────────────────┘
-                      │ RESTful API / JWT Auth
-                      │
-┌─────────────────────▼───────────────────────────────────────┐
-│               Arcana Cloud Python Backend                    │
-│  Flask 3.1 | Python 3.14 | Microservices Ready              │
-│  - Interface-Implementation Pattern                          │
-│  - OAuth2 + JWT Authentication                               │
-│  - 250+ Tests (85-90% coverage)                              │
-│  - Configuration-Driven Deployment (3 modes)                 │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        Client Applications                              │
+├─────────────────────┬─────────────────────┬─────────────────────────────┤
+│  Arcana Angular     │   Arcana Android    │      Arcana iOS             │
+│  Angular 20.3       │   Kotlin + Compose  │   Swift + SwiftUI           │
+│  Signals/RxJS       │   Flow + LiveData   │   Combine Framework         │
+│  Offline-First      │   Room Database     │   Core Data + Realm         │
+│  4-Layer Cache      │   WorkManager       │   Background Tasks          │
+│  374 Tests (48%)    │   JUnit + Espresso  │   XCTest + XCUITest         │
+└──────────┬──────────┴──────────┬──────────┴──────────┬──────────────────┘
+           │                     │                     │
+           │         RESTful API + JWT Authentication  │
+           │                     │                     │
+           └─────────────────────┼─────────────────────┘
+                                 │
+                    ┌────────────▼────────────┐
+                    │   API Gateway / NGINX   │
+                    │   Load Balancer         │
+                    │   Rate Limiting         │
+                    │   SSL/TLS Termination   │
+                    └────────────┬────────────┘
+                                 │
+┌────────────────────────────────▼────────────────────────────────────────┐
+│                    Arcana Cloud Python Backend                          │
+│  Flask 3.1.2 | Python 3.14 | Microservices Architecture                │
+│  - Interface-Implementation Pattern (Clean Architecture)                │
+│  - OAuth2 + JWT Authentication (Access + Refresh Tokens)                │
+│  - 250+ Tests (85-90% coverage)                                         │
+│  - Configuration-Driven Deployment (3 modes)                            │
+│  - Multi-platform CORS & Security                                       │
+└─────────────────────────────────────────────────────────────────────────┘
+           │                     │                     │
+    ┌──────▼──────┐      ┌──────▼──────┐      ┌──────▼──────┐
+    │   MySQL     │      │    Redis    │      │   Celery    │
+    │  Database   │      │    Cache    │      │  Workers    │
+    └─────────────┘      └─────────────┘      └─────────────┘
 ```
 
 ---

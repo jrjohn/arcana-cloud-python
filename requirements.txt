@@ -1,48 +1,47 @@
 # Python 3.14.0 compatible packages (最新版)
 
 # Flask 框架與擴展
-Flask==3.1.0
+Flask==3.1.2
 Flask-RESTful==0.3.10
 Flask-SQLAlchemy==3.1.1
-Flask-Migrate==4.0.7
-Flask-RESTX==1.3.0
-flask-marshmallow==1.2.1
-flask-cors==5.0.0
-flask-limiter==3.8.0
+Flask-Migrate==4.1.0
+Flask-RESTX==1.3.2
+flask-marshmallow==1.3.0
+flask-cors==6.0.1
+flask-limiter==3.12.0
 
 # 資料庫與 ORM
-SQLAlchemy==2.0.35
-alembic==1.13.3
-PyMySQL==1.1.1
+SQLAlchemy==2.0.44
+alembic==1.17.2
+PyMySQL==1.1.2
 
 # 數據驗證與序列化
-marshmallow==3.23.1
+marshmallow==4.1.0
 
 # 認證與安全
-authlib==1.3.2
+authlib==1.6.5
 PyJWT==2.10.1
-cryptography==44.0.0
+cryptography==46.0.3
 
 # Redis 與快取
-redis==5.2.0
-redis-py-cluster==2.1.3
+redis==7.0.1
 
 # Celery 任務佇列（含分散式支援）
-celery==5.4.0
-celery-redbeat==2.2.0
-flower==2.0.1
+celery==5.5.3
+celery-redbeat==2.3.3
+flower==2.0.0
 
 # 依賴注入
-dependency-injector==4.42.0
+dependency-injector==4.48.2
 
 # WSGI 服務器
 gunicorn==23.0.0
 
 # 工具與輔助
-python-dotenv==1.0.1
-requests==2.32.3
-python-json-logger==3.2.1
+python-dotenv==1.1.1
+requests==2.32.5
+python-json-logger==4.0.0
 
 # 服務間通訊（可選）
-grpcio==1.68.1
-grpcio-tools==1.68.1
+grpcio==1.76.0
+grpcio-tools==1.76.0
