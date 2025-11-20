@@ -43,7 +43,7 @@ def create_app(config_name: str = 'development') -> Flask:
     # Register error handlers
     register_error_handlers(app)
 
-    # Health check endpoints
+    # Health check endpoints (must be after limiter initialization)
     register_health_checks(app)
 
     return app
@@ -88,11 +88,13 @@ def register_health_checks(app: Flask) -> None:
     from flask import jsonify
 
     @app.route('/health')
+    @limiter.exempt  # Exempt health checks from rate limiting
     def health():
         """Liveness check"""
         return jsonify({'status': 'healthy'}), 200
 
     @app.route('/ready')
+    @limiter.exempt  # Exempt readiness checks from rate limiting
     def ready():
         """Readiness check"""
         try:

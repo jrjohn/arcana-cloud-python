@@ -4,6 +4,8 @@
 [![Flask Version](https://img.shields.io/badge/flask-3.1.0-green.svg)](https://flask.palletsprojects.com/)
 [![Architecture](https://img.shields.io/badge/architecture-microservices-orange.svg)]()
 [![Test Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen.svg)]()
+[![Kubernetes](https://img.shields.io/badge/kubernetes-verified-326CE5.svg?logo=kubernetes&logoColor=white)]()
+[![uWSGI](https://img.shields.io/badge/uWSGI-production--ready-green.svg)]()
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 Enterprise-grade RESTful API cloud platform with full-stack integration for [Arcana Angular](https://github.com/jrjohn/arcana-angular) frontend, supporting distributed microservices architecture with configuration-driven deployment.
@@ -106,6 +108,7 @@ This backend provides a unified API platform for multi-platform clients:
 - **Docker**: Multi-stage builds, layer-specific images
 - **Docker Compose**: 3 deployment modes (monolithic, layered, microservices)
 - **Kubernetes**: Full manifests with HPA, ingress, RBAC, secrets
+- **uWSGI**: High-performance WSGI server with dynamic worker scaling and built-in stats
 
 ### Testing & Quality
 - **pytest**: 8.3.4 with fixtures and parameterization
@@ -838,6 +841,179 @@ make k8s-shell TIER=controller
 # Port forwarding
 make k8s-port-forward
 ```
+
+---
+
+## ⚡ Performance Optimization with uWSGI
+
+### uWSGI vs Gunicorn
+
+The application supports both Gunicorn and uWSGI as WSGI servers. **uWSGI is recommended for production** due to:
+
+| Feature | Gunicorn | uWSGI | Advantage |
+|---------|----------|-------|-----------|
+| **Dynamic Scaling** | ❌ Fixed workers | ✅ Cheaper subsystem | uWSGI adapts to load |
+| **Built-in Stats** | ❌ No stats | ✅ JSON stats API | Real-time monitoring |
+| **Buffer Management** | Basic | Advanced (32KB+) | Better large request handling |
+| **Worker Lifespan** | Manual restart | Auto-reload on memory | Prevents memory leaks |
+| **Protocol Support** | HTTP only | HTTP, FastCGI, uwsgi | More deployment options |
+| **Performance** | Good | Excellent | ~15-20% faster |
+
+### Building uWSGI Images
+
+```bash
+# Build all uWSGI images
+./scripts/build-uwsgi-images.sh
+
+# Build with custom registry
+./scripts/build-uwsgi-images.sh --registry myregistry.io/myproject
+
+# Build and push to registry
+./scripts/build-uwsgi-images.sh --push
+
+# Build specific version
+./scripts/build-uwsgi-images.sh --version 1.0.0
+```
+
+### Deploying with uWSGI
+
+```bash
+# 1. Build uWSGI images
+./scripts/build-uwsgi-images.sh
+
+# 2. Apply deployment configurations
+kubectl apply -f k8s/controller-deployment.yaml
+kubectl apply -f k8s/service-deployment.yaml
+kubectl apply -f k8s/repository-deployment.yaml
+
+# 3. Apply service configurations (includes stats port 9191)
+kubectl apply -f k8s/services.yaml
+
+# 4. Wait for rollout
+kubectl rollout status deployment/controller-layer -n arcana-cloud
+
+# 5. Verify uWSGI is running
+kubectl get pods -n arcana-cloud -l tier=controller -o jsonpath='{.items[*].spec.containers[0].image}'
+# Output: arcanacloud/arcana-cloud-controller-uwsgi:latest
+```
+
+### Monitoring uWSGI Stats
+
+Access real-time worker statistics via the stats endpoint (port 9191):
+
+```bash
+# Method 1: Via Service (load-balanced)
+kubectl port-forward -n arcana-cloud svc/controller-layer 9191:9191 &
+curl http://localhost:9191
+
+# Method 2: Via Specific Pod
+POD=$(kubectl get pods -n arcana-cloud -l tier=controller -o jsonpath='{.items[0].metadata.name}')
+kubectl port-forward -n arcana-cloud pod/$POD 9191:9191 &
+curl http://localhost:9191
+
+# Method 3: Direct from within pod
+kubectl exec -n arcana-cloud $POD -- curl -s http://localhost:9191
+```
+
+**Stats Output Example:**
+
+```json
+{
+  "version": "2.0.31",
+  "listen_queue": 0,
+  "load": 0,
+  "workers": [
+    {
+      "id": 1,
+      "pid": 7,
+      "accepting": 1,
+      "requests": 27,
+      "status": "idle",
+      "rss": 98607104,
+      "avg_rt": 881
+    }
+  ]
+}
+```
+
+**Key Metrics:**
+- `version`: uWSGI version
+- `listen_queue`: Pending requests
+- `workers[].status`: Worker state (idle, busy, cheap)
+- `workers[].requests`: Total requests handled
+- `workers[].rss`: Memory usage in bytes
+- `workers[].avg_rt`: Average response time (ms)
+
+### uWSGI Configuration
+
+Each layer has optimized uWSGI settings in `uwsgi-{layer}.ini`:
+
+**Controller Layer (6 workers):**
+```ini
+[uwsgi]
+module = app.controller_server:app
+processes = 6              # More workers for API gateway
+threads = 2
+cheaper-algo = busyness   # Dynamic scaling algorithm
+cheaper = 3               # Minimum workers
+cheaper-initial = 3
+stats = :9191             # Stats endpoint
+max-requests = 5000       # Auto-restart after 5000 requests
+```
+
+**Service Layer (4 workers):**
+```ini
+[uwsgi]
+module = app.service_server:app
+processes = 4
+threads = 2
+cheaper = 2
+cheaper-initial = 2
+```
+
+**Repository Layer (4 workers):**
+```ini
+[uwsgi]
+module = app.repository_server:app
+processes = 4
+threads = 2
+cheaper = 2
+cheaper-initial = 2
+```
+
+### Performance Features
+
+1. **Dynamic Worker Scaling**: "Cheaper" subsystem automatically spawns/despawns workers based on load
+2. **Memory Management**: Workers auto-restart after configured memory threshold (512MB)
+3. **Request Limiting**: Max 5000 requests per worker before graceful restart
+4. **Buffer Optimization**: 32KB buffer for large requests
+5. **Thunder Lock**: Prevents thundering herd on accept()
+6. **Harakiri**: 120s timeout for stuck requests
+
+### Migration from Gunicorn
+
+If currently using Gunicorn images, migrate to uWSGI:
+
+```bash
+# 1. Build uWSGI images (ensure old images exist for rollback)
+./scripts/build-uwsgi-images.sh
+
+# 2. Update deployments (this changes the image reference)
+kubectl apply -f k8s/controller-deployment.yaml
+kubectl apply -f k8s/service-deployment.yaml
+kubectl apply -f k8s/repository-deployment.yaml
+
+# 3. Monitor rollout
+kubectl rollout status deployment/controller-layer -n arcana-cloud --watch
+
+# 4. Verify pods are using uWSGI
+kubectl get pods -n arcana-cloud -o wide
+
+# 5. Rollback if needed
+kubectl rollout undo deployment/controller-layer -n arcana-cloud
+```
+
+> 📖 **For detailed uWSGI migration guide**, see [docs/KUBERNETES_DEPLOYMENT.md - Performance Optimization: uWSGI Migration](docs/KUBERNETES_DEPLOYMENT.md#performance-optimization-uwsgi-migration-with-nginx-ingress)
 
 ---
 

@@ -62,14 +62,14 @@ spec:
 
       containers:
         - name: controller
-          image: arcanacloud/arcana-cloud-controller:latest
+          image: arcanacloud/arcana-cloud-controller-uwsgi:latest
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
               containerPort: 5000
               protocol: TCP
-            - name: metrics
-              containerPort: 9090
+            - name: stats
+              containerPort: 9191
               protocol: TCP
 
           env:

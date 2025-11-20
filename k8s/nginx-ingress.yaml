@@ -1,0 +1,163 @@
+# ============================================================================
+# Nginx Ingress Configuration
+# ============================================================================
+# Provides HTTP/HTTPS load balancing, SSL termination, and advanced routing
+# ============================================================================
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: arcana-cloud-ingress
+  namespace: arcana-cloud
+  labels:
+    app: arcana-cloud
+  annotations:
+    # Nginx 基本配置
+    nginx.ingress.kubernetes.io/rewrite-target: /
+
+    # 請求大小限制
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+
+    # 超時設定
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "30"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "30"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "30"
+
+    # 啟用 gzip 壓縮
+    nginx.ingress.kubernetes.io/enable-gzip: "true"
+    nginx.ingress.kubernetes.io/gzip-types: "application/json,application/javascript,text/css,text/plain"
+
+    # CORS 設定 (如果需要)
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization"
+
+    # Rate Limiting (保護 API)
+    nginx.ingress.kubernetes.io/limit-rps: "100"
+    nginx.ingress.kubernetes.io/limit-connections: "20"
+
+    # SSL Redirect (生產環境啟用)
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
+    # 後端協議
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+
+    # Sticky Sessions (如果需要 session affinity)
+    # nginx.ingress.kubernetes.io/affinity: "cookie"
+    # nginx.ingress.kubernetes.io/session-cookie-name: "arcana-cloud-session"
+
+spec:
+  ingressClassName: nginx
+
+  # TLS 配置 (生產環境使用)
+  # tls:
+  # - hosts:
+  #   - api.arcana-cloud.com
+  #   secretName: arcana-cloud-tls
+
+  rules:
+  # 主要 API 路由
+  - host: localhost  # 開發環境使用 localhost，生產環境改為實際域名
+    http:
+      paths:
+
+      # Controller Layer - API Gateway
+      - path: /api/v1
+        pathType: Prefix
+        backend:
+          service:
+            name: controller-layer
+            port:
+              number: 5000
+
+      # Health Check 端點 (無需 /api 前綴)
+      - path: /health
+        pathType: Exact
+        backend:
+          service:
+            name: controller-layer
+            port:
+              number: 5000
+
+      - path: /ready
+        pathType: Exact
+        backend:
+          service:
+            name: controller-layer
+            port:
+              number: 5000
+
+      # Service Layer (內部 API，可選)
+      # - path: /internal/service
+      #   pathType: Prefix
+      #   backend:
+      #     service:
+      #       name: service-layer
+      #       port:
+      #         number: 5001
+
+      # Repository Layer (內部 API，可選)
+      # - path: /internal/repository
+      #   pathType: Prefix
+      #   backend:
+      #     service:
+      #       name: repository-layer
+      #       port:
+      #         number: 5002
+
+---
+# ============================================================================
+# Nginx ConfigMap - 進階設定
+# ============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-configuration
+  namespace: ingress-nginx
+data:
+  # Worker 進程數 (通常等於 CPU 核心數)
+  worker-processes: "auto"
+
+  # 每個 worker 的最大連接數
+  max-worker-connections: "16384"
+
+  # 保持連接超時
+  keep-alive: "75"
+
+  # 客戶端請求體緩衝大小
+  client-body-buffer-size: "16k"
+
+  # 客戶端請求頭緩衝大小
+  client-header-buffer-size: "1k"
+
+  # 大客戶端請求頭緩衝數量和大小
+  large-client-header-buffers: "4 8k"
+
+  # 啟用 HTTP/2
+  use-http2: "true"
+
+  # 啟用訪問日誌
+  access-log-path: "/var/log/nginx/access.log"
+  error-log-path: "/var/log/nginx/error.log"
+
+  # 日誌格式
+  log-format-upstream: '$remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent" $request_length $request_time [$proxy_upstream_name] [$proxy_alternative_upstream_name] $upstream_addr $upstream_response_length $upstream_response_time $upstream_status $req_id'
+
+  # 緩衝配置
+  proxy-buffer-size: "8k"
+  proxy-buffers-number: "4"
+
+  # 上游超時
+  upstream-keepalive-connections: "100"
+  upstream-keepalive-timeout: "60"
+
+  # 啟用 real IP (如果在 CDN/LB 後面)
+  use-forwarded-headers: "true"
+  compute-full-forwarded-for: "true"
+
+  # SSL 配置
+  ssl-protocols: "TLSv1.2 TLSv1.3"
+  ssl-ciphers: "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384"
+  ssl-prefer-server-ciphers: "on"

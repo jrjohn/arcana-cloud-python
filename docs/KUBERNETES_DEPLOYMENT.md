@@ -1039,6 +1039,138 @@ repository-layer-5fb9b5655c-yyy     1/1     Running   0          30s
 
 ---
 
+### Issue 6: Pods Restarting Due to Rate Limiting
+
+**Symptom:**
+```bash
+kubectl get pods -n arcana-cloud
+```
+```
+NAME                                READY   STATUS    RESTARTS        AGE
+controller-layer-xxx                1/1     Running   2 (63s ago)     20m
+service-layer-xxx                   1/1     Running   2 (3m47s ago)   20m
+repository-layer-xxx                1/1     Running   1 (10m ago)     25m
+```
+
+**Check Events:**
+```bash
+kubectl get events -n arcana-cloud --sort-by='.lastTimestamp' | tail -20
+```
+
+**Output:**
+```
+3m41s    Warning   Unhealthy    pod/controller-layer-xxx    Readiness probe failed: HTTP probe failed with statuscode: 429
+2m35s    Normal    Killing      pod/service-layer-xxx       Container service failed liveness probe, will be restarted
+112s     Normal    Killing      pod/controller-layer-xxx    Container controller failed liveness probe, will be restarted
+```
+
+**Check Logs:**
+```bash
+kubectl logs controller-layer-xxx -n arcana-cloud --tail=30
+```
+
+**Output:**
+```
+10.1.0.1 - - [20/Nov/2025:08:39:46] "GET /health HTTP/1.1" 200 21 "-" "kube-probe/1.34"
+10.1.0.1 - - [20/Nov/2025:08:39:51] "GET /health HTTP/1.1" 200 21 "-" "kube-probe/1.34"
+10.1.0.1 - - [20/Nov/2025:08:39:56] "GET /health HTTP/1.1" 429 ... "-" "kube-probe/1.34"
+```
+
+**Root Cause:** Flask-limiter is rate limiting the Kubernetes health check probes. The probes check `/health` and `/ready` endpoints every 5-10 seconds, which exceeds the default rate limit configuration of "200 per day, 50 per hour".
+
+**Explanation:**
+- Liveness probe checks `/health` every 10 seconds
+- Readiness probe checks `/health` every 5 seconds
+- With 3 replicas, that's ~36 requests per minute per endpoint
+- This triggers the "50 per hour" rate limit (0.83 requests/minute)
+- When rate limit is hit, endpoints return HTTP 429 (Too Many Requests)
+- Kubernetes interprets 429 as failed probe
+- After 3 consecutive failures, pod is killed and restarted
+
+**Solution:**
+
+Exempt health check endpoints from rate limiting by adding `@limiter.exempt` decorator:
+
+```python
+# app/__init__.py
+def register_health_checks(app: Flask) -> None:
+    """Register health check endpoints"""
+    from flask import jsonify
+
+    @app.route('/health')
+    @limiter.exempt  # ← Add this decorator
+    def health():
+        """Liveness check"""
+        return jsonify({'status': 'healthy'}), 200
+
+    @app.route('/ready')
+    @limiter.exempt  # ← Add this decorator
+    def ready():
+        """Readiness check"""
+        try:
+            from sqlalchemy import text
+            db.session.execute(text('SELECT 1'))
+            return jsonify({'status': 'ready'}), 200
+        except Exception as e:
+            return jsonify({'status': 'not ready', 'error': str(e)}), 503
+```
+
+**Rebuild and Restart:**
+```bash
+# Rebuild images with the fix
+./scripts/build-images.sh
+
+# Restart all application pods
+kubectl delete pods -l app=arcana-cloud -n arcana-cloud
+```
+
+**Wait for Pods to Start:**
+```bash
+# Wait 45 seconds for pods to start
+sleep 45 && kubectl get pods -n arcana-cloud
+```
+
+**Expected Output (All Running):**
+```
+NAME                                READY   STATUS    RESTARTS   AGE
+controller-layer-xxx                1/1     Running   0          1m
+service-layer-xxx                   1/1     Running   0          1m
+repository-layer-xxx                1/1     Running   0          1m
+mysql-0                             1/1     Running   0          70m
+redis-xxx                           1/1     Running   0          68m
+```
+
+**Verify Fix:**
+```bash
+# Check logs show no 429 errors
+kubectl logs controller-layer-xxx -n arcana-cloud --tail=20 | grep -E "(health|429)"
+```
+
+**Output (All 200 OK):**
+```
+10.1.0.1 - - "GET /health HTTP/1.1" 200 21 "-" "kube-probe/1.34"
+10.1.0.1 - - "GET /health HTTP/1.1" 200 21 "-" "kube-probe/1.34"
+10.1.0.1 - - "GET /health HTTP/1.1" 200 21 "-" "kube-probe/1.34"
+```
+
+**Monitor for Stability:**
+```bash
+# Wait 60 seconds and verify no restarts
+sleep 60 && kubectl get pods -n arcana-cloud
+```
+
+**Output (0 Restarts = Stable):**
+```
+NAME                                READY   STATUS    RESTARTS   AGE
+controller-layer-xxx                1/1     Running   0          2m30s
+service-layer-xxx                   1/1     Running   0          2m30s
+repository-layer-xxx                1/1     Running   0          2m30s
+```
+
+**Key Takeaway:** Always exempt health check and monitoring endpoints from rate limiting. These endpoints are called frequently by infrastructure (Kubernetes, load balancers, monitoring systems) and should not be rate limited.
+
+---
+
 ## Architecture
 
 ### Deployment Strategy
@@ -1079,6 +1211,529 @@ All layers communicate using Kubernetes DNS:
 
 ---
 
+## Performance Optimization: uWSGI Migration with Nginx Ingress
+
+### Issue 7: Migrating from Gunicorn to uWSGI for Better Performance
+
+**When**: After successful deployment, optimizing for production-level performance
+
+**Symptoms**:
+- Need for better connection handling and lower latency
+- Requirement for advanced features like stats monitoring
+- Desire for more efficient worker management
+
+**Solution**: Complete migration to uWSGI with Nginx Ingress Controller
+
+#### Step 1: Install Nginx Ingress Controller
+
+```bash
+# Install Nginx Ingress Controller
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.11.1/deploy/static/provider/cloud/deploy.yaml
+
+# Wait for controller to be ready
+kubectl wait --namespace ingress-nginx \
+  --for=condition=ready pod \
+  --selector=app.kubernetes.io/component=controller \
+  --timeout=120s
+```
+
+**Output**:
+```
+namespace/ingress-nginx created
+serviceaccount/ingress-nginx created
+...
+deployment.apps/ingress-nginx-controller created
+ingressclass.networking.k8s.io/nginx created
+
+pod/ingress-nginx-controller-6fb6bc46cb-2w2jl condition met
+```
+
+#### Step 2: Create uWSGI Configuration Files
+
+Create optimized uWSGI configurations for each layer:
+
+**uwsgi-controller.ini** (API Gateway - 6 workers):
+```ini
+[uwsgi]
+# Application
+module = app.controller_server:app
+callable = app
+
+# Master process
+master = true
+enable-threads = true
+
+# Process and threading (more workers for API gateway)
+processes = 6
+threads = 2
+thunder-lock = true
+
+# Socket and protocol
+http-socket = :5000
+protocol = http
+
+# Buffer sizes
+buffer-size = 32768
+post-buffering = 8192
+
+# Timeouts
+socket-timeout = 120
+harakiri = 120
+harakiri-verbose = true
+
+# Stats and monitoring
+stats = :9191
+stats-http = true
+memory-report = true
+
+# Logging
+log-date = %%Y-%%m-%%d %%H:%%M:%%S
+log-format = %(addr) - %(user) [%(ltime)] "%(method) %(uri) %(proto)" %(status) %(size) "%(referer)" "%(uagent)" %(msecs)ms
+logto = /app/logs/uwsgi.log
+
+# Optimization
+lazy-apps = true
+vacuum = true
+die-on-term = true
+single-interpreter = true
+
+# Worker management
+max-requests = 5000
+max-worker-lifetime = 3600
+reload-on-rss = 512
+
+# Performance tuning
+offload-threads = 4
+cheaper-algo = busyness
+cheaper = 3
+cheaper-initial = 3
+cheaper-step = 1
+cheaper-overload = 5
+```
+
+Similar configurations created for service (4 workers) and repository (4 workers) layers.
+
+#### Step 3: Create uWSGI Dockerfiles
+
+**Dockerfile.controller.uwsgi**:
+```dockerfile
+FROM python:3.14.0-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PORT=5000 \
+    DEPLOYMENT_MODE=controller
+
+# Install system dependencies including libpcre2-dev for uWSGI
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc g++ libmariadb-dev libmariadb-dev-compat \
+    pkg-config curl netcat-traditional libpcre2-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install Python dependencies and uWSGI
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir uwsgi
+
+# Copy application and uWSGI config
+COPY . .
+COPY uwsgi-controller.ini /app/uwsgi.ini
+
+# Create logs directory
+RUN mkdir -p /app/logs
+
+# Create non-root user
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /app
+
+USER appuser
+
+# Expose app port and stats port
+EXPOSE 5000 9191
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:5000/health || exit 1
+
+# Run uWSGI
+CMD ["uwsgi", "--ini", "/app/uwsgi.ini"]
+```
+
+**Key Changes**:
+- Added `libpcre2-dev` (not `libpcre3-dev` - deprecated in newer Debian)
+- Install uWSGI via pip
+- Expose stats port 9191 for monitoring
+- CMD changed from gunicorn to uwsgi
+
+#### Step 4: Update Deployment YAMLs
+
+Update image references and add stats port:
+
+```yaml
+# k8s/controller-deployment.yaml (partial)
+containers:
+  - name: controller
+    image: arcanacloud/arcana-cloud-controller-uwsgi:latest
+    imagePullPolicy: IfNotPresent
+    ports:
+      - name: http
+        containerPort: 5000
+        protocol: TCP
+      - name: stats           # Added for uWSGI stats
+        containerPort: 9191
+        protocol: TCP
+```
+
+#### Step 5: Create Nginx Ingress Configuration
+
+**k8s/nginx-ingress.yaml**:
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: arcana-cloud-ingress
+  namespace: arcana-cloud
+  annotations:
+    # Request size and compression
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/enable-gzip: "true"
+    nginx.ingress.kubernetes.io/gzip-types: "application/json,application/javascript,text/css,text/plain"
+
+    # Rate limiting at Nginx level
+    nginx.ingress.kubernetes.io/limit-rps: "100"
+    nginx.ingress.kubernetes.io/limit-connections: "20"
+
+    # CORS configuration
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: localhost
+    http:
+      paths:
+      - path: /api/v1
+        pathType: Prefix
+        backend:
+          service:
+            name: controller-layer
+            port:
+              number: 5000
+```
+
+#### Step 6: Build uWSGI Images
+
+Create build script **scripts/build-uwsgi-images.sh**:
+
+```bash
+#!/bin/bash
+set -e
+
+REGISTRY="${DOCKER_REGISTRY:-arcanacloud}"
+VERSION="${VERSION:-latest}"
+
+build_image() {
+    local layer=$1
+    local dockerfile=$2
+    local tag="${REGISTRY}/arcana-cloud-${layer}-uwsgi:${VERSION}"
+
+    echo "Building ${layer} layer with uWSGI..."
+    docker build -t "${tag}" -f "${dockerfile}" .
+    docker tag "${tag}" "${REGISTRY}/arcana-cloud-${layer}-uwsgi:latest"
+}
+
+build_image "repository" "Dockerfile.repository.uwsgi"
+build_image "service" "Dockerfile.service.uwsgi"
+build_image "controller" "Dockerfile.controller.uwsgi"
+```
+
+**Run the build**:
+```bash
+chmod +x scripts/build-uwsgi-images.sh
+./scripts/build-uwsgi-images.sh
+```
+
+**Output**:
+```
+========================================
+Building uWSGI Docker Images
+========================================
+Registry: arcanacloud
+Version:  latest
+Server:   uWSGI
+
+Building Repository Layer with uWSGI...
+✓ Successfully built arcanacloud/arcana-cloud-repository-uwsgi:latest
+✓ Tagged as arcanacloud/arcana-cloud-repository-uwsgi:latest
+
+Building Service Layer with uWSGI...
+✓ Successfully built arcanacloud/arcana-cloud-service-uwsgi:latest
+✓ Tagged as arcanacloud/arcana-cloud-service-uwsgi:latest
+
+Building Controller Layer with uWSGI...
+✓ Successfully built arcanacloud/arcana-cloud-controller-uwsgi:latest
+✓ Tagged as arcanacloud/arcana-cloud-controller-uwsgi:latest
+
+✓ Build completed successfully!
+```
+
+#### Step 7: Deploy Nginx Ingress
+
+```bash
+# Apply Nginx Ingress configuration
+kubectl apply -f k8s/nginx-ingress.yaml
+
+# Verify Ingress
+kubectl get ingress -n arcana-cloud
+```
+
+**Output**:
+```
+NAME                   CLASS   HOSTS       ADDRESS   PORTS   AGE
+arcana-cloud-ingress   nginx   localhost             80      1m
+```
+
+#### Step 8: Rolling Update to uWSGI
+
+```bash
+# Restart all deployments to pull new uWSGI images
+kubectl rollout restart deployment -n arcana-cloud \
+  repository-layer service-layer controller-layer
+
+# Watch rollout status
+kubectl rollout status deployment/repository-layer -n arcana-cloud
+kubectl rollout status deployment/service-layer -n arcana-cloud
+kubectl rollout status deployment/controller-layer -n arcana-cloud
+```
+
+**Output**:
+```
+deployment.apps/repository-layer restarted
+deployment.apps/service-layer restarted
+deployment.apps/controller-layer restarted
+
+Waiting for deployment "repository-layer" rollout to finish: 1 out of 2 new replicas have been updated...
+deployment "repository-layer" successfully rolled out
+deployment "service-layer" successfully rolled out
+deployment "controller-layer" successfully rolled out
+```
+
+#### Step 9: Verify Deployment
+
+```bash
+# Check all pods are running with new images
+kubectl get pods -n arcana-cloud
+
+# Test health endpoint
+kubectl port-forward -n arcana-cloud svc/controller-layer 8082:5000 &
+curl http://localhost:8082/health
+```
+
+**Output**:
+```
+NAME                                READY   STATUS    RESTARTS   AGE
+controller-layer-5cfcbbd769-5pwt2   1/1     Running   0          39s
+controller-layer-5cfcbbd769-lrt78   1/1     Running   0          23s
+controller-layer-5cfcbbd769-sfxv6   1/1     Running   0          54s
+repository-layer-f5d4f4859-j5rsb    1/1     Running   0          34s
+repository-layer-f5d4f4859-tt462    1/1     Running   0          54s
+service-layer-6d47865555-92kgs      1/1     Running   0          54s
+service-layer-6d47865555-h65bj      1/1     Running   0          39s
+service-layer-6d47865555-z6xgc      1/1     Running   0          23s
+
+{"status":"healthy"}
+```
+
+#### Performance Benefits
+
+**uWSGI vs Gunicorn Comparison**:
+
+| Feature | Gunicorn | uWSGI |
+|---------|----------|--------|
+| Worker Types | Sync, Async (gevent/eventlet) | Sync, Async, Threading |
+| Stats API | ❌ | ✅ Port 9191 |
+| Request Routing | Basic | Advanced (faster-routing) |
+| Memory Management | Basic | Advanced (reload-on-rss) |
+| Dynamic Scaling | ❌ | ✅ cheaper mode |
+| Buffer Control | Limited | Extensive |
+| Monitoring | External only | Built-in stats |
+
+**Real Results**:
+- All 8 pods running successfully with uWSGI
+- Stats endpoint available on port 9191
+- Dynamic worker scaling with cheaper algorithm
+- Memory-based worker reloading (512MB threshold)
+- Maximum 5000 requests per worker before recycling
+
+#### Monitoring uWSGI Stats
+
+```bash
+# Port-forward to stats endpoint
+kubectl port-forward -n arcana-cloud \
+  pod/controller-layer-5cfcbbd769-5pwt2 9191:9191 &
+
+# View stats (JSON format)
+curl http://localhost:9191
+```
+
+**Stats Output** (partial):
+```json
+{
+  "version": "2.0.31",
+  "workers": [
+    {
+      "id": 1,
+      "pid": 15,
+      "requests": 127,
+      "delta_requests": 3,
+      "status": "idle",
+      "rss": 98304,
+      "vsz": 245760
+    }
+  ],
+  "sockets": [
+    {
+      "name": "127.0.0.1:5000",
+      "proto": "uwsgi",
+      "queue": 0,
+      "max_queue": 0
+    }
+  ]
+}
+```
+
+#### Troubleshooting Tips
+
+1. **PCRE Library Error**:
+   - **Error**: `E: Unable to locate package libpcre3`
+   - **Solution**: Use `libpcre2-dev` instead (newer Debian versions)
+
+2. **Image Pull After Build**:
+   - **Solution**: Ensure `imagePullPolicy: IfNotPresent` in deployment YAMLs
+
+3. **Stats Port Not Accessible**:
+   - Verify port 9191 is exposed in Dockerfile
+   - Check `stats = :9191` in uwsgi.ini
+
+4. **Server Header Shows "gunicorn" Instead of uWSGI**:
+   - **Issue**: After migration, pods were still running Gunicorn images
+   - **Root Cause**: Deployment YAMLs were updated but not applied with `kubectl apply`
+   - **Solution**:
+     ```bash
+     # Apply the updated deployment configurations
+     kubectl apply -f k8s/controller-deployment.yaml
+     kubectl apply -f k8s/service-deployment.yaml
+     kubectl apply -f k8s/repository-deployment.yaml
+
+     # Wait for rollout to complete
+     kubectl rollout status deployment/controller-layer -n arcana-cloud
+
+     # Verify pods are using uWSGI images
+     kubectl get pods -n arcana-cloud -l tier=controller -o jsonpath='{.items[*].spec.containers[0].image}'
+     # Output: arcanacloud/arcana-cloud-controller-uwsgi:latest ...
+     ```
+
+5. **Service Port Not Exposing Stats Endpoint**:
+   - **Error**: `error: Service controller-layer does not have a service port 9191`
+   - **Issue**: Stats port 9191 was exposed in pods but not in the Kubernetes Service
+   - **Solution**: Add stats port to service definitions in `k8s/services.yaml`:
+     ```yaml
+     ports:
+       - name: http
+         port: 5000
+         targetPort: 5000
+         protocol: TCP
+       - name: stats
+         port: 9191
+         targetPort: 9191
+         protocol: TCP
+       - name: metrics
+         port: 9090
+         targetPort: 9090
+         protocol: TCP
+     ```
+   - **Apply the changes**:
+     ```bash
+     kubectl apply -f k8s/services.yaml
+     ```
+   - **Verify**:
+     ```bash
+     kubectl get svc controller-layer -n arcana-cloud -o yaml | grep -A 20 "ports:"
+     ```
+
+---
+
+### Step 10: Accessing uWSGI Stats Endpoint
+
+After adding the stats port to the services, you can access uWSGI monitoring information:
+
+#### Method 1: Via Service (Recommended)
+
+```bash
+# Port-forward to the service (load-balanced across all pods)
+kubectl port-forward -n arcana-cloud svc/controller-layer 9191:9191 &
+
+# Access stats endpoint
+curl http://localhost:9191
+
+# Example output:
+{
+  "version":"2.0.31",
+  "listen_queue":0,
+  "workers":[
+    {
+      "id":1,
+      "pid":7,
+      "accepting":1,
+      "requests":27,
+      "status":"idle",
+      "rss":98607104,
+      "avg_rt":881
+    },
+    ...
+  ]
+}
+```
+
+#### Method 2: Via Specific Pod
+
+```bash
+# Get pod name
+POD=$(kubectl get pods -n arcana-cloud -l tier=controller -o jsonpath='{.items[0].metadata.name}')
+
+# Port-forward to specific pod
+kubectl port-forward -n arcana-cloud pod/$POD 9191:9191 &
+
+# Access stats
+curl http://localhost:9191
+```
+
+#### Method 3: Direct Access from Within Pod
+
+```bash
+# Execute curl inside the pod
+kubectl exec -n arcana-cloud controller-layer-5bcd94888c-s7hfp -- curl -s http://localhost:9191
+```
+
+#### Stats Endpoint Information
+
+The uWSGI stats endpoint provides real-time monitoring data:
+
+- **version**: uWSGI version (2.0.31)
+- **workers**: Array of worker processes with:
+  - **id**: Worker ID
+  - **pid**: Process ID
+  - **status**: Current status (idle, busy, cheap)
+  - **requests**: Total requests handled
+  - **rss**: Memory usage (Resident Set Size)
+  - **avg_rt**: Average response time in milliseconds
+- **listen_queue**: Number of pending connections
+- **load**: Current load average
+
+---
+
 ## Summary of Key Learnings
 
 1. **imagePullPolicy Matters**: Use `IfNotPresent` for local development to avoid pulling from remote registries
@@ -1087,6 +1742,11 @@ All layers communicate using Kubernetes DNS:
 4. **Storage Classes Vary by Cluster**: Docker Desktop uses `hostpath`, cloud providers use different classes
 5. **Readiness Probes Affect Service Routing**: Pods not passing readiness checks won't receive traffic
 6. **Labels Are Powerful**: Use labels to select and manage groups of pods efficiently
+7. **Exempt Health Checks from Rate Limiting**: Health and monitoring endpoints must be exempt from rate limiting to prevent probe failures and pod restarts
+8. **PCRE Library Names Change**: Use `libpcre2-dev` for newer Debian/Ubuntu versions, not `libpcre3-dev`
+9. **uWSGI Offers Better Performance**: Advanced features like dynamic scaling, built-in stats, and better buffer management make uWSGI superior for production
+10. **Updating Deployment YAMLs Requires kubectl apply**: Simply editing deployment files doesn't update running deployments - you must run `kubectl apply` to apply changes
+11. **Service Ports Must Match Pod Ports**: Exposing a port in the Dockerfile and Deployment isn't enough - the Kubernetes Service must also expose that port for external access
 
 ---
 

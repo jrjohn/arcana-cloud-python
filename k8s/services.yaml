@@ -26,6 +26,10 @@ spec:
       port: 5000
       targetPort: 5000
       protocol: TCP
+    - name: stats
+      port: 9191
+      targetPort: 9191
+      protocol: TCP
     - name: metrics
       port: 9090
       targetPort: 9090
@@ -52,6 +56,10 @@ spec:
       port: 5001
       targetPort: 5001
       protocol: TCP
+    - name: stats
+      port: 9191
+      targetPort: 9191
+      protocol: TCP
     - name: metrics
       port: 9090
       targetPort: 9090
@@ -77,6 +85,10 @@ spec:
     - name: http
       port: 5002
       targetPort: 5002
+      protocol: TCP
+    - name: stats
+      port: 9191
+      targetPort: 9191
       protocol: TCP
     - name: metrics
       port: 9090
