@@ -31,8 +31,8 @@ This backend provides a unified API platform for multi-platform clients:
 | Platform | Repository | Technology Stack | Status |
 |----------|-----------|------------------|--------|
 | **Web** | [Arcana Angular](https://github.com/jrjohn/arcana-angular) | Angular 20.3, TypeScript, Signals | ✅ Production Ready |
-| **Android** | [Arcana Android](https://github.com/jrjohn/arcana-android) | Kotlin, Jetpack Compose, MVVM | 🚧 In Development |
-| **iOS** | [Arcana iOS](https://github.com/jrjohn/arcana-ios) | Swift, SwiftUI, Combine | 🚧 In Development |
+| **Android** | [Arcana Android](https://github.com/jrjohn/arcana-android) | Kotlin, Jetpack Compose, MVVM | ✅ Production Ready |
+| **iOS** | [Arcana iOS](https://github.com/jrjohn/arcana-ios) | Swift, SwiftUI, Combine | ✅ Production Ready |
 
 #### **Architecture Overview**
 
@@ -1152,7 +1152,12 @@ copies or substantial portions of the Software.
 
 - **Issues**: [GitHub Issues](https://github.com/jrjohn/arcana-cloud-python/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/jrjohn/arcana-cloud-python/discussions)
-- **Frontend**: [Arcana Angular](https://github.com/jrjohn/arcana-angular)
+
+### Related Repositories
+
+- **Web Frontend**: [Arcana Angular](https://github.com/jrjohn/arcana-angular)
+- **Android App**: [Arcana Android](https://github.com/jrjohn/arcana-android)
+- **iOS App**: [Arcana iOS](https://github.com/jrjohn/arcana-ios)
 
 ---
 
