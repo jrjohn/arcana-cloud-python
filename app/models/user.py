@@ -158,5 +158,20 @@ class User(db.Model):
 
         return data
 
+    def toPublicDict(self) -> dict:
+        """
+        Convert to public API dictionary (simplified format)
+
+        Returns:
+            Public API user information dictionary
+        """
+        return {
+            'id': self.id,
+            'email': self.email,
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'avatar': self.avatar_url
+        }
+
     def __repr__(self) -> str:
         return f'<User {self.username} ({self.email})>'

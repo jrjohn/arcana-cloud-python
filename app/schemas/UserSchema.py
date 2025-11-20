@@ -86,3 +86,34 @@ class ChangePasswordSchema(Schema):
             raise ValidationError('Password must contain at least one lowercase letter')
         if not any(c.isdigit() for c in value):
             raise ValidationError('Password must contain at least one digit')
+
+
+# ============================================================================
+# Public API Schemas (Simplified for public API compatibility)
+# ============================================================================
+
+class PublicUserSchema(Schema):
+    """Public API user schema (simplified)"""
+    id = fields.Int(dump_only=True)
+    email = fields.Email(required=True)
+    first_name = fields.Str(required=True)
+    last_name = fields.Str(required=True)
+    avatar = fields.Str(allow_none=True, attribute='avatar_url', data_key='avatar')
+
+
+class PublicUserCreateSchema(Schema):
+    """Public API user creation schema (simplified, no password required)"""
+    email = fields.Email(required=True)
+    first_name = fields.Str(required=True)
+    last_name = fields.Str(required=True)
+    avatar = fields.Str(allow_none=True, data_key='avatar')
+    job = fields.Str(allow_none=True)  # Allows arbitrary fields for compatibility
+
+
+class PublicUserUpdateSchema(Schema):
+    """Public API user update schema"""
+    email = fields.Email()
+    first_name = fields.Str()
+    last_name = fields.Str()
+    avatar = fields.Str()
+    job = fields.Str(allow_none=True)  # Allows arbitrary fields for compatibility

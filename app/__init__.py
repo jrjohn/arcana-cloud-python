@@ -59,10 +59,13 @@ def initialize_extensions(app: Flask) -> None:
 
 def register_blueprints(app: Flask) -> None:
     """Register blueprints"""
-    from app.controllers import auth_bp, user_bp
+    from app.controllers import auth_bp, user_bp, public_user_bp
 
     app.register_blueprint(auth_bp, url_prefix='/api/v1/auth')
     app.register_blueprint(user_bp, url_prefix='/api/v1/users')
+
+    # Register public user API (ReqRes-compatible, no authentication)
+    app.register_blueprint(public_user_bp)
 
 
 def register_error_handlers(app: Flask) -> None:

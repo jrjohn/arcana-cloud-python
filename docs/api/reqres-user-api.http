@@ -1,0 +1,256 @@
+###
+# ============================================================================
+# Public User API Tests
+# ============================================================================
+# Public User CRUD API (No Authentication Required)
+# Simple REST API for user management without authentication
+#
+# Use with VS Code REST Client extension or similar HTTP client
+# ============================================================================
+
+@baseUrl = http://localhost:5003
+@publicApiUrl = {{baseUrl}}/api/public/users
+
+### ============================================================================
+### LIST USERS (GET /api/public/users)
+### ============================================================================
+# Get list of users with pagination
+GET {{publicApiUrl}}?page=1&per_page=6
+Accept: application/json
+
+###
+# Expected Response:
+# HTTP/1.1 200 OK
+# {
+#   "data": [
+#     {
+#       "id": 1,
+#       "email": "user1@example.com",
+#       "first_name": "John",
+#       "last_name": "Doe",
+#       "avatar": "https://example.com/avatar1.jpg"
+#     }
+#   ],
+#   "page": 1,
+#   "per_page": 6,
+#   "total": 12,
+#   "total_pages": 2
+# }
+
+### ============================================================================
+### GET SINGLE USER (GET /api/public/users/:id)
+### ============================================================================
+# Get a specific user by ID
+GET {{publicApiUrl}}/1
+Accept: application/json
+
+###
+# Expected Response:
+# HTTP/1.1 200 OK
+# {
+#   "data": {
+#     "id": 1,
+#     "email": "user1@example.com",
+#     "first_name": "John",
+#     "last_name": "Doe",
+#     "avatar": "https://example.com/avatar1.jpg"
+#   }
+# }
+
+### ============================================================================
+### CREATE USER (POST /api/public/users)
+### ============================================================================
+# Create a new user
+POST {{publicApiUrl}}
+Content-Type: application/json
+
+{
+  "email": "new.user@example.com",
+  "first_name": "New",
+  "last_name": "User",
+  "avatar": "https://ui-avatars.com/api/?name=New+User&background=007bff&color=fff&size=128",
+  "job": "Developer"
+}
+
+###
+# Expected Response:
+# HTTP/1.1 201 Created
+# {
+#   "data": {
+#     "id": 29,
+#     "email": "new.user@example.com",
+#     "first_name": "New",
+#     "last_name": "User",
+#     "avatar": "https://ui-avatars.com/api/?name=New+User&background=007bff&color=fff&size=128"
+#   },
+#   "createdAt": "2025-11-20T12:34:56.789Z"
+# }
+
+### ============================================================================
+### UPDATE USER (PUT /api/public/users/:id)
+### ============================================================================
+# Update an existing user (complete replacement)
+PUT {{publicApiUrl}}/1
+Content-Type: application/json
+
+{
+  "email": "alex.chen.updated@example.com",
+  "first_name": "Alex",
+  "last_name": "Chen",
+  "avatar": "https://ui-avatars.com/api/?name=Alex+Chen&background=28a745&color=fff&size=128",
+  "job": "Senior Developer"
+}
+
+###
+# Expected Response:
+# HTTP/1.1 200 OK
+# {
+#   "data": {
+#     "id": 1,
+#     "email": "alex.chen.updated@example.com",
+#     "first_name": "Alex",
+#     "last_name": "Chen",
+#     "avatar": "https://ui-avatars.com/api/?name=Alex+Chen&background=28a745&color=fff&size=128"
+#   },
+#   "updatedAt": "2025-11-20T12:34:56.789Z"
+# }
+
+### ============================================================================
+### PARTIAL UPDATE USER (PATCH /api/public/users/:id)
+### ============================================================================
+# Partially update an existing user
+PATCH {{publicApiUrl}}/2
+Content-Type: application/json
+
+{
+  "first_name": "Maya_Updated",
+  "job": "Lead Developer"
+}
+
+###
+# Expected Response:
+# HTTP/1.1 200 OK
+# {
+#   "data": {
+#     "id": 2,
+#     "email": "maya.patel@example.com",
+#     "first_name": "Maya_Updated",
+#     "last_name": "Patel",
+#     "avatar": "https://ui-avatars.com/api/?name=Maya&background=28a745&color=fff&size=128"
+#   },
+#   "updatedAt": "2025-11-20T12:34:56.789Z"
+# }
+
+### ============================================================================
+### DELETE USER (DELETE /api/public/users/:id)
+### ============================================================================
+# Delete a user
+DELETE {{publicApiUrl}}/1
+
+###
+# Expected Response:
+# HTTP/1.1 204 No Content
+
+### ============================================================================
+### ERROR CASES
+### ============================================================================
+
+### User Not Found
+GET {{publicApiUrl}}/999999
+Accept: application/json
+
+###
+# Expected Response:
+# HTTP/1.1 404 Not Found
+# {}
+
+### Invalid Email Format
+POST {{publicApiUrl}}
+Content-Type: application/json
+
+{
+  "email": "invalid-email",
+  "first_name": "Test",
+  "last_name": "User"
+}
+
+###
+# Expected Response:
+# HTTP/1.1 400 Bad Request
+# {
+#   "error": "Validation error message"
+# }
+
+### ============================================================================
+### COMPARISON WITH AUTHENTICATED API
+### ============================================================================
+# The following endpoints provide authentication-required user management:
+# - GET    /api/v1/users           (requires admin token)
+# - GET    /api/v1/users/:id       (requires user or admin token)
+# - POST   /api/v1/users           (requires admin token, requires password)
+# - PUT    /api/v1/users/:id       (requires user or admin token)
+# - DELETE /api/v1/users/:id       (requires admin token)
+#
+# The public API endpoints (/api/public/users/*) are simplified:
+# - No authentication required
+# - No password required for user creation
+# - Simplified response format
+# - All CRUD operations work normally (GET, POST, PUT, PATCH, DELETE)
+
+### ============================================================================
+### BATCH OPERATIONS EXAMPLE
+### ============================================================================
+
+### Create Multiple Users
+# @name createUser1
+POST {{publicApiUrl}}
+Content-Type: application/json
+
+{
+  "email": "test.user1@example.com",
+  "first_name": "Test",
+  "last_name": "User1",
+  "avatar": "https://ui-avatars.com/api/?name=Test+User1&background=007bff&color=fff&size=128"
+}
+
+###
+# @name createUser2
+POST {{publicApiUrl}}
+Content-Type: application/json
+
+{
+  "email": "test.user2@example.com",
+  "first_name": "Test",
+  "last_name": "User2",
+  "avatar": "https://ui-avatars.com/api/?name=Test+User2&background=28a745&color=fff&size=128"
+}
+
+###
+# @name createUser3
+POST {{publicApiUrl}}
+Content-Type: application/json
+
+{
+  "email": "test.user3@example.com",
+  "first_name": "Test",
+  "last_name": "User3",
+  "avatar": "https://ui-avatars.com/api/?name=Test+User3&background=dc3545&color=fff&size=128"
+}
+
+### ============================================================================
+### PAGINATION TESTING
+### ============================================================================
+
+### Get First Page
+GET {{publicApiUrl}}?page=1&per_page=3
+Accept: application/json
+
+###
+### Get Second Page
+GET {{publicApiUrl}}?page=2&per_page=3
+Accept: application/json
+
+###
+### Get Large Page Size
+GET {{publicApiUrl}}?page=1&per_page=20
+Accept: application/json
