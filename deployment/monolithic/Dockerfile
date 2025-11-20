@@ -7,7 +7,7 @@
 # - Repositories (Data access)
 # ============================================================================
 
-FROM arcanacloud/arcana-cloud-base:latest as monolithic
+FROM arcanacloud/arcana-cloud-base:latest AS monolithic
 
 # Set deployment layer
 ENV DEPLOYMENT_LAYER=monolithic \
@@ -27,7 +27,7 @@ CMD ["gunicorn", \
      "--bind", "0.0.0.0:5000", \
      "--workers", "4", \
      "--threads", "2", \
-     "--worker-class", "sync", \
+     "--worker-class", "gthread", \
      "--worker-tmp-dir", "/dev/shm", \
      "--timeout", "60", \
      "--graceful-timeout", "30", \
@@ -36,4 +36,4 @@ CMD ["gunicorn", \
      "--access-logfile", "-", \
      "--error-logfile", "-", \
      "--access-logformat", "%({X-Forwarded-For}i)s %(l)s %(u)s %(t)s \"%(r)s\" %(s)s %(b)s \"%(f)s\" \"%(a)s\" %(D)s", \
-     "wsgi:application"]
+     "wsgi:app"]

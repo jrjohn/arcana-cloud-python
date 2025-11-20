@@ -5,8 +5,8 @@
 # Contains Python runtime and common dependencies
 # ============================================================================
 
-ARG PYTHON_VERSION=3.14.0
-FROM python:${PYTHON_VERSION}-slim-bullseye as base
+ARG PYTHON_VERSION=3.13
+FROM python:${PYTHON_VERSION}-slim-bullseye AS base
 
 # Build arguments
 ARG BUILD_DATE
@@ -64,11 +64,9 @@ COPY requirements.txt requirements-dev.txt ./
 
 # Install Python dependencies
 RUN pip install --upgrade pip setuptools wheel && \
-    pip install -r requirements.txt && \
+    pip install -r requirements.txt
     # Install dev dependencies for testing (optional)
-    # pip install -r requirements-dev.txt && \
-    # Clean up pip cache
-    pip cache purge
+    # pip install -r requirements-dev.txt
 
 # Copy application code
 COPY --chown=appuser:appuser . .

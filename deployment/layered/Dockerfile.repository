@@ -23,8 +23,7 @@ ENV SQLALCHEMY_POOL_SIZE=20 \
 EXPOSE 5002
 
 # Copy repository-specific entrypoint
-COPY docker/entrypoint-repository.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+COPY --chmod=755 docker/entrypoint-repository.sh /usr/local/bin/entrypoint.sh
 
 # Start Gunicorn with optimized settings for database operations
 # Fewer workers but more connections to database
@@ -43,7 +42,7 @@ CMD ["gunicorn", \
      "--access-logfile", "-", \
      "--error-logfile", "-", \
      "--statsd-host", "localhost:8125", \
-     "wsgi:application"]
+     "wsgi:app"]
 
 # Health check specific to repository layer (includes DB check)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=45s --retries=3 \

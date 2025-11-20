@@ -19,8 +19,7 @@ ENV USER_REPO_URLS=http://repository-layer:5002
 EXPOSE 5001
 
 # Copy service-specific entrypoint
-COPY docker/entrypoint-service.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+COPY --chmod=755 docker/entrypoint-service.sh /usr/local/bin/entrypoint.sh
 
 # Start Gunicorn with optimized settings for business logic processing
 CMD ["gunicorn", \
@@ -38,7 +37,7 @@ CMD ["gunicorn", \
      "--access-logfile", "-", \
      "--error-logfile", "-", \
      "--statsd-host", "localhost:8125", \
-     "wsgi:application"]
+     "wsgi:app"]
 
 # Health check specific to service layer
 HEALTHCHECK --interval=20s --timeout=5s --start-period=30s --retries=3 \

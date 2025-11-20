@@ -7,6 +7,9 @@
 - [Common Kubernetes Commands](#common-kubernetes-commands)
 - [Troubleshooting Guide](#troubleshooting-guide)
 - [Architecture](#architecture)
+- [Performance Optimization: uWSGI Migration](#performance-optimization-uwsgi-migration-with-nginx-ingress)
+- [SSL/TLS Configuration](#ssltls-configuration-with-kubernetes)
+- [Summary of Key Learnings](#summary-of-key-learnings)
 
 ---
 
@@ -1731,6 +1734,466 @@ The uWSGI stats endpoint provides real-time monitoring data:
   - **avg_rt**: Average response time in milliseconds
 - **listen_queue**: Number of pending connections
 - **load**: Current load average
+
+---
+
+## SSL/TLS Configuration with Kubernetes
+
+### Overview
+
+This section covers enabling SSL/TLS for the Arcana Cloud application in Kubernetes using Nginx Ingress with certificate management.
+
+### Step 1: Generate SSL Certificates
+
+For development and testing, use self-signed certificates:
+
+```bash
+# Generate self-signed certificate for localhost
+./scripts/generate-ssl-certs.sh
+
+# Generate certificate for custom domain
+./scripts/generate-ssl-certs.sh --domain api.arcana-cloud.com --days 365
+```
+
+**Output:**
+```
+========================================
+SSL Certificate Generated Successfully!
+========================================
+
+Files created in: ./nginx/ssl
+  - key.pem  (Private key)
+  - cert.pem (Certificate)
+  - csr.pem  (Certificate signing request)
+
+Certificate valid for: 365 days
+```
+
+### Step 2: Create Kubernetes TLS Secret
+
+```bash
+# Create namespace if it doesn't exist
+kubectl create namespace arcana-cloud
+
+# Create TLS secret from certificate files
+kubectl create secret tls arcana-cloud-tls \
+  --cert=nginx/ssl/cert.pem \
+  --key=nginx/ssl/key.pem \
+  -n arcana-cloud
+
+# Verify secret creation
+kubectl get secret arcana-cloud-tls -n arcana-cloud
+```
+
+**Expected Output:**
+```
+NAME                TYPE                DATA   AGE
+arcana-cloud-tls   kubernetes.io/tls   2      5s
+```
+
+**Verify Secret Contents:**
+```bash
+kubectl describe secret arcana-cloud-tls -n arcana-cloud
+```
+
+**Output:**
+```
+Name:         arcana-cloud-tls
+Namespace:    arcana-cloud
+Labels:       <none>
+Annotations:  <none>
+
+Type:  kubernetes.io/tls
+
+Data
+====
+tls.crt:  1180 bytes
+tls.key:  1704 bytes
+```
+
+### Step 3: Install Nginx Ingress Controller
+
+```bash
+# Install Nginx Ingress Controller
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
+
+# Wait for controller to be ready
+kubectl wait --namespace ingress-nginx \
+  --for=condition=ready pod \
+  --selector=app.kubernetes.io/component=controller \
+  --timeout=120s
+
+# Verify installation
+kubectl get pods -n ingress-nginx
+```
+
+**Expected Output:**
+```
+NAME                                        READY   STATUS    RESTARTS   AGE
+ingress-nginx-controller-5bb6b499dc-xxxxx   1/1     Running   0          60s
+```
+
+### Step 4: Deploy Application with SSL-Enabled Ingress
+
+The `k8s/nginx-ingress.yaml` is pre-configured with SSL/TLS settings:
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: arcana-cloud-ingress
+  namespace: arcana-cloud
+  annotations:
+    # SSL Redirect
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
+    # SSL Configuration
+    nginx.ingress.kubernetes.io/ssl-protocols: "TLSv1.2 TLSv1.3"
+    nginx.ingress.kubernetes.io/ssl-ciphers: "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384"
+
+    # HSTS Headers
+    nginx.ingress.kubernetes.io/hsts: "true"
+    nginx.ingress.kubernetes.io/hsts-max-age: "31536000"
+    nginx.ingress.kubernetes.io/hsts-include-subdomains: "true"
+    nginx.ingress.kubernetes.io/hsts-preload: "true"
+
+    # Rate Limiting
+    nginx.ingress.kubernetes.io/limit-rps: "100"
+    nginx.ingress.kubernetes.io/limit-connections: "20"
+
+    # CORS
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - localhost
+    - api.arcana-cloud.com
+    secretName: arcana-cloud-tls
+  rules:
+  - host: localhost
+    http:
+      paths:
+      - path: /api/v1
+        pathType: Prefix
+        backend:
+          service:
+            name: controller-layer
+            port:
+              number: 5000
+```
+
+Apply the Ingress configuration:
+
+```bash
+# Deploy SSL-enabled Ingress
+kubectl apply -f k8s/nginx-ingress.yaml
+
+# Verify Ingress creation
+kubectl get ingress -n arcana-cloud
+```
+
+**Expected Output:**
+```
+NAME                   CLASS   HOSTS                           ADDRESS     PORTS     AGE
+arcana-cloud-ingress   nginx   localhost,api.arcana-cloud.com  localhost   80, 443   10s
+```
+
+### Step 5: Verify SSL Configuration
+
+```bash
+# Check Ingress details
+kubectl describe ingress arcana-cloud-ingress -n arcana-cloud
+
+# Port forward to Ingress controller
+kubectl port-forward -n ingress-nginx svc/ingress-nginx-controller 8443:443
+
+# Test HTTPS endpoint (in another terminal)
+curl -k https://localhost:8443/health
+```
+
+**Expected Response:**
+```json
+{
+  "status": "healthy",
+  "timestamp": "2025-11-20T10:30:00Z"
+}
+```
+
+**Verify SSL Certificate:**
+```bash
+# Check certificate details
+openssl s_client -connect localhost:8443 -servername localhost
+
+# Test TLS versions
+curl --tlsv1.2 -k https://localhost:8443/health
+curl --tlsv1.3 -k https://localhost:8443/health
+
+# Verify HSTS headers
+curl -I https://localhost:8443/health | grep Strict-Transport-Security
+```
+
+**Expected HSTS Header:**
+```
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+```
+
+### Step 6: Production Setup with Let's Encrypt
+
+For production, use cert-manager with Let's Encrypt:
+
+#### Install cert-manager
+
+```bash
+# Install cert-manager
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.0/cert-manager.yaml
+
+# Verify installation
+kubectl get pods -n cert-manager
+```
+
+#### Create Let's Encrypt ClusterIssuer
+
+Create `k8s/letsencrypt-issuer.yaml`:
+
+```yaml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: your-email@example.com  # Replace with your email
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    solvers:
+    - http01:
+        ingress:
+          class: nginx
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-staging
+spec:
+  acme:
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    email: your-email@example.com  # Replace with your email
+    privateKeySecretRef:
+      name: letsencrypt-staging
+    solvers:
+    - http01:
+        ingress:
+          class: nginx
+```
+
+Apply the ClusterIssuer:
+
+```bash
+kubectl apply -f k8s/letsencrypt-issuer.yaml
+```
+
+#### Update Ingress for cert-manager
+
+Modify the Ingress annotations to use cert-manager:
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: arcana-cloud-ingress
+  namespace: arcana-cloud
+  annotations:
+    # cert-manager annotations
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    acme.cert-manager.io/http01-edit-in-place: "true"
+
+    # Keep existing Nginx annotations...
+spec:
+  tls:
+  - hosts:
+    - api.arcana-cloud.com
+    secretName: arcana-cloud-tls-prod  # cert-manager will create this
+  rules:
+  - host: api.arcana-cloud.com
+    # ... rest of configuration
+```
+
+#### Monitor Certificate Creation
+
+```bash
+# Watch certificate creation
+kubectl get certificate -n arcana-cloud -w
+
+# Check certificate details
+kubectl describe certificate arcana-cloud-tls-prod -n arcana-cloud
+
+# View certificate request
+kubectl get certificaterequest -n arcana-cloud
+
+# Check for any issues
+kubectl get challenges -n arcana-cloud
+```
+
+**Expected Certificate Status:**
+```
+NAME                      READY   SECRET                    AGE
+arcana-cloud-tls-prod    True    arcana-cloud-tls-prod     2m
+```
+
+### SSL Configuration Details
+
+#### Security Headers
+
+The Ingress configuration includes several security headers:
+
+1. **HSTS (HTTP Strict Transport Security)**
+   - `max-age=31536000`: 1 year duration
+   - `includeSubDomains`: Apply to all subdomains
+   - `preload`: Eligible for browser preload list
+
+2. **TLS Configuration**
+   - **Protocols**: TLSv1.2, TLSv1.3 only
+   - **Cipher Suites**: Modern, secure ciphers (ECDHE-ECDSA-AES128-GCM-SHA256, etc.)
+
+3. **Rate Limiting**
+   - 100 requests per second for API endpoints
+   - 20 concurrent connections per IP
+
+4. **CORS**
+   - Enabled for cross-origin requests
+   - Configurable allowed methods and headers
+
+### Troubleshooting SSL Issues
+
+#### Issue 1: Certificate Not Trusted
+
+**Problem:** Browser shows "Your connection is not private"
+
+**Solution for Development:**
+```bash
+# Use -k flag to skip certificate verification
+curl -k https://localhost:8443/health
+```
+
+**Solution for Production:**
+- Verify Let's Encrypt certificate was issued successfully
+- Check certificate details:
+  ```bash
+  kubectl describe certificate arcana-cloud-tls-prod -n arcana-cloud
+  ```
+
+#### Issue 2: cert-manager Certificate Not Issuing
+
+**Problem:** Certificate stuck in "Pending" state
+
+**Solution:**
+```bash
+# Check cert-manager logs
+kubectl logs -n cert-manager deployment/cert-manager -f
+
+# Verify ACME challenge
+kubectl get challenges -n arcana-cloud
+kubectl describe challenge <challenge-name> -n arcana-cloud
+
+# Ensure domain points to cluster
+nslookup api.arcana-cloud.com
+
+# Test ACME challenge endpoint
+curl http://api.arcana-cloud.com/.well-known/acme-challenge/test
+```
+
+#### Issue 3: SSL Handshake Failure
+
+**Problem:** `SSL_ERROR_RX_RECORD_TOO_LONG` or handshake errors
+
+**Solution:**
+```bash
+# Test SSL connection
+openssl s_client -connect api.arcana-cloud.com:443 -servername api.arcana-cloud.com
+
+# Test specific TLS versions
+curl --tlsv1.2 https://api.arcana-cloud.com/health
+curl --tlsv1.3 https://api.arcana-cloud.com/health
+
+# Check Ingress controller logs
+kubectl logs -n ingress-nginx deployment/ingress-nginx-controller
+```
+
+#### Issue 4: HSTS Issues
+
+**Problem:** Cannot access HTTP after enabling HSTS
+
+**Solution:**
+- Clear HSTS cache in browser:
+  - Chrome: `chrome://net-internals/#hsts` → Delete domain
+  - Firefox: Clear browsing history → Clear Active Logins
+
+- For testing, reduce HSTS max-age:
+  ```yaml
+  nginx.ingress.kubernetes.io/hsts-max-age: "300"  # 5 minutes
+  ```
+
+### SSL Best Practices
+
+1. **Development vs Production**
+   - Development: Use self-signed certificates
+   - Production: Use Let's Encrypt with cert-manager
+
+2. **Certificate Rotation**
+   - Let's Encrypt certificates auto-renew 30 days before expiry
+   - Self-signed certificates: Regenerate before expiration
+
+3. **Security Recommendations**
+   - Use TLSv1.2 and TLSv1.3 only (disable older protocols)
+   - Use modern cipher suites (ECDHE-based)
+   - Enable HSTS with preload
+   - Implement rate limiting
+   - Use security headers (CSP, X-Frame-Options, etc.)
+
+4. **Monitoring**
+   - Monitor certificate expiration dates
+   - Check cert-manager logs for renewal issues
+   - Test SSL configuration regularly
+
+### Quick Reference Commands
+
+```bash
+# Generate SSL certificate
+./scripts/generate-ssl-certs.sh --domain api.arcana-cloud.com
+
+# Create TLS secret
+kubectl create secret tls arcana-cloud-tls \
+  --cert=nginx/ssl/cert.pem \
+  --key=nginx/ssl/key.pem \
+  -n arcana-cloud
+
+# Deploy SSL-enabled Ingress
+kubectl apply -f k8s/nginx-ingress.yaml
+
+# Verify SSL
+kubectl describe ingress arcana-cloud-ingress -n arcana-cloud
+
+# Test HTTPS
+kubectl port-forward -n ingress-nginx svc/ingress-nginx-controller 8443:443 &
+curl -k https://localhost:8443/health
+
+# Monitor certificates
+kubectl get certificate -n arcana-cloud
+kubectl describe certificate arcana-cloud-tls-prod -n arcana-cloud
+
+# Update TLS secret
+kubectl delete secret arcana-cloud-tls -n arcana-cloud
+kubectl create secret tls arcana-cloud-tls \
+  --cert=nginx/ssl/cert.pem \
+  --key=nginx/ssl/key.pem \
+  -n arcana-cloud
+```
+
+> 📖 **For more SSL configuration details**, see [docs/SSL_SETUP.md](SSL_SETUP.md)
 
 ---
 

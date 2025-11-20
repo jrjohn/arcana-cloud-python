@@ -5,26 +5,23 @@
 # Separate containers for Controller, Service, and Repository layers
 # ============================================================================
 
-version: '3.8'
-
 services:
   # ============================================================================
   # Controller Layer (API Gateway)
   # ============================================================================
   controller-layer:
     build:
-      context: .
-      dockerfile: docker/Dockerfile.controller
+      context: ../..
+      dockerfile: deployment/layered/Dockerfile.controller
       args:
-        PYTHON_VERSION: 3.14.0
+        PYTHON_VERSION: 3.13
         BUILD_DATE: ${BUILD_DATE:-2025-01-01}
         VCS_REF: ${GIT_COMMIT:-main}
         VERSION: ${VERSION:-1.0.0}
     image: arcanacloud/arcana-cloud-controller:${VERSION:-latest}
-    container_name: arcana-cloud-controller
     restart: unless-stopped
     ports:
-      - "5000:5000"
+      - "5003:5000"  # Changed to 5003 to avoid macOS AirPlay conflict
     environment:
       # Flask Configuration
       FLASK_ENV: ${FLASK_ENV:-production}
@@ -72,22 +69,21 @@ services:
         reservations:
           cpus: '0.25'
           memory: 256M
-      replicas: 2
+      # replicas: 2  # Commented for testing - use single instance
 
   # ============================================================================
   # Service Layer (Business Logic)
   # ============================================================================
   service-layer:
     build:
-      context: .
-      dockerfile: docker/Dockerfile.service
+      context: ../..
+      dockerfile: deployment/layered/Dockerfile.service
       args:
-        PYTHON_VERSION: 3.14.0
+        PYTHON_VERSION: 3.13
         BUILD_DATE: ${BUILD_DATE:-2025-01-01}
         VCS_REF: ${GIT_COMMIT:-main}
         VERSION: ${VERSION:-1.0.0}
     image: arcanacloud/arcana-cloud-service:${VERSION:-latest}
-    container_name: arcana-cloud-service
     restart: unless-stopped
     ports:
       - "5001:5001"
@@ -138,22 +134,21 @@ services:
         reservations:
           cpus: '0.3'
           memory: 384M
-      replicas: 2
+      # replicas: 2  # Commented for testing - use single instance
 
   # ============================================================================
   # Repository Layer (Data Access)
   # ============================================================================
   repository-layer:
     build:
-      context: .
-      dockerfile: docker/Dockerfile.repository
+      context: ../..
+      dockerfile: deployment/layered/Dockerfile.repository
       args:
-        PYTHON_VERSION: 3.14.0
+        PYTHON_VERSION: 3.13
         BUILD_DATE: ${BUILD_DATE:-2025-01-01}
         VCS_REF: ${GIT_COMMIT:-main}
         VERSION: ${VERSION:-1.0.0}
     image: arcanacloud/arcana-cloud-repository:${VERSION:-latest}
-    container_name: arcana-cloud-repository
     restart: unless-stopped
     ports:
       - "5002:5002"
@@ -207,19 +202,18 @@ services:
         reservations:
           cpus: '0.4'
           memory: 512M
-      replicas: 2
+      # replicas: 2  # Commented for testing - use single instance
 
   # ============================================================================
   # Celery Worker
   # ============================================================================
   celery-worker:
     build:
-      context: .
-      dockerfile: docker/Dockerfile.service
+      context: ../..
+      dockerfile: deployment/layered/Dockerfile.service
     image: arcanacloud/arcana-cloud-service:${VERSION:-latest}
-    container_name: arcana-cloud-celery-worker
     restart: unless-stopped
-    command: celery -A app.tasks.CeleryWorker:celery worker --loglevel=info --concurrency=4
+    command: celery -A app.tasks.CeleryWorker:celery_app worker --loglevel=info --concurrency=4
     environment:
       FLASK_ENV: ${FLASK_ENV:-production}
       SECRET_KEY: ${SECRET_KEY:-change-this-in-production}
@@ -250,7 +244,6 @@ services:
   # ============================================================================
   mysql:
     image: mysql:8.0
-    container_name: arcana-cloud-mysql
     restart: unless-stopped
     ports:
       - "3306:3306"
@@ -283,11 +276,10 @@ services:
   # ============================================================================
   redis:
     image: redis:7.0-alpine
-    container_name: arcana-cloud-redis
     restart: unless-stopped
     ports:
       - "6379:6379"
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    command: redis-server --appendonly yes
     networks:
       - arcana-network
     volumes:
@@ -307,29 +299,28 @@ services:
           memory: 256M
 
   # ============================================================================
-  # Nginx Load Balancer
+  # Nginx Load Balancer (disabled for testing)
   # ============================================================================
-  nginx:
-    image: nginx:alpine
-    container_name: arcana-cloud-nginx
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx-layered.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
-      - nginx-logs:/var/log/nginx
-    depends_on:
-      - controller-layer
-    networks:
-      - arcana-network
-    healthcheck:
-      test: ["CMD", "nginx", "-t"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+  # nginx:
+  #   image: nginx:alpine
+  #   restart: unless-stopped
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx/nginx-layered.conf:/etc/nginx/nginx.conf:ro
+  #     - ./nginx/conf.d:/etc/nginx/conf.d:ro
+  #     - ./nginx/ssl:/etc/nginx/ssl:ro
+  #     - nginx-logs:/var/log/nginx
+  #   depends_on:
+  #     - controller-layer
+  #   networks:
+  #     - arcana-network
+  #   healthcheck:
+  #     test: ["CMD", "nginx", "-t"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
 
 # ============================================================================
 # Networks

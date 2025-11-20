@@ -20,8 +20,7 @@ ENV USER_SERVICE_URLS=http://service-layer:5001 \
 EXPOSE 5000
 
 # Copy controller-specific entrypoint
-COPY docker/entrypoint-controller.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+COPY --chmod=755 docker/entrypoint-controller.sh /usr/local/bin/entrypoint.sh
 
 # Start Gunicorn with optimized settings for API gateway
 CMD ["gunicorn", \
@@ -39,7 +38,7 @@ CMD ["gunicorn", \
      "--access-logfile", "-", \
      "--error-logfile", "-", \
      "--statsd-host", "localhost:8125", \
-     "wsgi:application"]
+     "wsgi:app"]
 
 # Health check specific to controller
 HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=3 \

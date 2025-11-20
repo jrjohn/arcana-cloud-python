@@ -1,6 +1,6 @@
 # Arcana Cloud Python - Enterprise Flask RESTful API Platform
 
-[![Python Version](https://img.shields.io/badge/python-3.14.0-blue.svg)](https://www.python.org/downloads/)
+[![Python Version](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/)
 [![Flask Version](https://img.shields.io/badge/flask-3.1.0-green.svg)](https://flask.palletsprojects.com/)
 [![Architecture](https://img.shields.io/badge/architecture-microservices-orange.svg)]()
 [![Test Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen.svg)]()
@@ -18,7 +18,7 @@ Enterprise-grade RESTful API cloud platform with full-stack integration for [Arc
 
 **Exceptional Characteristics:**
 - ✅ **Clean Architecture** - 3-layer separation (Controller/Service/Repository) with interface-driven design
-- ✅ **Type Safety** - Full type hints with Python 3.14, mypy-compliant
+- ✅ **Type Safety** - Full type hints with Python 3.13, mypy-compliant
 - ✅ **Modern Patterns** - lowerCamelCase methods, UpperCamelCase classes, no Hungarian notation
 - ✅ **Configuration-Driven Deployment** - Single YAML defines entire deployment topology
 - ✅ **Comprehensive Testing** - 250+ tests with 85-90% coverage
@@ -63,7 +63,7 @@ This backend provides a unified API platform for multi-platform clients:
                                  │
 ┌────────────────────────────────▼────────────────────────────────────────┐
 │                    Arcana Cloud Python Backend                          │
-│  Flask 3.1.2 | Python 3.14 | Microservices Architecture                │
+│  Flask 3.1.2 | Python 3.13 | Microservices Architecture                │
 │  - Interface-Implementation Pattern (Clean Architecture)                │
 │  - OAuth2 + JWT Authentication (Access + Refresh Tokens)                │
 │  - 250+ Tests (85-90% coverage)                                         │
@@ -82,7 +82,7 @@ This backend provides a unified API platform for multi-platform clients:
 ## 📋 Technology Stack
 
 ### Core Framework
-- **Python**: 3.14.0 (latest stable)
+- **Python**: 3.13 (stable)
 - **Flask**: 3.1.0 with Application Factory pattern
 - **SQLAlchemy**: 2.0.35 (ORM with type hints)
 - **Marshmallow**: 3.22.0 (schema validation)
@@ -143,8 +143,8 @@ make dev
 ### Method 2: Manual Setup
 
 ```bash
-# 1. Create virtual environment (Python 3.14+)
-python3.14 -m venv venv
+# 1. Create virtual environment (Python 3.13+)
+python3.13 -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 
 # 2. Install dependencies
@@ -167,18 +167,19 @@ python wsgi.py
 ### Method 3: Docker (Instant Deployment)
 
 ```bash
-# Monolithic mode (single container)
+# Monolithic mode (single container) - Best for development
+cd deployment/monolithic
 docker-compose up -d
 
-# Layered mode (Controller/Service/Repository separation)
-docker-compose -f docker-compose.layered.yml up -d
+# Layered mode (Controller/Service/Repository separation) - Best for production
+cd deployment/layered
+docker-compose up -d
 
-# Microservices mode (fine-grained services)
-docker-compose -f docker-compose.microservices.yml up -d
+# Kubernetes mode (full orchestration) - Best for enterprise
+cd deployment/kubernetes
+kubectl apply -f .
 
-# Production mode with Nginx SSL proxy + uWSGI
-./scripts/generate-ssl-certs.sh  # Generate SSL certificates
-docker-compose -f docker-compose-nginx-ssl.yml up -d
+# See deployment/ directory for detailed instructions
 ```
 
 ---
@@ -251,58 +252,75 @@ arcana-cloud-python/
 │       ├── test_api/                 # API endpoint tests
 │       └── test_complete_user_flow.py # Full workflow tests
 │
-├── docker/                           # Docker Configuration
-│   ├── Dockerfile.base               # Base image (Python 3.14)
-│   ├── Dockerfile.monolithic         # Single container deployment
-│   ├── Dockerfile.controller         # Controller layer image
-│   ├── Dockerfile.service            # Service layer image
-│   ├── Dockerfile.repository         # Repository layer image
+├── deployment/                       # Deployment Configurations
+│   ├── monolithic/                   # Monolithic mode (single container)
+│   │   ├── Dockerfile                # Monolithic Dockerfile
+│   │   ├── docker-compose.yml        # Monolithic compose config
+│   │   ├── build-images.sh           # Build automation script
+│   │   ├── verify-monolithic-mode.sh # Health check script
+│   │   └── README.md                 # Monolithic deployment guide
+│   ├── layered/                      # Layered mode (3-layer separation)
+│   │   ├── Dockerfile.controller     # Controller layer Dockerfile
+│   │   ├── Dockerfile.service        # Service layer Dockerfile
+│   │   ├── Dockerfile.repository     # Repository layer Dockerfile
+│   │   ├── docker-compose.yml        # Layered compose config
+│   │   ├── build-images.sh           # Build automation script
+│   │   ├── verify-layered-mode.sh    # Health check script
+│   │   └── README.md                 # Layered deployment guide
+│   ├── kubernetes/                   # Kubernetes manifests
+│   │   ├── namespace.yaml            # Namespace definition
+│   │   ├── configmap.yaml            # Configuration data
+│   │   ├── secrets.yaml              # Sensitive data (template)
+│   │   ├── *-deployment.yaml         # Deployment manifests
+│   │   ├── services.yaml             # K8s services
+│   │   ├── ingress.yaml              # Nginx ingress with TLS
+│   │   ├── hpa.yaml                  # Horizontal Pod Autoscaler
+│   │   ├── build-images.sh           # Build automation script
+│   │   ├── test-k8s-manifests.sh     # K8s manifest testing
+│   │   └── README.md                 # Kubernetes deployment guide
+│   ├── deployment-config.yaml        # Master deployment configuration
+│   ├── docker-compose-nginx-ssl.yml  # Nginx SSL proxy + uWSGI mode
+│   ├── docker-compose.microservices.yml # Microservices mode compose
+│   ├── README.md                     # Deployment modes overview
+│   └── STRUCTURE.md                  # Directory structure documentation
+│
+├── docker/                           # Docker Base Configuration
+│   ├── Dockerfile.base               # Base image (Python 3.13)
 │   ├── healthcheck.sh                # Health check script
 │   └── entrypoint-*.sh               # Layer-specific entrypoints
 │
-├── k8s/                              # Kubernetes Manifests
-│   ├── namespace.yaml                # Namespace definition
-│   ├── configmap.yaml                # Configuration data
-│   ├── secrets.yaml                  # Sensitive data (template)
-│   ├── controller-deployment.yaml    # Controller pods
-│   ├── service-deployment.yaml       # Service pods
-│   ├── repository-deployment.yaml    # Repository pods
-│   ├── services.yaml                 # K8s services (ClusterIP, LoadBalancer)
-│   ├── ingress.yaml                  # Nginx ingress with TLS
-│   ├── hpa.yaml                      # Horizontal Pod Autoscaler
-│   ├── pvc.yaml                      # Persistent volume claims
-│   └── rbac.yaml                     # Role-based access control
+├── config/                           # Configuration Files
+│   └── uwsgi/                        # uWSGI configurations
+│       ├── uwsgi-controller.ini      # Controller uWSGI config
+│       ├── uwsgi-service.ini         # Service uWSGI config
+│       └── uwsgi-repository.ini      # Repository uWSGI config
 │
-├── nginx/                            # Nginx Configuration
+├── nginx/                            # Nginx Configuration & Scripts
 │   ├── nginx-uwsgi-ssl.conf          # SSL/TLS reverse proxy config
-│   └── ssl/                          # SSL certificates (generated)
-│       ├── cert.pem                  # SSL certificate
-│       ├── key.pem                   # Private key
-│       └── csr.pem                   # Certificate signing request
+│   ├── ssl/                          # SSL certificates (generated)
+│   ├── generate-ssl-certs.sh         # Generate SSL certificates
+│   ├── test-docker-ssl.sh            # Docker SSL testing
+│   └── verify-docker-ssl.sh          # Docker SSL verification
 │
-├── scripts/                          # Deployment Scripts
-│   ├── deploy.py                     # Python deployment manager
-│   ├── build.sh                      # Docker build automation
-│   ├── build-uwsgi-images.sh         # Build uWSGI Docker images
-│   └── generate-ssl-certs.sh         # Generate SSL certificates
+├── scripts/                          # Cross-cutting Utility Scripts
+│   ├── deploy.py                     # Python deployment manager (all modes)
+│   ├── build.sh                      # Master build script
+│   └── build-uwsgi-images.sh         # Build uWSGI Docker images
 │
 ├── docs/                             # Documentation
+│   ├── api/                          # API Documentation
+│   │   └── api-test.http             # API test requests (REST Client)
 │   ├── DEPLOYMENT.md                 # Comprehensive deployment guide
 │   ├── KUBERNETES_DEPLOYMENT.md      # Kubernetes deployment guide
 │   ├── SSL_SETUP.md                  # SSL/TLS setup guide
 │   └── ARCHITECTURE.md               # Architecture documentation
 │
-├── deployment-config.yaml            # Master deployment configuration
-├── docker-compose.yml                # Monolithic mode compose
-├── docker-compose.layered.yml        # Layered mode compose
-├── docker-compose.microservices.yml  # Microservices mode compose
-├── docker-compose-nginx-ssl.yml      # Nginx SSL proxy + uWSGI mode
 ├── Makefile                          # 40+ convenience commands
 ├── requirements.txt                  # Production dependencies
 ├── requirements-dev.txt              # Development dependencies
+├── pytest.ini                        # pytest configuration
 ├── wsgi.py                           # WSGI application entry point
 ├── .env.example                      # Environment variables template
-├── DEPLOYMENT.md                     # Comprehensive deployment guide (596 lines)
 └── README.md                         # This file
 ```
 
@@ -343,7 +361,7 @@ class UserServiceImpl(UserService):
 
 ### 2. Configuration-Driven Deployment
 
-Single file (`deployment-config.yaml`) defines entire deployment topology:
+Single file ([`deployment/deployment-config.yaml`](deployment/deployment-config.yaml)) defines entire deployment topology:
 
 ```yaml
 deployment:
@@ -1335,7 +1353,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.14'
+          python-version: '3.13'
 
       - name: Install dependencies
         run: |
@@ -1561,4 +1579,4 @@ copies or substantial portions of the Software.
 
 ---
 
-**Built with ❤️ using Flask, Python 3.14, and modern cloud-native practices**
+**Built with ❤️ using Flask, Python 3.13, and modern cloud-native practices**
