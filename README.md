@@ -175,6 +175,10 @@ docker-compose -f docker-compose.layered.yml up -d
 
 # Microservices mode (fine-grained services)
 docker-compose -f docker-compose.microservices.yml up -d
+
+# Production mode with Nginx SSL proxy + uWSGI
+./scripts/generate-ssl-certs.sh  # Generate SSL certificates
+docker-compose -f docker-compose-nginx-ssl.yml up -d
 ```
 
 ---
@@ -269,14 +273,30 @@ arcana-cloud-python/
 │   ├── pvc.yaml                      # Persistent volume claims
 │   └── rbac.yaml                     # Role-based access control
 │
+├── nginx/                            # Nginx Configuration
+│   ├── nginx-uwsgi-ssl.conf          # SSL/TLS reverse proxy config
+│   └── ssl/                          # SSL certificates (generated)
+│       ├── cert.pem                  # SSL certificate
+│       ├── key.pem                   # Private key
+│       └── csr.pem                   # Certificate signing request
+│
 ├── scripts/                          # Deployment Scripts
 │   ├── deploy.py                     # Python deployment manager
-│   └── build.sh                      # Docker build automation
+│   ├── build.sh                      # Docker build automation
+│   ├── build-uwsgi-images.sh         # Build uWSGI Docker images
+│   └── generate-ssl-certs.sh         # Generate SSL certificates
+│
+├── docs/                             # Documentation
+│   ├── DEPLOYMENT.md                 # Comprehensive deployment guide
+│   ├── KUBERNETES_DEPLOYMENT.md      # Kubernetes deployment guide
+│   ├── SSL_SETUP.md                  # SSL/TLS setup guide
+│   └── ARCHITECTURE.md               # Architecture documentation
 │
 ├── deployment-config.yaml            # Master deployment configuration
 ├── docker-compose.yml                # Monolithic mode compose
 ├── docker-compose.layered.yml        # Layered mode compose
 ├── docker-compose.microservices.yml  # Microservices mode compose
+├── docker-compose-nginx-ssl.yml      # Nginx SSL proxy + uWSGI mode
 ├── Makefile                          # 40+ convenience commands
 ├── requirements.txt                  # Production dependencies
 ├── requirements-dev.txt              # Development dependencies
@@ -1014,6 +1034,153 @@ kubectl rollout undo deployment/controller-layer -n arcana-cloud
 ```
 
 > 📖 **For detailed uWSGI migration guide**, see [docs/KUBERNETES_DEPLOYMENT.md - Performance Optimization: uWSGI Migration](docs/KUBERNETES_DEPLOYMENT.md#performance-optimization-uwsgi-migration-with-nginx-ingress)
+
+---
+
+## 🔒 SSL/TLS Configuration
+
+### Production-Ready Security
+
+The application supports enterprise-grade SSL/TLS configuration for both Docker Compose and Kubernetes deployments with Nginx reverse proxy.
+
+### Quick Start: SSL with Docker Compose
+
+```bash
+# 1. Generate self-signed certificates (development)
+./scripts/generate-ssl-certs.sh
+
+# 2. Start services with Nginx SSL proxy
+docker-compose -f docker-compose-nginx-ssl.yml up -d
+
+# 3. Test HTTPS endpoint
+curl -k https://localhost/api/v1/health
+```
+
+### SSL Features
+
+| Feature | Configuration | Description |
+|---------|--------------|-------------|
+| **TLS Protocols** | TLSv1.2, TLSv1.3 | Modern protocol support only |
+| **Cipher Suites** | ECDHE-ECDSA-AES128-GCM-SHA256+ | Strong encryption algorithms |
+| **HSTS** | 31536000s (1 year) | Enforce HTTPS with preload |
+| **OCSP Stapling** | Enabled | Faster certificate validation |
+| **Rate Limiting** | 100 req/s API, 5 req/s login | Per-IP protection |
+| **Security Headers** | CSP, X-Frame-Options, etc. | XSS and clickjacking protection |
+
+### SSL Certificate Generation
+
+**Development (Self-Signed):**
+```bash
+# Default (localhost)
+./scripts/generate-ssl-certs.sh
+
+# Custom domain
+./scripts/generate-ssl-certs.sh --domain api.arcana-cloud.com --days 365
+
+# Output: nginx/ssl/cert.pem, nginx/ssl/key.pem
+```
+
+**Production (Let's Encrypt):**
+```bash
+# 1. Install cert-manager in Kubernetes
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.0/cert-manager.yaml
+
+# 2. Create ClusterIssuer (see docs/SSL_SETUP.md)
+kubectl apply -f k8s/letsencrypt-issuer.yaml
+
+# 3. Deploy application with SSL
+kubectl apply -f k8s/nginx-ingress.yaml
+
+# Certificate automatically issued and renewed
+```
+
+### Docker Compose SSL Deployment
+
+The `docker-compose-nginx-ssl.yml` includes:
+
+- **Nginx SSL Proxy**: HTTP to HTTPS redirect, TLS termination
+- **uWSGI Backend**: High-performance application servers
+- **Rate Limiting**: API and login endpoint protection
+- **CORS**: Configurable cross-origin support
+- **Gzip**: Response compression
+- **Health Checks**: Automated service monitoring
+
+**Architecture:**
+```
+Client (HTTPS) → Nginx SSL Proxy (443) → uWSGI (5000, 5001, 5002) → MySQL/Redis
+                    ↓ (HTTP redirect)
+Client (HTTP:80)  →
+```
+
+### Kubernetes SSL Deployment
+
+```bash
+# 1. Generate certificates
+./scripts/generate-ssl-certs.sh --domain api.arcana-cloud.com
+
+# 2. Create TLS secret
+kubectl create secret tls arcana-cloud-tls \
+  --cert=nginx/ssl/cert.pem \
+  --key=nginx/ssl/key.pem \
+  -n arcana-cloud
+
+# 3. Deploy with SSL-enabled Ingress
+kubectl apply -f k8s/nginx-ingress.yaml
+
+# 4. Verify SSL
+kubectl describe ingress arcana-cloud-ingress -n arcana-cloud
+```
+
+### Nginx SSL Configuration
+
+The `nginx/nginx-uwsgi-ssl.conf` provides:
+
+```nginx
+# SSL Security (Mozilla Intermediate)
+ssl_protocols TLSv1.2 TLSv1.3;
+ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:...';
+
+# HSTS with preload
+add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload";
+
+# Security headers
+add_header X-Frame-Options "SAMEORIGIN" always;
+add_header X-Content-Type-Options "nosniff" always;
+add_header Content-Security-Policy "default-src 'self';" always;
+
+# Rate limiting
+limit_req_zone $binary_remote_addr zone=api_limit:10m rate=100r/s;
+limit_req zone=api_limit burst=20 nodelay;
+```
+
+### Testing SSL Configuration
+
+```bash
+# Test HTTPS endpoint
+curl -k https://localhost/health
+
+# Check certificate details
+openssl s_client -connect localhost:443 -servername localhost
+
+# Test SSL protocols
+curl --tlsv1.2 -k https://localhost/health
+curl --tlsv1.3 -k https://localhost/health
+
+# Verify HSTS headers
+curl -I https://localhost/health | grep Strict-Transport-Security
+```
+
+### SSL Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| Certificate not trusted | Development: Use `-k` flag. Production: Use Let's Encrypt |
+| SSL handshake failure | Verify TLS protocol support: `openssl s_client -connect host:443` |
+| Mixed content warnings | Ensure all resources use HTTPS |
+| Certificate expired | Regenerate with `./scripts/generate-ssl-certs.sh` |
+| Rate limiting errors | Adjust limits in `nginx/nginx-uwsgi-ssl.conf` |
+
+> 📖 **For comprehensive SSL setup guide**, see [docs/SSL_SETUP.md](docs/SSL_SETUP.md)
 
 ---
 

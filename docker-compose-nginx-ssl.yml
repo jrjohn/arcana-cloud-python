@@ -1,0 +1,256 @@
+# ============================================================================
+# Docker Compose with Nginx SSL Proxy and uWSGI
+# ============================================================================
+# Production-ready setup with SSL/TLS termination at Nginx layer
+# ============================================================================
+
+version: '3.8'
+
+services:
+  # ============================================================================
+  # Nginx SSL/TLS Reverse Proxy
+  # ============================================================================
+  nginx-proxy:
+    image: nginx:1.25-alpine
+    container_name: arcana-nginx-ssl
+    ports:
+      - "80:80"      # HTTP (redirects to HTTPS)
+      - "443:443"    # HTTPS
+    volumes:
+      # Nginx configuration
+      - ./nginx/nginx-uwsgi-ssl.conf:/etc/nginx/conf.d/default.conf:ro
+      # SSL certificates
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      # Logs
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      controller-layer:
+        condition: service_healthy
+      service-layer:
+        condition: service_healthy
+      repository-layer:
+        condition: service_healthy
+    networks:
+      - arcana-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ============================================================================
+  # Controller Layer (uWSGI)
+  # ============================================================================
+  controller-layer:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.controller.uwsgi
+    image: arcana-cloud-controller-uwsgi:latest
+    container_name: arcana-controller-uwsgi
+    environment:
+      # Database
+      - DB_HOST=mysql-db
+      - DB_PORT=3306
+      - DB_NAME=arcana_cloud
+      - DB_USER=arcana_user
+      - DB_PASSWORD=arcana_password
+      # Redis
+      - REDIS_HOST=redis-cache
+      - REDIS_PORT=6379
+      # Service URLs
+      - SERVICE_LAYER_URL=http://service-layer:5001
+      - REPOSITORY_LAYER_URL=http://repository-layer:5002
+      # Flask
+      - FLASK_ENV=production
+      - FLASK_DEBUG=0
+      # uWSGI
+      - UWSGI_PROCESSES=4
+      - UWSGI_THREADS=2
+      - UWSGI_CHEAPER=2
+      - UWSGI_CHEAPER_INITIAL=2
+    volumes:
+      - ./controller_layer:/app/controller_layer:ro
+      - ./logs/uwsgi:/var/log/uwsgi
+    expose:
+      - "5000"   # uWSGI HTTP socket
+      - "9191"   # uWSGI stats
+    networks:
+      - arcana-network
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ============================================================================
+  # Service Layer (uWSGI)
+  # ============================================================================
+  service-layer:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.service.uwsgi
+    image: arcana-cloud-service-uwsgi:latest
+    container_name: arcana-service-uwsgi
+    environment:
+      # Database
+      - DB_HOST=mysql-db
+      - DB_PORT=3306
+      - DB_NAME=arcana_cloud
+      - DB_USER=arcana_user
+      - DB_PASSWORD=arcana_password
+      # Redis
+      - REDIS_HOST=redis-cache
+      - REDIS_PORT=6379
+      # Repository URL
+      - REPOSITORY_LAYER_URL=http://repository-layer:5002
+      # Flask
+      - FLASK_ENV=production
+      - FLASK_DEBUG=0
+      # uWSGI
+      - UWSGI_PROCESSES=4
+      - UWSGI_THREADS=2
+      - UWSGI_CHEAPER=2
+      - UWSGI_CHEAPER_INITIAL=2
+    volumes:
+      - ./service_layer:/app/service_layer:ro
+      - ./logs/uwsgi:/var/log/uwsgi
+    expose:
+      - "5001"   # uWSGI HTTP socket
+      - "9191"   # uWSGI stats
+    networks:
+      - arcana-network
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ============================================================================
+  # Repository Layer (uWSGI)
+  # ============================================================================
+  repository-layer:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.repository.uwsgi
+    image: arcana-cloud-repository-uwsgi:latest
+    container_name: arcana-repository-uwsgi
+    environment:
+      # Database
+      - DB_HOST=mysql-db
+      - DB_PORT=3306
+      - DB_NAME=arcana_cloud
+      - DB_USER=arcana_user
+      - DB_PASSWORD=arcana_password
+      # Redis
+      - REDIS_HOST=redis-cache
+      - REDIS_PORT=6379
+      # Flask
+      - FLASK_ENV=production
+      - FLASK_DEBUG=0
+      # uWSGI
+      - UWSGI_PROCESSES=4
+      - UWSGI_THREADS=2
+      - UWSGI_CHEAPER=2
+      - UWSGI_CHEAPER_INITIAL=2
+    volumes:
+      - ./repository_layer:/app/repository_layer:ro
+      - ./logs/uwsgi:/var/log/uwsgi
+    expose:
+      - "5002"   # uWSGI HTTP socket
+      - "9191"   # uWSGI stats
+    networks:
+      - arcana-network
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5002/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ============================================================================
+  # MySQL Database
+  # ============================================================================
+  mysql-db:
+    image: mysql:8.0
+    container_name: arcana-mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_DATABASE=arcana_cloud
+      - MYSQL_USER=arcana_user
+      - MYSQL_PASSWORD=arcana_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "3306:3306"
+    networks:
+      - arcana-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_password"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ============================================================================
+  # Redis Cache
+  # ============================================================================
+  redis-cache:
+    image: redis:7-alpine
+    container_name: arcana-redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - arcana-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  arcana-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
