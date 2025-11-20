@@ -6,7 +6,7 @@ from typing import Optional, List
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.models.User import User, UserRole, UserStatus
+from app.models.user import User, UserRole, UserStatus
 from app.repositories.interfaces.UserRepository import UserRepository
 from app.utils.Exceptions import DatabaseError, NotFoundError
 

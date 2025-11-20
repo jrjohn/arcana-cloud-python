@@ -5,8 +5,8 @@ Authentication Service interface
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional
 
-from app.models.User import User
-from app.models.OAuthToken import OAuthToken
+from app.models.user import User
+from app.models.oauth_token import OAuthToken
 
 
 class AuthService(ABC):

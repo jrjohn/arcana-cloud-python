@@ -13,7 +13,7 @@ from app.schemas.UserSchema import (
     UserUpdateSchema,
     ChangePasswordSchema
 )
-from app.models.User import UserRole, UserStatus
+from app.models.user import UserRole, UserStatus
 from app.repositories.implementations.UserRepositoryImpl import UserRepositoryImpl
 from app.services.implementations.UserServiceImpl import UserServiceImpl
 from app.Extensions import db

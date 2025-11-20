@@ -5,7 +5,7 @@ Comprehensive tests for OAuthToken model
 import pytest
 from datetime import datetime, timedelta
 
-from app.models.OAuthToken import OAuthToken
+from app.models.oauth_token import OAuthToken
 
 
 class TestOAuthTokenModel:

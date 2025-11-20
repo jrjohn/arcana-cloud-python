@@ -7,7 +7,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app.models.OAuthToken import OAuthToken
+from app.models.oauth_token import OAuthToken
 from app.repositories.interfaces.OAuthTokenRepository import OAuthTokenRepository
 from app.utils.Exceptions import DatabaseError, NotFoundError
 

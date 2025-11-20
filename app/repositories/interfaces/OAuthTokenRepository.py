@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, List
 from datetime import datetime
 
-from app.models.OAuthToken import OAuthToken
+from app.models.oauth_token import OAuthToken
 
 
 class OAuthTokenRepository(ABC):

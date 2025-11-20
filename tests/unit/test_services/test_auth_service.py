@@ -8,8 +8,8 @@ from unittest.mock import Mock, MagicMock, patch
 from datetime import datetime, timedelta
 
 from app.services.implementations.AuthServiceImpl import AuthServiceImpl
-from app.models.User import User, UserRole, UserStatus
-from app.models.OAuthToken import OAuthToken
+from app.models.user import User, UserRole, UserStatus
+from app.models.oauth_token import OAuthToken
 from app.utils.Exceptions import (
     AuthenticationError,
     ValidationError,

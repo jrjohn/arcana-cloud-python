@@ -6,7 +6,7 @@ import pytest
 from unittest.mock import Mock, MagicMock
 
 from app.services.implementations.UserServiceImpl import UserServiceImpl
-from app.models.User import User, UserRole, UserStatus
+from app.models.user import User, UserRole, UserStatus
 from app.utils.Exceptions import ValidationError, ConflictError, NotFoundError
 
 

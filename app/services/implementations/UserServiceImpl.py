@@ -5,7 +5,7 @@ User Service implementation
 import re
 from typing import Optional, List, Dict, Any
 
-from app.models.User import User, UserRole, UserStatus
+from app.models.user import User, UserRole, UserStatus
 from app.repositories.interfaces.UserRepository import UserRepository
 from app.services.interfaces.UserService import UserService
 from app.utils.Exceptions import (

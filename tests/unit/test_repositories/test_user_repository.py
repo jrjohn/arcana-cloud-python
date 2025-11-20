@@ -7,7 +7,7 @@ from unittest.mock import Mock, MagicMock, patch
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
 from app.repositories.implementations.UserRepositoryImpl import UserRepositoryImpl
-from app.models.User import User, UserRole, UserStatus
+from app.models.user import User, UserRole, UserStatus
 from app.utils.Exceptions import DatabaseError, NotFoundError
 
 

@@ -7,8 +7,8 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 import jwt
 
-from app.models.User import User, UserStatus
-from app.models.OAuthToken import OAuthToken
+from app.models.user import User, UserStatus
+from app.models.oauth_token import OAuthToken
 from app.repositories.interfaces.UserRepository import UserRepository
 from app.repositories.interfaces.OAuthTokenRepository import OAuthTokenRepository
 from app.services.interfaces.AuthService import AuthService

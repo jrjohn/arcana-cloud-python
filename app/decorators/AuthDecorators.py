@@ -6,7 +6,7 @@ from functools import wraps
 from typing import List, Optional, Callable
 from flask import request, g
 
-from app.models.User import User, UserRole
+from app.models.user import User, UserRole
 from app.utils.Exceptions import AuthenticationError, AuthorizationError
 from app.utils.Response import error_response
 

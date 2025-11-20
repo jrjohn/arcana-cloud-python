@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.repositories.implementations.OAuthTokenRepositoryImpl import OAuthTokenRepositoryImpl
-from app.models.OAuthToken import OAuthToken
+from app.models.oauth_token import OAuthToken
 from app.utils.Exceptions import DatabaseError, NotFoundError
 
 

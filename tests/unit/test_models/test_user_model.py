@@ -5,7 +5,7 @@ Comprehensive tests for User model
 import pytest
 from datetime import datetime
 
-from app.models.User import User, UserRole, UserStatus
+from app.models.user import User, UserRole, UserStatus
 
 
 class TestUserModel:

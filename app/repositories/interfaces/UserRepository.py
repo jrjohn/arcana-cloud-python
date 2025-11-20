@@ -5,7 +5,7 @@ User Repository interface
 from abc import ABC, abstractmethod
 from typing import Optional, List
 
-from app.models.User import User, UserRole, UserStatus
+from app.models.user import User, UserRole, UserStatus
 
 
 class UserRepository(ABC):

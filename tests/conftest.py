@@ -6,8 +6,8 @@ import pytest
 from flask import Flask
 from app import create_app
 from app.Extensions import db as _db
-from app.models.User import User, UserRole
-from app.models.OAuthToken import OAuthToken
+from app.models.user import User, UserRole
+from app.models.oauth_token import OAuthToken
 
 
 @pytest.fixture(scope='session')

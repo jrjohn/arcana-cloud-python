@@ -5,7 +5,7 @@ User Service interface
 from abc import ABC, abstractmethod
 from typing import Optional, List, Dict, Any
 
-from app.models.User import User, UserRole, UserStatus
+from app.models.user import User, UserRole, UserStatus
 
 
 class UserService(ABC):
