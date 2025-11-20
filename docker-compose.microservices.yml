@@ -1,0 +1,391 @@
+# ============================================================================
+# Arcana Cloud - Microservices Deployment
+# ============================================================================
+# Docker Compose configuration for microservices deployment mode
+# Separate containers for each domain service (Auth, User, etc.)
+# ============================================================================
+
+version: '3.8'
+
+services:
+  # ============================================================================
+  # Auth Microservice
+  # ============================================================================
+  auth-service:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.monolithic  # Will create specific Dockerfile later
+      args:
+        PYTHON_VERSION: 3.14.0
+        BUILD_DATE: ${BUILD_DATE:-2025-01-01}
+        VCS_REF: ${GIT_COMMIT:-main}
+        VERSION: ${VERSION:-1.0.0}
+    image: arcanacloud/arcana-cloud-auth:${VERSION:-latest}
+    container_name: arcana-cloud-auth
+    restart: unless-stopped
+    ports:
+      - "5010:5010"
+    environment:
+      # Flask Configuration
+      FLASK_ENV: ${FLASK_ENV:-production}
+      SECRET_KEY: ${SECRET_KEY:-change-this-in-production}
+
+      # Deployment Configuration
+      DEPLOYMENT_LAYER: microservice
+      SERVICE_NAME: arcana-cloud-auth
+      SERVICE_PORT: 5010
+      MICROSERVICE_DOMAIN: auth
+
+      # Inter-service Communication
+      USER_SERVICE_URL: http://user-service:5011
+
+      # Database Configuration
+      DATABASE_URL: mysql+pymysql://${DB_USER:-arcana}:${DB_PASSWORD:-arcana_pass}@mysql:3306/${DB_NAME:-arcana_cloud}
+
+      # Redis Configuration
+      REDIS_URL: redis://redis:6379/0
+
+      # JWT Configuration
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-jwt-secret-key}
+
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      LOG_FORMAT: json
+      PYTHONUNBUFFERED: 1
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - arcana-network
+    volumes:
+      - auth-logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5010/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.2'
+          memory: 256M
+      replicas: 2
+
+  # ============================================================================
+  # User Microservice
+  # ============================================================================
+  user-service:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.monolithic  # Will create specific Dockerfile later
+      args:
+        PYTHON_VERSION: 3.14.0
+        BUILD_DATE: ${BUILD_DATE:-2025-01-01}
+        VCS_REF: ${GIT_COMMIT:-main}
+        VERSION: ${VERSION:-1.0.0}
+    image: arcanacloud/arcana-cloud-user:${VERSION:-latest}
+    container_name: arcana-cloud-user
+    restart: unless-stopped
+    ports:
+      - "5011:5011"
+    environment:
+      # Flask Configuration
+      FLASK_ENV: ${FLASK_ENV:-production}
+      SECRET_KEY: ${SECRET_KEY:-change-this-in-production}
+
+      # Deployment Configuration
+      DEPLOYMENT_LAYER: microservice
+      SERVICE_NAME: arcana-cloud-user
+      SERVICE_PORT: 5011
+      MICROSERVICE_DOMAIN: user
+
+      # Inter-service Communication
+      AUTH_SERVICE_URL: http://auth-service:5010
+
+      # Database Configuration
+      DATABASE_URL: mysql+pymysql://${DB_USER:-arcana}:${DB_PASSWORD:-arcana_pass}@mysql:3306/${DB_NAME:-arcana_cloud}
+
+      # Redis Configuration
+      REDIS_URL: redis://redis:6379/0
+
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      LOG_FORMAT: json
+      PYTHONUNBUFFERED: 1
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - arcana-network
+    volumes:
+      - user-logs:/app/logs
+      - app-uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5011/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.2'
+          memory: 256M
+      replicas: 2
+
+  # ============================================================================
+  # API Gateway
+  # ============================================================================
+  api-gateway:
+    image: nginx:alpine
+    container_name: arcana-cloud-api-gateway
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx-microservices.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx-logs:/var/log/nginx
+    depends_on:
+      - auth-service
+      - user-service
+    networks:
+      - arcana-network
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+  # ============================================================================
+  # Celery Worker (Shared)
+  # ============================================================================
+  celery-worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.monolithic
+    image: arcanacloud/arcana-cloud-monolithic:${VERSION:-latest}
+    container_name: arcana-cloud-celery-worker
+    restart: unless-stopped
+    command: celery -A app.tasks.CeleryWorker:celery worker --loglevel=info --concurrency=4
+    environment:
+      FLASK_ENV: ${FLASK_ENV:-production}
+      SECRET_KEY: ${SECRET_KEY:-change-this-in-production}
+      DATABASE_URL: mysql+pymysql://${DB_USER:-arcana}:${DB_PASSWORD:-arcana_pass}@mysql:3306/${DB_NAME:-arcana_cloud}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    depends_on:
+      - redis
+      - mysql
+    networks:
+      - arcana-network
+    volumes:
+      - celery-logs:/app/logs
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ============================================================================
+  # MySQL Database
+  # ============================================================================
+  mysql:
+    image: mysql:8.0
+    container_name: arcana-cloud-mysql
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_password}
+      MYSQL_DATABASE: ${DB_NAME:-arcana_cloud}
+      MYSQL_USER: ${DB_USER:-arcana}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-arcana_pass}
+    networks:
+      - arcana-network
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-root_password}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ============================================================================
+  # Redis Cache
+  # ============================================================================
+  redis:
+    image: redis:7.0-alpine
+    container_name: arcana-cloud-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    networks:
+      - arcana-network
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # ============================================================================
+  # Service Discovery (Consul - Optional)
+  # ============================================================================
+  consul:
+    image: consul:latest
+    container_name: arcana-cloud-consul
+    restart: unless-stopped
+    ports:
+      - "8500:8500"
+      - "8600:8600/udp"
+    command: agent -server -ui -bootstrap-expect=1 -client=0.0.0.0
+    networks:
+      - arcana-network
+    volumes:
+      - consul-data:/consul/data
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+  # ============================================================================
+  # Monitoring - Prometheus (Optional)
+  # ============================================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: arcana-cloud-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - arcana-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # ============================================================================
+  # Monitoring - Grafana (Optional)
+  # ============================================================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: arcana-cloud-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - arcana-network
+    depends_on:
+      - prometheus
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  arcana-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/16
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  mysql-data:
+    driver: local
+  redis-data:
+    driver: local
+  consul-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  app-uploads:
+    driver: local
+  auth-logs:
+    driver: local
+  user-logs:
+    driver: local
+  celery-logs:
+    driver: local
+  nginx-logs:
+    driver: local

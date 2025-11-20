@@ -1,0 +1,45 @@
+# ============================================================================
+# Arcana Cloud - Service Layer
+# ============================================================================
+# Contains business logic and service implementations
+# Communicates with Repository layer for data access
+# ============================================================================
+
+FROM arcanacloud/arcana-cloud-base:latest as service
+
+# Set deployment layer
+ENV DEPLOYMENT_LAYER=service \
+    SERVICE_NAME=arcana-cloud-service \
+    SERVICE_PORT=5001
+
+# Service-specific environment variables
+ENV USER_REPO_URLS=http://repository-layer:5002
+
+# Expose service port
+EXPOSE 5001
+
+# Copy service-specific entrypoint
+COPY docker/entrypoint-service.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Start Gunicorn with optimized settings for business logic processing
+CMD ["gunicorn", \
+     "--bind", "0.0.0.0:5001", \
+     "--workers", "4", \
+     "--threads", "2", \
+     "--worker-class", "sync", \
+     "--worker-tmp-dir", "/dev/shm", \
+     "--timeout", "60", \
+     "--graceful-timeout", "30", \
+     "--keep-alive", "5", \
+     "--max-requests", "500", \
+     "--max-requests-jitter", "50", \
+     "--log-level", "info", \
+     "--access-logfile", "-", \
+     "--error-logfile", "-", \
+     "--statsd-host", "localhost:8125", \
+     "wsgi:application"]
+
+# Health check specific to service layer
+HEALTHCHECK --interval=20s --timeout=5s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:5001/health || exit 1

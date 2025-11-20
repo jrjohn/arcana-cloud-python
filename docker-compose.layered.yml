@@ -1,0 +1,363 @@
+# ============================================================================
+# Arcana Cloud - Layered Deployment
+# ============================================================================
+# Docker Compose configuration for layered deployment mode
+# Separate containers for Controller, Service, and Repository layers
+# ============================================================================
+
+version: '3.8'
+
+services:
+  # ============================================================================
+  # Controller Layer (API Gateway)
+  # ============================================================================
+  controller-layer:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.controller
+      args:
+        PYTHON_VERSION: 3.14.0
+        BUILD_DATE: ${BUILD_DATE:-2025-01-01}
+        VCS_REF: ${GIT_COMMIT:-main}
+        VERSION: ${VERSION:-1.0.0}
+    image: arcanacloud/arcana-cloud-controller:${VERSION:-latest}
+    container_name: arcana-cloud-controller
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      # Flask Configuration
+      FLASK_ENV: ${FLASK_ENV:-production}
+      SECRET_KEY: ${SECRET_KEY:-change-this-in-production}
+
+      # Deployment Configuration
+      DEPLOYMENT_LAYER: controller
+      SERVICE_NAME: arcana-cloud-controller
+      SERVICE_PORT: 5000
+
+      # Service Discovery
+      USER_SERVICE_URLS: http://service-layer:5001
+      AUTH_SERVICE_URLS: http://service-layer:5001
+
+      # Redis Configuration (for session/cache)
+      REDIS_URL: redis://redis:6379/0
+
+      # JWT Configuration
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-jwt-secret-key}
+
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      LOG_FORMAT: json
+      PYTHONUNBUFFERED: 1
+    depends_on:
+      service-layer:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - arcana-network
+    volumes:
+      - controller-logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+      replicas: 2
+
+  # ============================================================================
+  # Service Layer (Business Logic)
+  # ============================================================================
+  service-layer:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.service
+      args:
+        PYTHON_VERSION: 3.14.0
+        BUILD_DATE: ${BUILD_DATE:-2025-01-01}
+        VCS_REF: ${GIT_COMMIT:-main}
+        VERSION: ${VERSION:-1.0.0}
+    image: arcanacloud/arcana-cloud-service:${VERSION:-latest}
+    container_name: arcana-cloud-service
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    environment:
+      # Flask Configuration
+      FLASK_ENV: ${FLASK_ENV:-production}
+      SECRET_KEY: ${SECRET_KEY:-change-this-in-production}
+
+      # Deployment Configuration
+      DEPLOYMENT_LAYER: service
+      SERVICE_NAME: arcana-cloud-service
+      SERVICE_PORT: 5001
+
+      # Repository Discovery
+      USER_REPO_URLS: http://repository-layer:5002
+
+      # Redis Configuration
+      REDIS_URL: redis://redis:6379/0
+
+      # Celery Configuration
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      LOG_FORMAT: json
+      PYTHONUNBUFFERED: 1
+    depends_on:
+      repository-layer:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - arcana-network
+    volumes:
+      - service-logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 768M
+        reservations:
+          cpus: '0.3'
+          memory: 384M
+      replicas: 2
+
+  # ============================================================================
+  # Repository Layer (Data Access)
+  # ============================================================================
+  repository-layer:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.repository
+      args:
+        PYTHON_VERSION: 3.14.0
+        BUILD_DATE: ${BUILD_DATE:-2025-01-01}
+        VCS_REF: ${GIT_COMMIT:-main}
+        VERSION: ${VERSION:-1.0.0}
+    image: arcanacloud/arcana-cloud-repository:${VERSION:-latest}
+    container_name: arcana-cloud-repository
+    restart: unless-stopped
+    ports:
+      - "5002:5002"
+    environment:
+      # Flask Configuration
+      FLASK_ENV: ${FLASK_ENV:-production}
+      SECRET_KEY: ${SECRET_KEY:-change-this-in-production}
+
+      # Deployment Configuration
+      DEPLOYMENT_LAYER: repository
+      SERVICE_NAME: arcana-cloud-repository
+      SERVICE_PORT: 5002
+
+      # Database Configuration
+      DATABASE_URL: mysql+pymysql://${DB_USER:-arcana}:${DB_PASSWORD:-arcana_pass}@mysql:3306/${DB_NAME:-arcana_cloud}
+
+      # Redis Configuration
+      REDIS_URL: redis://redis:6379/0
+
+      # Database Pool Configuration
+      SQLALCHEMY_POOL_SIZE: 20
+      SQLALCHEMY_MAX_OVERFLOW: 40
+      SQLALCHEMY_POOL_TIMEOUT: 30
+      SQLALCHEMY_POOL_RECYCLE: 3600
+
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      LOG_FORMAT: json
+      PYTHONUNBUFFERED: 1
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - arcana-network
+    volumes:
+      - repository-logs:/app/logs
+      - app-uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.4'
+          memory: 512M
+      replicas: 2
+
+  # ============================================================================
+  # Celery Worker
+  # ============================================================================
+  celery-worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.service
+    image: arcanacloud/arcana-cloud-service:${VERSION:-latest}
+    container_name: arcana-cloud-celery-worker
+    restart: unless-stopped
+    command: celery -A app.tasks.CeleryWorker:celery worker --loglevel=info --concurrency=4
+    environment:
+      FLASK_ENV: ${FLASK_ENV:-production}
+      SECRET_KEY: ${SECRET_KEY:-change-this-in-production}
+      DEPLOYMENT_LAYER: service
+      USER_REPO_URLS: http://repository-layer:5002
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    depends_on:
+      - redis
+      - repository-layer
+    networks:
+      - arcana-network
+    volumes:
+      - celery-logs:/app/logs
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ============================================================================
+  # MySQL Database
+  # ============================================================================
+  mysql:
+    image: mysql:8.0
+    container_name: arcana-cloud-mysql
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_password}
+      MYSQL_DATABASE: ${DB_NAME:-arcana_cloud}
+      MYSQL_USER: ${DB_USER:-arcana}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-arcana_pass}
+    networks:
+      - arcana-network
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-root_password}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ============================================================================
+  # Redis Cache
+  # ============================================================================
+  redis:
+    image: redis:7.0-alpine
+    container_name: arcana-cloud-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    networks:
+      - arcana-network
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # ============================================================================
+  # Nginx Load Balancer
+  # ============================================================================
+  nginx:
+    image: nginx:alpine
+    container_name: arcana-cloud-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx-layered.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx-logs:/var/log/nginx
+    depends_on:
+      - controller-layer
+    networks:
+      - arcana-network
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  arcana-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.29.0.0/16
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  mysql-data:
+    driver: local
+  redis-data:
+    driver: local
+  app-uploads:
+    driver: local
+  controller-logs:
+    driver: local
+  service-logs:
+    driver: local
+  repository-logs:
+    driver: local
+  celery-logs:
+    driver: local
+  nginx-logs:
+    driver: local

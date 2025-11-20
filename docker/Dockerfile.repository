@@ -1,0 +1,50 @@
+# ============================================================================
+# Arcana Cloud - Repository Layer
+# ============================================================================
+# Contains data access logic and database operations
+# Direct communication with database and caching layers
+# ============================================================================
+
+FROM arcanacloud/arcana-cloud-base:latest as repository
+
+# Set deployment layer
+ENV DEPLOYMENT_LAYER=repository \
+    SERVICE_NAME=arcana-cloud-repository \
+    SERVICE_PORT=5002
+
+# Repository-specific environment variables
+# Direct database access
+ENV SQLALCHEMY_POOL_SIZE=20 \
+    SQLALCHEMY_MAX_OVERFLOW=40 \
+    SQLALCHEMY_POOL_TIMEOUT=30 \
+    SQLALCHEMY_POOL_RECYCLE=3600
+
+# Expose repository port
+EXPOSE 5002
+
+# Copy repository-specific entrypoint
+COPY docker/entrypoint-repository.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Start Gunicorn with optimized settings for database operations
+# Fewer workers but more connections to database
+CMD ["gunicorn", \
+     "--bind", "0.0.0.0:5002", \
+     "--workers", "3", \
+     "--threads", "4", \
+     "--worker-class", "sync", \
+     "--worker-tmp-dir", "/dev/shm", \
+     "--timeout", "90", \
+     "--graceful-timeout", "45", \
+     "--keep-alive", "5", \
+     "--max-requests", "300", \
+     "--max-requests-jitter", "30", \
+     "--log-level", "info", \
+     "--access-logfile", "-", \
+     "--error-logfile", "-", \
+     "--statsd-host", "localhost:8125", \
+     "wsgi:application"]
+
+# Health check specific to repository layer (includes DB check)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=45s --retries=3 \
+    CMD curl -f http://localhost:5002/ready || exit 1

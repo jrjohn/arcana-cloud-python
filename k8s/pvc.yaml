@@ -1,0 +1,82 @@
+# ============================================================================
+# Persistent Volume Claims
+# ============================================================================
+# Storage claims for persistent data
+# ============================================================================
+
+---
+# PVC for application uploads
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: arcana-cloud-uploads-pvc
+  namespace: arcana-cloud
+  labels:
+    app: arcana-cloud
+    tier: storage
+spec:
+  accessModes:
+    - ReadWriteMany  # Multiple pods can read/write
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard  # Change based on your cloud provider
+  # volumeMode: Filesystem
+
+---
+# PVC for MySQL data
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-data-pvc
+  namespace: arcana-cloud
+  labels:
+    app: mysql
+    tier: database
+spec:
+  accessModes:
+    - ReadWriteOnce  # Single pod read/write
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: standard
+  # For better performance on cloud providers, use SSD storage class
+  # storageClassName: gp3  # AWS
+  # storageClassName: pd-ssd  # GCP
+  # storageClassName: managed-premium  # Azure
+
+---
+# PVC for Redis data (optional - for persistence)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-data-pvc
+  namespace: arcana-cloud
+  labels:
+    app: redis
+    tier: cache
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: standard
+
+---
+# PVC for application logs (optional - consider using log aggregation instead)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: arcana-cloud-logs-pvc
+  namespace: arcana-cloud
+  labels:
+    app: arcana-cloud
+    tier: storage
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: standard

@@ -1,0 +1,252 @@
+# ============================================================================
+# Arcana Cloud - Monolithic Deployment
+# ============================================================================
+# Docker Compose configuration for monolithic deployment mode
+# Single application container with all layers combined
+# ============================================================================
+
+version: '3.8'
+
+services:
+  # ============================================================================
+  # Application - Monolithic Mode
+  # ============================================================================
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.monolithic
+      args:
+        PYTHON_VERSION: 3.14.0
+        BUILD_DATE: ${BUILD_DATE:-2025-01-01}
+        VCS_REF: ${GIT_COMMIT:-main}
+        VERSION: ${VERSION:-1.0.0}
+    image: arcanacloud/arcana-cloud-monolithic:${VERSION:-latest}
+    container_name: arcana-cloud-app
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      # Flask Configuration
+      FLASK_ENV: ${FLASK_ENV:-production}
+      SECRET_KEY: ${SECRET_KEY:-change-this-in-production}
+
+      # Deployment Configuration
+      DEPLOYMENT_LAYER: monolithic
+      SERVICE_NAME: arcana-cloud-monolithic
+      SERVICE_PORT: 5000
+
+      # Database Configuration
+      DATABASE_URL: mysql+pymysql://${DB_USER:-arcana}:${DB_PASSWORD:-arcana_pass}@mysql:3306/${DB_NAME:-arcana_cloud}
+
+      # Redis Configuration
+      REDIS_URL: redis://redis:6379/0
+
+      # Celery Configuration
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+
+      # JWT Configuration
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-jwt-secret-key}
+
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      LOG_FORMAT: json
+      PYTHONUNBUFFERED: 1
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - arcana-network
+    volumes:
+      - app-uploads:/app/uploads
+      - app-logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ============================================================================
+  # Celery Worker
+  # ============================================================================
+  celery-worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.monolithic
+    image: arcanacloud/arcana-cloud-monolithic:${VERSION:-latest}
+    container_name: arcana-cloud-celery-worker
+    restart: unless-stopped
+    command: celery -A app.tasks.CeleryWorker:celery worker --loglevel=info --concurrency=4
+    environment:
+      FLASK_ENV: ${FLASK_ENV:-production}
+      SECRET_KEY: ${SECRET_KEY:-change-this-in-production}
+      DATABASE_URL: mysql+pymysql://${DB_USER:-arcana}:${DB_PASSWORD:-arcana_pass}@mysql:3306/${DB_NAME:-arcana_cloud}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    depends_on:
+      - redis
+      - mysql
+      - app
+    networks:
+      - arcana-network
+    volumes:
+      - app-logs:/app/logs
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ============================================================================
+  # Celery Beat (Scheduled Tasks)
+  # ============================================================================
+  celery-beat:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.monolithic
+    image: arcanacloud/arcana-cloud-monolithic:${VERSION:-latest}
+    container_name: arcana-cloud-celery-beat
+    restart: unless-stopped
+    command: celery -A app.tasks.CeleryWorker:celery beat --loglevel=info
+    environment:
+      FLASK_ENV: ${FLASK_ENV:-production}
+      SECRET_KEY: ${SECRET_KEY:-change-this-in-production}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    depends_on:
+      - redis
+      - celery-worker
+    networks:
+      - arcana-network
+    volumes:
+      - app-logs:/app/logs
+
+  # ============================================================================
+  # MySQL Database
+  # ============================================================================
+  mysql:
+    image: mysql:8.0
+    container_name: arcana-cloud-mysql
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_password}
+      MYSQL_DATABASE: ${DB_NAME:-arcana_cloud}
+      MYSQL_USER: ${DB_USER:-arcana}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-arcana_pass}
+    networks:
+      - arcana-network
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docker/mysql-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-root_password}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ============================================================================
+  # Redis Cache
+  # ============================================================================
+  redis:
+    image: redis:7.0-alpine
+    container_name: arcana-cloud-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    networks:
+      - arcana-network
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # ============================================================================
+  # Nginx Reverse Proxy
+  # ============================================================================
+  nginx:
+    image: nginx:alpine
+    container_name: arcana-cloud-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx-logs:/var/log/nginx
+    depends_on:
+      - app
+    networks:
+      - arcana-network
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  arcana-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  mysql-data:
+    driver: local
+  redis-data:
+    driver: local
+  app-uploads:
+    driver: local
+  app-logs:
+    driver: local
+  nginx-logs:
+    driver: local

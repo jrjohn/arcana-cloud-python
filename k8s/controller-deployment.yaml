@@ -1,0 +1,215 @@
+# ============================================================================
+# Controller Layer Deployment
+# ============================================================================
+# Kubernetes Deployment for the Controller (API Gateway) layer
+# ============================================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: controller-layer
+  namespace: arcana-cloud
+  labels:
+    app: arcana-cloud
+    tier: controller
+    layer: api-gateway
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: arcana-cloud
+      tier: controller
+  template:
+    metadata:
+      labels:
+        app: arcana-cloud
+        tier: controller
+        layer: api-gateway
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      # Security context
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+
+      # Service account
+      serviceAccountName: arcana-cloud-sa
+
+      # Init containers
+      initContainers:
+        - name: wait-for-service-layer
+          image: busybox:1.35
+          command:
+            - 'sh'
+            - '-c'
+            - |
+              echo "Waiting for service layer to be ready..."
+              until nc -z service-layer 5001; do
+                echo "Service layer not ready, waiting..."
+                sleep 2
+              done
+              echo "Service layer is ready!"
+
+      containers:
+        - name: controller
+          image: arcanacloud/arcana-cloud-controller:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 5000
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+
+          env:
+            # Deployment Configuration
+            - name: DEPLOYMENT_LAYER
+              value: "controller"
+            - name: SERVICE_NAME
+              value: "arcana-cloud-controller"
+            - name: SERVICE_PORT
+              value: "5000"
+
+            # From ConfigMap
+            - name: FLASK_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: FLASK_ENV
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: LOG_LEVEL
+            - name: LOG_FORMAT
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: LOG_FORMAT
+            - name: USER_SERVICE_URLS
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: USER_SERVICE_URLS
+            - name: AUTH_SERVICE_URLS
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: AUTH_SERVICE_URLS
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: REDIS_HOST
+            - name: REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: REDIS_PORT
+
+            # From Secrets
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: arcana-cloud-secrets
+                  key: SECRET_KEY
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: arcana-cloud-secrets
+                  key: JWT_SECRET_KEY
+
+            # Build Redis URL from components
+            - name: REDIS_URL
+              value: "redis://$(REDIS_HOST):$(REDIS_PORT)/0"
+
+          # Resource limits and requests
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+
+          # Liveness probe
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+
+          # Readiness probe
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+            successThreshold: 1
+
+          # Startup probe (for slow-starting containers)
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 12
+
+          # Volume mounts
+          volumeMounts:
+            - name: logs
+              mountPath: /app/logs
+
+      # Volumes
+      volumes:
+        - name: logs
+          emptyDir: {}
+
+      # Affinity rules (spread pods across nodes)
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: tier
+                      operator: In
+                      values:
+                        - controller
+                topologyKey: kubernetes.io/hostname
+
+      # Tolerations
+      tolerations:
+        - key: "node.kubernetes.io/not-ready"
+          operator: "Exists"
+          effect: "NoExecute"
+          tolerationSeconds: 300
+        - key: "node.kubernetes.io/unreachable"
+          operator: "Exists"
+          effect: "NoExecute"
+          tolerationSeconds: 300
+
+      # DNS configuration
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always

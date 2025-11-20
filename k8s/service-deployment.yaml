@@ -1,0 +1,201 @@
+# ============================================================================
+# Service Layer Deployment
+# ============================================================================
+# Kubernetes Deployment for the Service (Business Logic) layer
+# ============================================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-layer
+  namespace: arcana-cloud
+  labels:
+    app: arcana-cloud
+    tier: service
+    layer: business-logic
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: arcana-cloud
+      tier: service
+  template:
+    metadata:
+      labels:
+        app: arcana-cloud
+        tier: service
+        layer: business-logic
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      # Security context
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+
+      # Service account
+      serviceAccountName: arcana-cloud-sa
+
+      # Init containers
+      initContainers:
+        - name: wait-for-repository-layer
+          image: busybox:1.35
+          command:
+            - 'sh'
+            - '-c'
+            - |
+              echo "Waiting for repository layer to be ready..."
+              until nc -z repository-layer 5002; do
+                echo "Repository layer not ready, waiting..."
+                sleep 2
+              done
+              echo "Repository layer is ready!"
+
+      containers:
+        - name: service
+          image: arcanacloud/arcana-cloud-service:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 5001
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+
+          env:
+            # Deployment Configuration
+            - name: DEPLOYMENT_LAYER
+              value: "service"
+            - name: SERVICE_NAME
+              value: "arcana-cloud-service"
+            - name: SERVICE_PORT
+              value: "5001"
+
+            # From ConfigMap
+            - name: FLASK_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: FLASK_ENV
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: LOG_LEVEL
+            - name: LOG_FORMAT
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: LOG_FORMAT
+            - name: USER_REPO_URLS
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: USER_REPO_URLS
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: REDIS_HOST
+            - name: REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: REDIS_PORT
+            - name: CELERY_BROKER_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: CELERY_BROKER_URL
+            - name: CELERY_RESULT_BACKEND
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: CELERY_RESULT_BACKEND
+
+            # From Secrets
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: arcana-cloud-secrets
+                  key: SECRET_KEY
+
+            # Build Redis URL
+            - name: REDIS_URL
+              value: "redis://$(REDIS_HOST):$(REDIS_PORT)/0"
+
+          # Resource limits and requests
+          resources:
+            requests:
+              cpu: 300m
+              memory: 384Mi
+            limits:
+              cpu: 750m
+              memory: 768Mi
+
+          # Liveness probe
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5001
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          # Readiness probe
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 5001
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          # Startup probe
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 5001
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 12
+
+          # Volume mounts
+          volumeMounts:
+            - name: logs
+              mountPath: /app/logs
+
+      # Volumes
+      volumes:
+        - name: logs
+          emptyDir: {}
+
+      # Affinity rules
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: tier
+                      operator: In
+                      values:
+                        - service
+                topologyKey: kubernetes.io/hostname
+
+      # DNS configuration
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always

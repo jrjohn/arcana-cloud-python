@@ -1,0 +1,171 @@
+# ============================================================================
+# Horizontal Pod Autoscaler (HPA)
+# ============================================================================
+# Auto-scaling configuration for each layer based on CPU and memory usage
+# ============================================================================
+
+---
+# Controller Layer HPA
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: controller-layer-hpa
+  namespace: arcana-cloud
+  labels:
+    app: arcana-cloud
+    tier: controller
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: controller-layer
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    # CPU-based scaling
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    # Memory-based scaling
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+    # Custom metrics (if using Prometheus adapter)
+    # - type: Pods
+    #   pods:
+    #     metric:
+    #       name: http_requests_per_second
+    #     target:
+    #       type: AverageValue
+    #       averageValue: "1000"
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 60
+        - type: Pods
+          value: 2
+          periodSeconds: 60
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 10
+          periodSeconds: 60
+        - type: Pods
+          value: 1
+          periodSeconds: 120
+      selectPolicy: Min
+
+---
+# Service Layer HPA
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: service-layer-hpa
+  namespace: arcana-cloud
+  labels:
+    app: arcana-cloud
+    tier: service
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: service-layer
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 60
+        - type: Pods
+          value: 2
+          periodSeconds: 60
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 10
+          periodSeconds: 60
+        - type: Pods
+          value: 1
+          periodSeconds: 120
+      selectPolicy: Min
+
+---
+# Repository Layer HPA
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: repository-layer-hpa
+  namespace: arcana-cloud
+  labels:
+    app: arcana-cloud
+    tier: repository
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: repository-layer
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 90
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 90
+        - type: Pods
+          value: 1
+          periodSeconds: 90
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: 600
+      policies:
+        - type: Percent
+          value: 10
+          periodSeconds: 120
+        - type: Pods
+          value: 1
+          periodSeconds: 180
+      selectPolicy: Min

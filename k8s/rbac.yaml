@@ -1,0 +1,104 @@
+# ============================================================================
+# Role-Based Access Control (RBAC)
+# ============================================================================
+# Service accounts, roles, and role bindings for the application
+# ============================================================================
+
+---
+# Service Account for application pods
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: arcana-cloud-sa
+  namespace: arcana-cloud
+  labels:
+    app: arcana-cloud
+
+---
+# Role for application operations
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: arcana-cloud-role
+  namespace: arcana-cloud
+  labels:
+    app: arcana-cloud
+rules:
+  # Allow reading ConfigMaps
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch"]
+
+  # Allow reading Secrets
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list"]
+
+  # Allow reading Services (for service discovery)
+  - apiGroups: [""]
+    resources: ["services", "endpoints"]
+    verbs: ["get", "list", "watch"]
+
+  # Allow reading Pods (for health checks)
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+
+  # Allow creating Events (for logging)
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+
+---
+# RoleBinding to attach the role to the service account
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: arcana-cloud-rolebinding
+  namespace: arcana-cloud
+  labels:
+    app: arcana-cloud
+subjects:
+  - kind: ServiceAccount
+    name: arcana-cloud-sa
+    namespace: arcana-cloud
+roleRef:
+  kind: Role
+  name: arcana-cloud-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# ClusterRole for cross-namespace operations (if needed)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: arcana-cloud-cluster-role
+  labels:
+    app: arcana-cloud
+rules:
+  # Allow reading nodes (for metrics)
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list", "watch"]
+
+  # Allow reading namespaces
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list", "watch"]
+
+---
+# ClusterRoleBinding (optional - for cluster-wide permissions)
+# apiVersion: rbac.authorization.k8s.io/v1
+# kind: ClusterRoleBinding
+# metadata:
+#   name: arcana-cloud-cluster-rolebinding
+#   labels:
+#     app: arcana-cloud
+# subjects:
+#   - kind: ServiceAccount
+#     name: arcana-cloud-sa
+#     namespace: arcana-cloud
+# roleRef:
+#   kind: ClusterRole
+#   name: arcana-cloud-cluster-role
+#   apiGroup: rbac.authorization.k8s.io

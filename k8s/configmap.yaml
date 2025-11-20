@@ -1,0 +1,150 @@
+# ============================================================================
+# Kubernetes ConfigMap
+# ============================================================================
+# Application configuration for all deployment modes
+# ============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: arcana-cloud-config
+  namespace: arcana-cloud
+  labels:
+    app: arcana-cloud
+    tier: configuration
+data:
+  # Application Settings
+  FLASK_ENV: "production"
+  LOG_LEVEL: "INFO"
+  LOG_FORMAT: "json"
+  PYTHONUNBUFFERED: "1"
+
+  # Database Configuration
+  DB_NAME: "arcana_cloud"
+  DB_HOST: "mysql-service"
+  DB_PORT: "3306"
+
+  # Redis Configuration
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+
+  # Celery Configuration
+  CELERY_BROKER_URL: "redis://redis-service:6379/0"
+  CELERY_RESULT_BACKEND: "redis://redis-service:6379/0"
+  CELERY_TASK_SERIALIZER: "json"
+  CELERY_RESULT_SERIALIZER: "json"
+  CELERY_TIMEZONE: "Asia/Taipei"
+
+  # Rate Limiting
+  RATELIMIT_DEFAULT: "100 per hour"
+
+  # CORS Configuration
+  CORS_ORIGINS: "*"
+
+  # JWT Configuration
+  JWT_ALGORITHM: "HS256"
+
+  # Service Discovery (for layered mode)
+  USER_SERVICE_URLS: "http://service-layer:5001"
+  AUTH_SERVICE_URLS: "http://service-layer:5001"
+  USER_REPO_URLS: "http://repository-layer:5002"
+
+  # Database Pool Configuration (for repository layer)
+  SQLALCHEMY_POOL_SIZE: "20"
+  SQLALCHEMY_MAX_OVERFLOW: "40"
+  SQLALCHEMY_POOL_TIMEOUT: "30"
+  SQLALCHEMY_POOL_RECYCLE: "3600"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: arcana-cloud
+  labels:
+    app: arcana-cloud
+    tier: gateway
+data:
+  nginx.conf: |
+    user nginx;
+    worker_processes auto;
+    error_log /var/log/nginx/error.log warn;
+    pid /var/run/nginx.pid;
+
+    events {
+        worker_connections 1024;
+        use epoll;
+        multi_accept on;
+    }
+
+    http {
+        include /etc/nginx/mime.types;
+        default_type application/octet-stream;
+
+        log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                        '$status $body_bytes_sent "$http_referer" '
+                        '"$http_user_agent" "$http_x_forwarded_for"';
+
+        access_log /var/log/nginx/access.log main;
+
+        sendfile on;
+        tcp_nopush on;
+        tcp_nodelay on;
+        keepalive_timeout 65;
+        types_hash_max_size 2048;
+
+        # Gzip compression
+        gzip on;
+        gzip_vary on;
+        gzip_proxied any;
+        gzip_comp_level 6;
+        gzip_types text/plain text/css text/xml text/javascript
+                   application/json application/javascript application/xml+rss;
+
+        # Rate limiting
+        limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
+        limit_conn_zone $binary_remote_addr zone=addr:10m;
+
+        # Upstream configuration for load balancing
+        upstream app_backend {
+            least_conn;
+            server controller-layer:5000 max_fails=3 fail_timeout=30s;
+            keepalive 32;
+        }
+
+        server {
+            listen 80;
+            server_name _;
+
+            # Health check endpoint
+            location /health {
+                access_log off;
+                return 200 "healthy\n";
+                add_header Content-Type text/plain;
+            }
+
+            # API endpoints
+            location /api/ {
+                limit_req zone=api_limit burst=20 nodelay;
+                limit_conn addr 10;
+
+                proxy_pass http://app_backend;
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection "upgrade";
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_buffering off;
+                proxy_read_timeout 60s;
+                proxy_connect_timeout 10s;
+            }
+
+            # Static files (if any)
+            location /static/ {
+                expires 1y;
+                add_header Cache-Control "public, immutable";
+            }
+        }
+    }

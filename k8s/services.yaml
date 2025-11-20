@@ -1,0 +1,200 @@
+# ============================================================================
+# Kubernetes Services
+# ============================================================================
+# Service definitions for all application layers
+# ============================================================================
+
+---
+# Controller Layer Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: controller-layer
+  namespace: arcana-cloud
+  labels:
+    app: arcana-cloud
+    tier: controller
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+spec:
+  type: ClusterIP
+  selector:
+    app: arcana-cloud
+    tier: controller
+  ports:
+    - name: http
+      port: 5000
+      targetPort: 5000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: None
+
+---
+# Service Layer Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-layer
+  namespace: arcana-cloud
+  labels:
+    app: arcana-cloud
+    tier: service
+spec:
+  type: ClusterIP
+  selector:
+    app: arcana-cloud
+    tier: service
+  ports:
+    - name: http
+      port: 5001
+      targetPort: 5001
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: None
+
+---
+# Repository Layer Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: repository-layer
+  namespace: arcana-cloud
+  labels:
+    app: arcana-cloud
+    tier: repository
+spec:
+  type: ClusterIP
+  selector:
+    app: arcana-cloud
+    tier: repository
+  ports:
+    - name: http
+      port: 5002
+      targetPort: 5002
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: None
+
+---
+# MySQL Database Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service
+  namespace: arcana-cloud
+  labels:
+    app: mysql
+    tier: database
+spec:
+  type: ClusterIP
+  selector:
+    app: mysql
+  ports:
+    - name: mysql
+      port: 3306
+      targetPort: 3306
+      protocol: TCP
+  clusterIP: None  # Headless service for StatefulSet
+
+---
+# Redis Cache Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+  namespace: arcana-cloud
+  labels:
+    app: redis
+    tier: cache
+spec:
+  type: ClusterIP
+  selector:
+    app: redis
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+      protocol: TCP
+
+---
+# External LoadBalancer Service (for production)
+apiVersion: v1
+kind: Service
+metadata:
+  name: arcana-cloud-external
+  namespace: arcana-cloud
+  labels:
+    app: arcana-cloud
+    tier: frontend
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+    service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "60"
+spec:
+  type: LoadBalancer
+  selector:
+    app: arcana-cloud
+    tier: controller
+  ports:
+    - name: http
+      port: 80
+      targetPort: 5000
+      protocol: TCP
+    - name: https
+      port: 443
+      targetPort: 5000
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800  # 3 hours
+
+---
+# Headless Service for StatefulSets (if using StatefulSet for database)
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-headless
+  namespace: arcana-cloud
+  labels:
+    app: mysql
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app: mysql
+  ports:
+    - name: mysql
+      port: 3306
+      targetPort: 3306
+
+---
+# NodePort Service (for development/testing)
+apiVersion: v1
+kind: Service
+metadata:
+  name: arcana-cloud-nodeport
+  namespace: arcana-cloud
+  labels:
+    app: arcana-cloud
+    environment: development
+spec:
+  type: NodePort
+  selector:
+    app: arcana-cloud
+    tier: controller
+  ports:
+    - name: http
+      port: 5000
+      targetPort: 5000
+      nodePort: 30000
+      protocol: TCP

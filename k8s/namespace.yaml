@@ -1,0 +1,15 @@
+# ============================================================================
+# Kubernetes Namespace
+# ============================================================================
+# Dedicated namespace for Arcana Cloud application
+# ============================================================================
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: arcana-cloud
+  labels:
+    name: arcana-cloud
+    environment: production
+    app.kubernetes.io/name: arcana-cloud
+    app.kubernetes.io/part-of: arcana-platform

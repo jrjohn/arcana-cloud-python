@@ -1,0 +1,263 @@
+# ============================================================================
+# Repository Layer Deployment
+# ============================================================================
+# Kubernetes Deployment for the Repository (Data Access) layer
+# ============================================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: repository-layer
+  namespace: arcana-cloud
+  labels:
+    app: arcana-cloud
+    tier: repository
+    layer: data-access
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: arcana-cloud
+      tier: repository
+  template:
+    metadata:
+      labels:
+        app: arcana-cloud
+        tier: repository
+        layer: data-access
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      # Security context
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+
+      # Service account
+      serviceAccountName: arcana-cloud-sa
+
+      # Init containers
+      initContainers:
+        - name: wait-for-mysql
+          image: busybox:1.35
+          command:
+            - 'sh'
+            - '-c'
+            - |
+              echo "Waiting for MySQL database..."
+              until nc -z mysql-service 3306; do
+                echo "MySQL not ready, waiting..."
+                sleep 2
+              done
+              echo "MySQL is ready!"
+
+        - name: run-migrations
+          image: arcanacloud/arcana-cloud-repository:latest
+          command:
+            - 'flask'
+            - 'db'
+            - 'upgrade'
+          env:
+            - name: DATABASE_URL
+              value: "mysql+pymysql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: DB_PORT
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: DB_NAME
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secrets
+                  key: MYSQL_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: arcana-cloud-secrets
+                  key: DB_PASSWORD
+
+      containers:
+        - name: repository
+          image: arcanacloud/arcana-cloud-repository:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 5002
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+
+          env:
+            # Deployment Configuration
+            - name: DEPLOYMENT_LAYER
+              value: "repository"
+            - name: SERVICE_NAME
+              value: "arcana-cloud-repository"
+            - name: SERVICE_PORT
+              value: "5002"
+
+            # From ConfigMap
+            - name: FLASK_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: FLASK_ENV
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: LOG_LEVEL
+            - name: LOG_FORMAT
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: LOG_FORMAT
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: DB_PORT
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: DB_NAME
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: REDIS_HOST
+            - name: REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: REDIS_PORT
+            - name: SQLALCHEMY_POOL_SIZE
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: SQLALCHEMY_POOL_SIZE
+            - name: SQLALCHEMY_MAX_OVERFLOW
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-cloud-config
+                  key: SQLALCHEMY_MAX_OVERFLOW
+
+            # From Secrets
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: arcana-cloud-secrets
+                  key: SECRET_KEY
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secrets
+                  key: MYSQL_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: arcana-cloud-secrets
+                  key: DB_PASSWORD
+
+            # Build connection URLs
+            - name: DATABASE_URL
+              value: "mysql+pymysql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
+            - name: REDIS_URL
+              value: "redis://$(REDIS_HOST):$(REDIS_PORT)/0"
+
+          # Resource limits and requests
+          resources:
+            requests:
+              cpu: 400m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+
+          # Liveness probe
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5002
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          # Readiness probe (includes DB connectivity check)
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 5002
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          # Startup probe
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 5002
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 15
+
+          # Volume mounts
+          volumeMounts:
+            - name: logs
+              mountPath: /app/logs
+            - name: uploads
+              mountPath: /app/uploads
+
+      # Volumes
+      volumes:
+        - name: logs
+          emptyDir: {}
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: arcana-cloud-uploads-pvc
+
+      # Affinity rules
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: tier
+                      operator: In
+                      values:
+                        - repository
+                topologyKey: kubernetes.io/hostname
+
+      # DNS configuration
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
