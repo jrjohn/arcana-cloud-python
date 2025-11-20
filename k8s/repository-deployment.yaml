@@ -60,45 +60,10 @@ spec:
               done
               echo "MySQL is ready!"
 
-        - name: run-migrations
-          image: arcanacloud/arcana-cloud-repository:latest
-          command:
-            - 'flask'
-            - 'db'
-            - 'upgrade'
-          env:
-            - name: DATABASE_URL
-              value: "mysql+pymysql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
-            - name: DB_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: arcana-cloud-config
-                  key: DB_HOST
-            - name: DB_PORT
-              valueFrom:
-                configMapKeyRef:
-                  name: arcana-cloud-config
-                  key: DB_PORT
-            - name: DB_NAME
-              valueFrom:
-                configMapKeyRef:
-                  name: arcana-cloud-config
-                  key: DB_NAME
-            - name: DB_USER
-              valueFrom:
-                secretKeyRef:
-                  name: mysql-secrets
-                  key: MYSQL_USER
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: arcana-cloud-secrets
-                  key: DB_PASSWORD
-
       containers:
         - name: repository
           image: arcanacloud/arcana-cloud-repository:latest
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports:
             - name: http
               containerPort: 5002

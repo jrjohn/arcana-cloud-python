@@ -97,7 +97,8 @@ def register_health_checks(app: Flask) -> None:
         """Readiness check"""
         try:
             # Check database connection
-            db.session.execute('SELECT 1')
+            from sqlalchemy import text
+            db.session.execute(text('SELECT 1'))
             return jsonify({'status': 'ready'}), 200
         except Exception as e:
             return jsonify({'status': 'not ready', 'error': str(e)}), 503

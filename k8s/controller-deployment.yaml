@@ -63,7 +63,7 @@ spec:
       containers:
         - name: controller
           image: arcanacloud/arcana-cloud-controller:latest
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports:
             - name: http
               containerPort: 5000
@@ -157,7 +157,7 @@ spec:
           # Readiness probe
           readinessProbe:
             httpGet:
-              path: /ready
+              path: /health
               port: 5000
             initialDelaySeconds: 10
             periodSeconds: 5

@@ -1,0 +1,215 @@
+### Arcana Cloud API Testing
+### Use with VS Code REST Client extension
+### Change @baseUrl to match your deployment method
+
+@baseUrl = http://localhost:8080
+# Alternative URLs:
+# @baseUrl = http://localhost:30000  (NodePort)
+# @baseUrl = https://api.arcana-cloud.com  (Production)
+
+### Variables for authentication
+@username = testuser
+@email = test@example.com
+@password = SecurePass123!
+
+###############################################################################
+# Health & Status Checks
+###############################################################################
+
+### Health Check
+GET {{baseUrl}}/health
+Accept: application/json
+
+###
+
+### Readiness Check
+GET {{baseUrl}}/ready
+Accept: application/json
+
+###
+
+### API Status
+GET {{baseUrl}}/api/v1/status
+Accept: application/json
+
+###############################################################################
+# Authentication
+###############################################################################
+
+### Register New User
+# @name register
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+###
+
+### Login
+# @name login
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+###
+
+### Extract access token from login response
+@accessToken = {{login.response.body.access_token}}
+@refreshToken = {{login.response.body.refresh_token}}
+
+###
+
+### Refresh Token
+POST {{baseUrl}}/api/v1/auth/refresh
+Content-Type: application/json
+Authorization: Bearer {{refreshToken}}
+
+###
+
+### Logout
+POST {{baseUrl}}/api/v1/auth/logout
+Authorization: Bearer {{accessToken}}
+
+###############################################################################
+# User Management
+###############################################################################
+
+### Get All Users (requires authentication)
+GET {{baseUrl}}/api/v1/users
+Accept: application/json
+Authorization: Bearer {{accessToken}}
+
+###
+
+### Get Current User Profile
+GET {{baseUrl}}/api/v1/users/me
+Accept: application/json
+Authorization: Bearer {{accessToken}}
+
+###
+
+### Get User by ID
+@userId = 1
+GET {{baseUrl}}/api/v1/users/{{userId}}
+Accept: application/json
+Authorization: Bearer {{accessToken}}
+
+###
+
+### Update User
+PUT {{baseUrl}}/api/v1/users/{{userId}}
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "email": "updated@example.com",
+  "username": "{{username}}"
+}
+
+###
+
+### Update User Password
+PATCH {{baseUrl}}/api/v1/users/{{userId}}/password
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "old_password": "{{password}}",
+  "new_password": "NewSecurePass123!"
+}
+
+###
+
+### Delete User
+DELETE {{baseUrl}}/api/v1/users/{{userId}}
+Authorization: Bearer {{accessToken}}
+
+###############################################################################
+# OAuth2 Token Management
+###############################################################################
+
+### Get User's OAuth Tokens
+GET {{baseUrl}}/api/v1/oauth/tokens
+Accept: application/json
+Authorization: Bearer {{accessToken}}
+
+###
+
+### Revoke OAuth Token
+@tokenId = 1
+DELETE {{baseUrl}}/api/v1/oauth/tokens/{{tokenId}}
+Authorization: Bearer {{accessToken}}
+
+###############################################################################
+# Admin Endpoints (if available)
+###############################################################################
+
+### Get System Metrics (admin only)
+GET {{baseUrl}}/api/v1/admin/metrics
+Accept: application/json
+Authorization: Bearer {{accessToken}}
+
+###
+
+### Get All Users (admin only)
+GET {{baseUrl}}/api/v1/admin/users
+Accept: application/json
+Authorization: Bearer {{accessToken}}
+
+###############################################################################
+# Error Testing
+###############################################################################
+
+### Test 401 Unauthorized
+GET {{baseUrl}}/api/v1/users
+Accept: application/json
+
+###
+
+### Test 400 Bad Request (invalid email)
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "username": "testuser2",
+  "email": "invalid-email",
+  "password": "Test123!"
+}
+
+###
+
+### Test 404 Not Found
+GET {{baseUrl}}/api/v1/users/999999
+Accept: application/json
+Authorization: Bearer {{accessToken}}
+
+###
+
+### Test 422 Validation Error (weak password)
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "username": "testuser3",
+  "email": "test3@example.com",
+  "password": "weak"
+}
+
+###############################################################################
+# Load Testing (careful with rate limits)
+###############################################################################
+
+### Test Rate Limiting
+# Send multiple rapid requests to trigger rate limiting
+GET {{baseUrl}}/api/v1/status
+Accept: application/json
+
+###

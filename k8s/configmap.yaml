@@ -21,6 +21,7 @@ data:
 
   # Database Configuration
   DB_NAME: "arcana_cloud"
+  DB_USER: "arcana"
   DB_HOST: "mysql-service"
   DB_PORT: "3306"
 

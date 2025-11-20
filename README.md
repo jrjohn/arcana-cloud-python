@@ -682,6 +682,18 @@ docker build \
 
 ## ☸️ Kubernetes Deployment
 
+> 📖 **For detailed deployment instructions**, see [K8S_DEPLOYMENT_GUIDE.md](K8S_DEPLOYMENT_GUIDE.md)
+
+### Quick Start
+
+```bash
+# Validate all manifests (dry run)
+./scripts/test-k8s-manifests.sh
+
+# Deploy everything at once
+kubectl apply -f k8s/
+```
+
 ### Prerequisites
 
 ```bash
@@ -746,8 +758,12 @@ kubectl get ingress -n arcana-cloud
 # View logs
 kubectl logs -f deployment/controller-layer -n arcana-cloud
 
-# Exec into pod
-kubectl exec -it deployment/controller-layer -n arcana-cloud -- /bin/bash
+# Exec into pod (get first pod from deployment)
+POD_NAME=$(kubectl get pods -n arcana-cloud -l tier=controller -o jsonpath='{.items[0].metadata.name}')
+kubectl exec -it $POD_NAME -n arcana-cloud -c controller -- /bin/bash
+
+# Or use a one-liner
+kubectl exec -it -n arcana-cloud $(kubectl get pods -n arcana-cloud -l tier=controller -o jsonpath='{.items[0].metadata.name}') -c controller -- /bin/bash
 ```
 
 ### Scaling
@@ -763,6 +779,47 @@ kubectl get hpa -n arcana-cloud
 kubectl describe hpa controller-layer-hpa -n arcana-cloud
 ```
 
+### Testing API from Browser
+
+After deployment, access the API using one of these methods:
+
+**Option 1: Port Forward (Quickest)**
+```bash
+# Forward local port 8080 to controller service
+kubectl port-forward -n arcana-cloud svc/controller-layer 8080:5000
+
+# Access in browser
+open http://localhost:8080/health
+```
+
+**Option 2: NodePort (Development)**
+```bash
+# For Docker Desktop Kubernetes
+open http://localhost:30000/health
+
+# For Minikube
+open "http://$(minikube ip):30000/health"
+```
+
+**Option 3: LoadBalancer (Production)**
+```bash
+# Get external IP (cloud providers only)
+kubectl get svc arcana-cloud-external -n arcana-cloud
+EXTERNAL_IP=$(kubectl get svc arcana-cloud-external -n arcana-cloud -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+open "http://${EXTERNAL_IP}/health"
+```
+
+**Option 4: Ingress (Production with Domain)**
+```bash
+# Get ingress IP
+kubectl get ingress -n arcana-cloud
+
+# Access via domain (after DNS setup)
+open "https://api.arcana-cloud.com/api/v1/status"
+```
+
+> 📖 **For detailed browser testing instructions**, see [K8S_DEPLOYMENT_GUIDE.md - Testing API from Browser](K8S_DEPLOYMENT_GUIDE.md#-testing-api-from-browser)
+
 ### Using Makefile
 
 ```bash
@@ -775,8 +832,8 @@ make k8s-status
 # View logs
 make k8s-logs
 
-# Shell into pod
-make k8s-shell POD=controller-layer
+# Shell into pod (will auto-select first pod)
+make k8s-shell TIER=controller
 
 # Port forwarding
 make k8s-port-forward

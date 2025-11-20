@@ -20,7 +20,7 @@ spec:
   resources:
     requests:
       storage: 10Gi
-  storageClassName: standard  # Change based on your cloud provider
+  storageClassName: hostpath  # Change based on your cloud provider (hostpath for Docker Desktop)
   # volumeMode: Filesystem
 
 ---
@@ -39,7 +39,7 @@ spec:
   resources:
     requests:
       storage: 20Gi
-  storageClassName: standard
+  storageClassName: hostpath  # hostpath for Docker Desktop, standard for cloud
   # For better performance on cloud providers, use SSD storage class
   # storageClassName: gp3  # AWS
   # storageClassName: pd-ssd  # GCP
@@ -61,7 +61,7 @@ spec:
   resources:
     requests:
       storage: 5Gi
-  storageClassName: standard
+  storageClassName: hostpath  # hostpath for Docker Desktop
 
 ---
 # PVC for application logs (optional - consider using log aggregation instead)
@@ -79,4 +79,4 @@ spec:
   resources:
     requests:
       storage: 5Gi
-  storageClassName: standard
+  storageClassName: hostpath  # hostpath for Docker Desktop
