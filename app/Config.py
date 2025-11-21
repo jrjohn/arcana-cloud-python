@@ -77,6 +77,14 @@ class DevelopmentConfig(Config):
     SQLALCHEMY_ECHO = True
     LOG_LEVEL = 'DEBUG'
 
+    # Use DATABASE_URL from environment, with fallback to default
+    # os.getenv() is evaluated at import time, so this will pick up
+    # environment variables set before Python starts
+    SQLALCHEMY_DATABASE_URI = os.getenv(
+        'DATABASE_URL',
+        'sqlite:///arcana_dev.db'
+    )
+
 
 class TestingConfig(Config):
     """Testing Environment Configuration"""

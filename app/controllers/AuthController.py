@@ -8,19 +8,11 @@ from app.controllers import auth_bp
 from app.decorators.AuthDecorators import token_required
 from app.decorators.ValidationDecorators import validate_schema
 from app.schemas.AuthSchema import LoginSchema, RegisterSchema, RefreshTokenSchema
-from app.repositories.implementations.UserRepositoryImpl import UserRepositoryImpl
-from app.repositories.implementations.OAuthTokenRepositoryImpl import OAuthTokenRepositoryImpl
-from app.services.implementations.AuthServiceImpl import AuthServiceImpl
-from app.Extensions import db
 from app.utils.Response import success_response, error_response
 from app.utils.Exceptions import APIException
 
-
-def get_auth_service() -> AuthServiceImpl:
-    """Get AuthService instance"""
-    user_repo = UserRepositoryImpl(db.session)
-    token_repo = OAuthTokenRepositoryImpl(db.session)
-    return AuthServiceImpl(user_repo, token_repo)
+# Import DI container
+from app.di_container import get_auth_service
 
 
 @auth_bp.route('/register', methods=['POST'])

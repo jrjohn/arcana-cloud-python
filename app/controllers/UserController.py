@@ -1,6 +1,6 @@
 """
 User Controller
-User management API controller
+User management API controller with abstract communication layer
 """
 from flask import request, g
 
@@ -14,17 +14,11 @@ from app.schemas.UserSchema import (
     ChangePasswordSchema
 )
 from app.models.user import UserRole, UserStatus
-from app.repositories.implementations.UserRepositoryImpl import UserRepositoryImpl
-from app.services.implementations.UserServiceImpl import UserServiceImpl
-from app.Extensions import db
 from app.utils.Response import success_response, error_response, paginated_response
 from app.utils.Exceptions import APIException
 
-
-def get_user_service() -> UserServiceImpl:
-    """Get UserService instance"""
-    user_repo = UserRepositoryImpl(db.session)
-    return UserServiceImpl(user_repo)
+# Import DI container
+from app.di_container import get_service_communication
 
 
 @user_bp.route('', methods=['GET'])
@@ -33,13 +27,13 @@ def get_user_service() -> UserServiceImpl:
 @validate_pagination()
 def get_users():
     """
-    Get user列表（管理員）
+    Get user list (Admin only)
     ---
-    GET /api/users?page=1&per_page=20&role=user&status=active
+    GET /api/v1/users?page=1&per_page=20&role=user&status=active
     Headers: Authorization: Bearer <access_token>
     """
     try:
-        user_service = get_user_service()
+        service_comm = get_service_communication()
         page = request.pagination['page']
         per_page = request.pagination['per_page']
 
@@ -47,14 +41,17 @@ def get_users():
         role_str = request.args.get('role')
         status_str = request.args.get('status')
 
-        role = UserRole[role_str.upper()] if role_str else None
-        status = UserStatus[status_str.upper()] if status_str else None
+        filters = {}
+        if role_str:
+            filters['role'] = UserRole[role_str.upper()]
+        if status_str:
+            filters['status'] = UserStatus[status_str.upper()]
 
-        result = user_service.getUsers(
+        # Call via communication layer (Direct/HTTP/gRPC based on mode)
+        result = service_comm.get_users(
             page=page,
             per_page=per_page,
-            role=role,
-            status=status
+            **filters
         )
 
         return paginated_response(
@@ -85,9 +82,9 @@ def get_users():
 @token_required
 def get_user(user_id: int):
     """
-    Get user詳情
+    Get user details
     ---
-    GET /api/users/{user_id}
+    GET /api/v1/users/{user_id}
     Headers: Authorization: Bearer <access_token>
     """
     try:
@@ -101,11 +98,13 @@ def get_user(user_id: int):
                 error_code='PERMISSION_DENIED'
             )
 
-        user_service = get_user_service()
-        user = user_service.getUserById(user_id)
+        service_comm = get_service_communication()
+
+        # Call via communication layer
+        user_data = service_comm.get_user_by_id(user_id)
 
         return success_response(
-            data=user.toDict(),
+            data=user_data,
             message='User retrieved successfully'
         )
 
@@ -131,9 +130,9 @@ def get_user(user_id: int):
 @validate_schema(UserCreateSchema)
 def create_user():
     """
-    Create user（管理員）
+    Create user (Admin only)
     ---
-    POST /api/users
+    POST /api/v1/users
     Headers: Authorization: Bearer <access_token>
     {
         "username": "jane_doe",
@@ -145,19 +144,13 @@ def create_user():
     """
     try:
         data = request.validated_data
-        user_service = get_user_service()
+        service_comm = get_service_communication()
 
-        user = user_service.createUser(
-            username=data['username'],
-            email=data['email'],
-            password=data['password'],
-            first_name=data.get('first_name'),
-            last_name=data.get('last_name'),
-            phone=data.get('phone')
-        )
+        # Call via communication layer
+        user_data = service_comm.create_user(user_data=data)
 
         return success_response(
-            data=user.toDict(),
+            data=user_data,
             message='User created successfully',
             status_code=201
         )
@@ -183,9 +176,9 @@ def create_user():
 @validate_schema(UserUpdateSchema)
 def update_user(user_id: int):
     """
-    Update user信息
+    Update user information
     ---
-    PUT /api/users/{user_id}
+    PUT /api/v1/users/{user_id}
     Headers: Authorization: Bearer <access_token>
     {
         "first_name": "Jane",
@@ -205,12 +198,13 @@ def update_user(user_id: int):
             )
 
         data = request.validated_data
-        user_service = get_user_service()
+        service_comm = get_service_communication()
 
-        user = user_service.updateUser(user_id, **data)
+        # Call via communication layer
+        user_data = service_comm.update_user(user_id=user_id, user_data=data)
 
         return success_response(
-            data=user.toDict(),
+            data=user_data,
             message='User updated successfully'
         )
 
@@ -235,14 +229,16 @@ def update_user(user_id: int):
 @role_required([UserRole.ADMIN])
 def delete_user(user_id: int):
     """
-    Delete user（管理員）
+    Delete user (Admin only)
     ---
-    DELETE /api/users/{user_id}
+    DELETE /api/v1/users/{user_id}
     Headers: Authorization: Bearer <access_token>
     """
     try:
-        user_service = get_user_service()
-        user_service.deleteUser(user_id)
+        service_comm = get_service_communication()
+
+        # Call via communication layer
+        service_comm.delete_user(user_id=user_id)
 
         return success_response(
             message='User deleted successfully'
@@ -269,9 +265,9 @@ def delete_user(user_id: int):
 @validate_schema(ChangePasswordSchema)
 def change_password(user_id: int):
     """
-    修改Password
+    Change password
     ---
-    PUT /api/users/{user_id}/password
+    PUT /api/v1/users/{user_id}/password
     Headers: Authorization: Bearer <access_token>
     {
         "old_password": "OldPass123",
@@ -281,7 +277,7 @@ def change_password(user_id: int):
     try:
         current_user = g.current_user
 
-        # 只能修改自己的Password
+        # Can only change own password
         if current_user.id != user_id:
             return error_response(
                 message='Permission denied',
@@ -290,9 +286,11 @@ def change_password(user_id: int):
             )
 
         data = request.validated_data
-        user_service = get_user_service()
+        service_comm = get_service_communication()
 
-        user_service.changePassword(
+        # Call generic method via communication layer
+        result = service_comm.call(
+            'changePassword',
             user_id=user_id,
             old_password=data['old_password'],
             new_password=data['new_password']
@@ -323,17 +321,19 @@ def change_password(user_id: int):
 @role_required([UserRole.ADMIN])
 def verify_user(user_id: int):
     """
-    Verify user（管理員）
+    Verify user (Admin only)
     ---
-    POST /api/users/{user_id}/verify
+    POST /api/v1/users/{user_id}/verify
     Headers: Authorization: Bearer <access_token>
     """
     try:
-        user_service = get_user_service()
-        user = user_service.verifyUser(user_id)
+        service_comm = get_service_communication()
+
+        # Call generic method via communication layer
+        user_data = service_comm.call('verifyUser', user_id=user_id)
 
         return success_response(
-            data=user.toDict(),
+            data=user_data,
             message='User verified successfully'
         )
 
@@ -358,9 +358,9 @@ def verify_user(user_id: int):
 @role_required([UserRole.ADMIN])
 def update_user_status(user_id: int):
     """
-    Update user狀態（管理員）
+    Update user status (Admin only)
     ---
-    PUT /api/users/{user_id}/status
+    PUT /api/v1/users/{user_id}/status
     Headers: Authorization: Bearer <access_token>
     {
         "status": "suspended"
@@ -386,11 +386,17 @@ def update_user_status(user_id: int):
                 error_code='VALIDATION_ERROR'
             )
 
-        user_service = get_user_service()
-        user = user_service.updateUserStatus(user_id, status)
+        service_comm = get_service_communication()
+
+        # Call generic method via communication layer
+        user_data = service_comm.call(
+            'updateUserStatus',
+            user_id=user_id,
+            status=status
+        )
 
         return success_response(
-            data=user.toDict(),
+            data=user_data,
             message='User status updated successfully'
         )
 

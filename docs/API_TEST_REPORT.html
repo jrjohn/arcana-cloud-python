@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcana Cloud - API Test Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .metadata {
+            background: #f8f9fa;
+            padding: 20px 40px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .metadata-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .metadata-label {
+            font-size: 0.85em;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+
+        .metadata-value {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #212529;
+        }
+
+        .summary {
+            padding: 40px;
+            background: white;
+        }
+
+        .summary h2 {
+            color: #212529;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .stat-card.passed {
+            border-left-color: #28a745;
+            background: linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%);
+        }
+
+        .stat-card.failed {
+            border-left-color: #dc3545;
+            background: linear-gradient(135deg, #fff8f8 0%, #ffebee 100%);
+        }
+
+        .stat-card.errors {
+            border-left-color: #ffc107;
+            background: linear-gradient(135deg, #fffef8 0%, #fff9e6 100%);
+        }
+
+        .stat-card.skipped {
+            border-left-color: #6c757d;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transition: width 1s ease;
+        }
+
+        .test-suites {
+            padding: 0 40px 40px;
+        }
+
+        .suite {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .suite-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 25px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .suite-header:hover {
+            opacity: 0.95;
+        }
+
+        .suite-title {
+            font-size: 1.4em;
+            font-weight: 600;
+        }
+
+        .suite-stats {
+            display: flex;
+            gap: 20px;
+            font-size: 0.95em;
+        }
+
+        .suite-stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .suite-body {
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .test-item {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: box-shadow 0.2s;
+        }
+
+        .test-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .test-item.pass {
+            border-left: 4px solid #28a745;
+        }
+
+        .test-item.fail {
+            border-left: 4px solid #dc3545;
+        }
+
+        .test-item.error {
+            border-left: 4px solid #ffc107;
+        }
+
+        .test-item.skip {
+            border-left: 4px solid #6c757d;
+            opacity: 0.7;
+        }
+
+        .test-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .test-name {
+            font-weight: 600;
+            font-size: 1.1em;
+            color: #212529;
+        }
+
+        .test-status {
+            font-size: 1.2em;
+        }
+
+        .test-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .test-detail {
+            font-size: 0.9em;
+        }
+
+        .test-detail-label {
+            color: #6c757d;
+            margin-right: 5px;
+        }
+
+        .test-detail-value {
+            font-family: 'Courier New', monospace;
+            color: #212529;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .badge.method-get {
+            background: #0dcaf0;
+            color: white;
+        }
+
+        .badge.method-post {
+            background: #198754;
+            color: white;
+        }
+
+        .badge.method-put {
+            background: #fd7e14;
+            color: white;
+        }
+
+        .badge.method-delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        .code-block {
+            background: #f1f3f5;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            overflow-x: auto;
+            max-height: 300px;
+        }
+
+        .error-message {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 10px;
+            color: #856404;
+        }
+
+        .footer {
+            background: #212529;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .suite-stats {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Arcana Cloud API Test Report</h1>
+            <div class="subtitle">Monolithic Deployment Mode - Comprehensive API Testing</div>
+        </div>
+
+        <div class="metadata">
+            <div class="metadata-grid">
+                <div class="metadata-item">
+                    <div class="metadata-label">Test Date</div>
+                    <div class="metadata-value">2025-11-21 10:46:15</div>
+                </div>
+                <div class="metadata-item">
+                    <div class="metadata-label">Base URL</div>
+                    <div class="metadata-value">http://localhost:5555</div>
+                </div>
+                <div class="metadata-item">
+                    <div class="metadata-label">Total Duration</div>
+                    <div class="metadata-value">291ms</div>
+                </div>
+                <div class="metadata-item">
+                    <div class="metadata-label">Success Rate</div>
+                    <div class="metadata-value">100.0%</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="summary">
+            <h2>📊 Executive Summary</h2>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">13</div>
+                    <div class="stat-label">Total Tests</div>
+                </div>
+                <div class="stat-card passed">
+                    <div class="stat-number" style="color: #28a745;">✅ 13</div>
+                    <div class="stat-label">Passed</div>
+                </div>
+                <div class="stat-card failed">
+                    <div class="stat-number" style="color: #dc3545;">❌ 0</div>
+                    <div class="stat-label">Failed</div>
+                </div>
+                <div class="stat-card errors">
+                    <div class="stat-number" style="color: #ffc107;">⚠️ 0</div>
+                    <div class="stat-label">Errors</div>
+                </div>
+                <div class="stat-card skipped">
+                    <div class="stat-number" style="color: #6c757d;">⏭️ 0</div>
+                    <div class="stat-label">Skipped</div>
+                </div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 100.0%;">
+                    100.0% Success Rate
+                </div>
+            </div>
+        </div>
+
+        <div class="test-suites">
+
+            <div class="suite">
+                <div class="suite-header">
+                    <div class="suite-title">Health Checks</div>
+                    <div class="suite-stats">
+                        <div class="suite-stat">✅ 2</div>
+                        <div class="suite-stat">❌ 0</div>
+                        <div class="suite-stat">⚠️ 0</div>
+                        <div class="suite-stat">⏭️ 0</div>
+                        <div class="suite-stat">⏱️ 6ms</div>
+                    </div>
+                </div>
+                <div class="suite-body">
+
+                    <div class="test-item pass">
+                        <div class="test-header">
+                            <div class="test-name">Health Check</div>
+                            <div class="test-status">✅ PASS</div>
+                        </div>
+                        <div class="test-details">
+                            <div class="test-detail">
+                                <span class="test-detail-label">Method:</span>
+                                <span class="badge method-get">GET</span>
+                            </div>
+                            <div class="test-detail">
+                                <span class="test-detail-label">Endpoint:</span>
+                                <span class="test-detail-value">/health</span>
+                            </div>
+                            <div class="test-detail">
+                                <span class="test-detail-label">Duration:</span>
+                                <span class="test-detail-value">2ms</span>
+                            </div>
+
+                            <div class="test-detail">
+                                <span class="test-detail-label">Status Code:</span>
+                                <span class="test-detail-value" style="color: #28a745;">
+                                    200 (expected: 200)
+                                </span>
+                            </div>
+
+                        </div>
+
+                        <details style="margin-top: 10px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: #667eea;">
+                                View Response Data
+                            </summary>
+                            <div class="code-block">
+                                <pre>{
+  "status": "healthy"
+}</pre>
+                            </div>
+                        </details>
+
+                    </div>
+
+                    <div class="test-item pass">
+                        <div class="test-header">
+                            <div class="test-name">Readiness Check</div>
+                            <div class="test-status">✅ PASS</div>
+                        </div>
+                        <div class="test-details">
+                            <div class="test-detail">
+                                <span class="test-detail-label">Method:</span>
+                                <span class="badge method-get">GET</span>
+                            </div>
+                            <div class="test-detail">
+                                <span class="test-detail-label">Endpoint:</span>
+                                <span class="test-detail-value">/ready</span>
+                            </div>
+                            <div class="test-detail">
+                                <span class="test-detail-label">Duration:</span>
+                                <span class="test-detail-value">4ms</span>
+                            </div>
+
+                            <div class="test-detail">
+                                <span class="test-detail-label">Status Code:</span>
+                                <span class="test-detail-value" style="color: #28a745;">
+                                    200 (expected: 200)
+                                </span>
+                            </div>
+
+                        </div>
+
+                        <details style="margin-top: 10px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: #667eea;">
+                                View Response Data
+                            </summary>
+                            <div class="code-block">
+                                <pre>{
+  "status": "ready"
+}</pre>
+                            </div>
+                        </details>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="suite">
+                <div class="suite-header">
+                    <div class="suite-title">Authentication</div>
+                    <div class="suite-stats">
+                        <div class="suite-stat">✅ 5</div>
+                        <div class="suite-stat">❌ 0</div>
+                        <div class="suite-stat">⚠️ 0</div>
+                        <div class="suite-stat">⏭️ 0</div>
+                        <div class="suite-stat">⏱️ 223ms</div>
+                    </div>
+                </div>
+                <div class="suite-body">
+
+                    <div class="test-item pass">
+                        <div class="test-header">
+                            <div class="test-name">User Login</div>
+                            <div class="test-status">✅ PASS</div>
+                        </div>
+                        <div class="test-details">
+                            <div class="test-detail">
+                                <span class="test-detail-label">Method:</span>
+                                <span class="badge method-post">POST</span>
+                            </div>
+                            <div class="test-detail">
+                                <span class="test-detail-label">Endpoint:</span>
+                                <span class="test-detail-value">/api/v1/auth/login</span>
+                            </div>
+                            <div class="test-detail">
+                                <span class="test-detail-label">Duration:</span>
+                                <span class="test-detail-value">73ms</span>
+                            </div>
+
+                            <div class="test-detail">
+                                <span class="test-detail-label">Status Code:</span>
+                                <span class="test-detail-value" style="color: #28a745;">
+                                    200 (expected: 200)
+                                </span>
+                            </div>
+
+                        </div>
+
+                        <details style="margin-top: 10px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: #667eea;">
+                                View Response Data
+                            </summary>
+                            <div class="code-block">
+                                <pre>{
+  "data": {
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6InRlc3R1c2VyMSIsImVtYWlsIjoidGVzdHVzZXIxQGV4YW1wbGUuY29tIiwicm9sZSI6InVzZXIiLCJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYzNjk2Nzc1LCJpYXQiOjE3NjM2OTMxNzV9.e2Ru1p9WFVEcomupStJKoO_Y_uQVm_UhMz-L31VchK0",
+    "expires_in": 3600,
+    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6InRlc3R1c2VyMSIsImVtYWlsIjoidGVzdHVzZXIxQGV4YW1wbGUuY29tIiwicm9sZSI6InVzZXIiLCJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NjI4NTE3NSwiaWF0IjoxNzYzNjkzMTc1fQ.Gge_zDTqFk6RH7KlNMwBt0wsQNr6hVBknQT1-gBik3A",
+    "token_type": "Bearer",
+    "user": {
+      "avatar_url": null,
+      "created_at": "2025-11-21T01:54:41.546177",
+      "email": "testuser1@example.com",
+      "first_name": "John",
+      "id": 2,
+      "is_active": true,
+      "is_verified": true,
+      "last_login_at": "2025-11-21T02:46:15.437322",
+      "last_name": "Doe",
+      "phone": null,
+      "role": "user",
+      "status": "active",
+      "updated_at": "2025-11-21T02:46:15.437725",
+      "username": "testuser1"
+    }
+  },
+  "message": "Login successful",
+  "request_id": "274b12f8-df02-4db6-a808-36840e5957f3",
+  "success": true,
+  "timestamp": "2025-11-21T02:46:15.438426Z"
+}</pre>
+                            </div>
+                        </details>
+
+                    </div>
+
+                    <div class="test-item pass">
+                        <div class="test-header">
+                            <div class="test-name">Get Current User Profile</div>
+                            <div class="test-status">✅ PASS</div>
+                        </div>
+                        <div class="test-details">
+                            <div class="test-detail">
+                                <span class="test-detail-label">Method:</span>
+                                <span class="badge method-get">GET</span>
+                            </div>
+                            <div class="test-detail">
+                                <span class="test-detail-label">Endpoint:</span>
+                                <span class="test-detail-value">/api/v1/auth/me</span>
+                            </div>
+                            <div class="test-detail">
+                                <span class="test-detail-label">Duration:</span>
+                                <span class="test-detail-value">4ms</span>
+                            </div>
+
+                            <div class="test-detail">
+                                <span class="test-detail-label">Status Code:</span>
+                                <span class="test-detail-value" style="color: #28a745;">
+                                    200 (expected: 200)
+                                </span>
+                            </div>
+
+                        </div>
+
+                        <details style="margin-top: 10px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: #667eea;">
+                                View Response Data
+                            </summary>
+                            <div class="code-block">
+                                <pre>{
+  "data": {
+    "avatar_url": null,
+    "created_at": "2025-11-21T01:54:41.546177",
+    "email": "testuser1@example.com",
+    "first_name": "John",
+    "id": 2,
+    "is_active": true,
+    "is_verified": true,
+    "last_login_at": "2025-11-21T02:46:15.437322",
+    "last_name": "Doe",
+    "phone": null,
+    "role": "user",
+    "status": "active",
+    "updated_at": "2025-11-21T02:46:15.437725",
+    "username": "testuser1"
+  },
+  "message": "User info retrieved successfully",
+  "request_id": "f86827ae-7927-4d96-9273-d1af2406f959",
+  "success": true,
+  "timestamp": "2025-11-21T02:46:15.442421Z"
+}</pre>
+                            </div>
+                        </details>
+
+                    </div>
+
+                    <div class="test-item pass">
+                        <div class="test-header">
+                            <div class="test-name">User Registration</div>
+                            <div class="test-status">✅ PASS</div>
+                        </div>
+                        <div class="test-details">
+                            <div class="test-detail">
+                                <span class="test-detail-label">Method:</span>
+                                <span class="badge method-post">POST</span>
+                            </div>
+                            <div class="test-detail">
+                                <span class="test-detail-label">Endpoint:</span>
+                                <span class="test-detail-value">/api/v1/auth/register</span>
+                            </div>
+                            <div class="test-detail">
+                                <span class="test-detail-label">Duration:</span>
+                                <span class="test-detail-value">136ms</span>
+                            </div>
+
+                            <div class="test-detail">
+                                <span class="test-detail-label">Status Code:</span>
+                                <span class="test-detail-value" style="color: #28a745;">
+                                    201 (expected: 201)
+                                </span>
+                            </div>
+
+                        </div>
+
+                        <details style="margin-top: 10px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: #667eea;">
+                                View Response Data
+                            </summary>
+                            <div class="code-block">
+                                <pre>{
+  "data": {
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo3LCJ1c2VybmFtZSI6Im5ld3VzZXJfMTc2MzY5MzE3NSIsImVtYWlsIjoibmV3dXNlcl8xNzYzNjkzMTc1QGV4YW1wbGUuY29tIiwicm9sZSI6InVzZXIiLCJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYzNjk2Nzc1LCJpYXQiOjE3NjM2OTMxNzV9.tq-NL4CiWfM7HWsbVF2gnysNhnq0PrvMkZ2pXB9C7SE",
+    "expires_in": 3600,
+    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo3LCJ1c2VybmFtZSI6Im5ld3VzZXJfMTc2MzY5MzE3NSIsImVtYWlsIjoibmV3dXNlcl8xNzYzNjkzMTc1QGV4YW1wbGUuY29tIiwicm9sZSI6InVzZXIiLCJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NjI4NTE3NSwiaWF0IjoxNzYzNjkzMTc1fQ.y8E0wVnOqiszXPhjZyyCR6HlbEb_95kMc7gUhJ3qIPg",
+    "token_type": "Bearer",
+    "user": {
+      "avatar_url": null,
+      "created_at": "2025-11-21T02:46:15.509069",
+      "email": "newuser_1763693175@example.com",
+      "first_name": "New",
+      "id": 7,
+      "is_active": true,
+      "is_verified": false,
+      "last_login_at": "2025-11-21T02:46:15.576063",
+      "last_name": "User",
+      "phone": null,
+      "role": "user",
+      "status": "active",
+      "updated_at": "2025-11-21T02:46:15.576428",
+      "username": "newuser_1763693175"
+    }
+  },
+  "message": "User registered successfully",
+  "request_id": "b2e566c1-6e3a-47b3-bc56-a6b087436c00",
+  "success": true,
+  "timestamp": "2025-11-21T02:46:15.577387Z"
+}</pre>
+                            </div>
+                        </details>
+
+                    </div>
+
+                    <div class="test-item pass">
+                        <div class="test-header">
+                            <div class="test-name">Duplicate Registration (Expected Fail)</div>
+                            <div class="test-status">✅ PASS</div>
+                        </div>
+                        <div class="test-details">
+                            <div class="test-detail">
+                                <span class="test-detail-label">Method:</span>
+                                <span class="badge method-post">POST</span>
+                            </div>
+                            <div class="test-detail">
+                                <span class="test-detail-label">Endpoint:</span>
+                                <span class="test-detail-value">/api/v1/auth/register</span>
+                            </div>
+                            <div class="test-detail">
+                                <span class="test-detail-label">Duration:</span>
+                                <span class="test-detail-value">4ms</span>
+                            </div>
+
+                            <div class="test-detail">
+                                <span class="test-detail-label">Status Code:</span>
+                                <span class="test-detail-value" style="color: #28a745;">
+                                    409 (expected: 409)
+                                </span>
+                            </div>
+
+                        </div>
+
+                        <details style="margin-top: 10px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: #667eea;">
+                                View Response Data
+                            </summary>
+                            <div class="code-block">
+                                <pre>{
+  "error": {
+    "code": "CONFLICT",
+    "details": {},
+    "message": "Username 'newuser_1763693175' already exists"
+  },
+  "request_id": "5fb2247b-1248-4627-abfc-06025d9d633b",
+  "success": false,
+  "timestamp": "2025-11-21T02:46:15.581894Z"
+}</pre>
+                            </div>
+                        </details>
+
+                    </div>
+
+                    <div class="test-item pass">
+                        <div class="test-header">
+                            <div class="test-name">User Logout</div>
+                            <div class="test-status">✅ PASS</div>
+                        </div>
+                        <div class="test-details">
+                            <div class="test-detail">
+                                <span class="test-detail-label">Method:</span>
+                                <span class="badge method-post">POST</span>
+                            </div>
+                            <div class="test-detail">
+                                <span class="test-detail-label">Endpoint:</span>
+                                <span class="test-detail-value">/api/v1/auth/logout</span>
+                            </div>
+                            <div class="test-detail">
+                                <span class="test-detail-label">Duration:</span>
+                                <span class="test-detail-value">6ms</span>
+                            </div>
+
+                            <div class="test-detail">
+                                <span class="test-detail-label">Status Code:</span>
+                                <span class="test-detail-value" style="color: #28a745;">
+                                    200 (expected: 200)
+                                </span>
+                            </div>
+
+                        </div>
+
+                        <details style="margin-top: 10px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: #667eea;">
+                                View Response Data
+                            </summary>
+                            <div class="code-block">
+                                <pre>{
+  "data": null,
+  "message": "Logout successful",
+  "request_id": "4f230eb8-738f-4ed6-8d64-0f530c023d0f",
+  "success": true,
+  "timestamp": "2025-11-21T02:46:15.588314Z"
+}</pre>
+                            </div>
+                        </details>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="suite">
+                <div class="suite-header">
+                    <div class="suite-title">User Management</div>
+                    <div class="suite-stats">
+                        <div class="suite-stat">✅ 4</div>
+                        <div class="suite-stat">❌ 0</div>
+                        <div class="suite-stat">⚠️ 0</div>
+                        <div class="suite-stat">⏭️ 0</div>
+                        <div class="suite-stat">⏱️ 50ms</div>
+                    </div>
+                </div>
+                <div class="suite-body">
+
+                    <div class="test-item pass">
+                        <div class="test-header">
+                            <div class="test-name">Get All Users (Paginated)</div>
+                            <div class="test-status">✅ PASS</div>
+                        </div>
+                        <div class="test-details">
+                            <div class="test-detail">
+                                <span class="test-detail-label">Method:</span>
+                                <span class="badge method-get">GET</span>
+                            </div>
+                            <div class="test-detail">
+                                <span class="test-detail-label">Endpoint:</span>
+                                <span class="test-detail-value">/api/v1/users</span>
+                            </div>
+                            <div class="test-detail">
+                                <span class="test-detail-label">Duration:</span>
+                                <span class="test-detail-value">6ms</span>
+                            </div>
+
+                            <div class="test-detail">
+                                <span class="test-detail-label">Status Code:</span>
+                                <span class="test-detail-value" style="color: #28a745;">
+                                    200 (expected: 200)
+                                </span>
+                            </div>
+
+                        </div>
+
+                        <details style="margin-top: 10px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: #667eea;">
+                                View Response Data
+                            </summary>
+                            <div class="code-block">
+                                <pre>{
+  "data": {
+    "items": [
+      {
+        "avatar_url": null,
+        "created_at": "2025-11-21T01:54:41.493624",
+        "email": "admin@arcana.com",
+        "first_name": "System",
+        "id": 1,
+        "is_active": true,
+        "is_verified": true,
+        "last_login_at": "2025-11-21T02:46:15.655812",
+        "last_name": "Administrator",
+        "phone": null,
+        "role": "admin",
+        "status": "active",
+        "updated_at": "2025-11-21T02:46:15.656145",
+        "username": "admin"
+      },
+      {
+        "avatar_url": null,
+        "created_at": "2025-11-21T01:54:41.546177",
+        "email": "testuser1@example.com",
+        "first_name": "John",
+        "id": 2,
+        "is_active": true,
+        "is_verified": true,
+        "last_login_at": "2025-11-21T02:46:15.437322",
+        "last_name": "Doe",
+        "phone": null,
+        "role": "user",
+        "status": "active",
+        "updated_at": "2025-11-21T02:46:15.437725",
+        "username": "testuser1"
+      },
+      {
+        "avatar_url": null,
+        "created_at": "2025-11-21T01:54:41.598221",
+        "email": "testuser2@example.com",
+        "first_name": "Jane",
+        "id": 3,
+        "is_active": true,
+        "is_verified": true,
+        "last_login_at": null,
+        "last_name": "Smith",
+        "phone": null,
+        "role": "user",
+        "status": "active",
+        "updated_at": "2025-11-21T01:54:41.598225",
+        "username": "testuser2"
+      },
+      {
+        "avatar_url": null,
+        "created_at": "2025-11-21T01:55:55.456214",
+        "email": "testuser_1763690155@example.com",
+        "first_name": "Test",
+        "id": 4,
+        "is_active": true,
+        "is_verified": false,
+        "last_login_at": "2025-11-21T01:55:55.516305",
+        "last_name": "User",
+        "phone": null,
+        "role": "user",
+        "status": "active",
+        "updated_at": "2025-11-21T01:55:55.517226",
+        "username": "testuser_1763690155"
+      },
+      {
+        "avatar_url": null,
+        "created_at": "2025-11-21T02:31:18.110331",
+        "email": "newuser_1763692278@example.com",
+        "first_name": "New",
+        "id": 5,
+        "is_active": true,
+        "is_verified": false,
+        "last_login_at": "2025-11-21T02:31:18.173531",
+        "last_name": "User",
+        "phone": null,
+        "role": "user",
+        "status": "active",
+        "updated_at": "2025-11-21T02:31:18.173850",
+        "username": "newuser_1763692278"
+      },
+      {
+        "avatar_url": null,
+        "created_at": "2025-11-21T02:43:49.963717",
+        "email": "newuser_1763693029@example.com",
+        "first_name": "New",
+        "id": 6,
+        "is_active": true,
+        "is_verified": false,
+        "last_login_at": "2025-11-21T02:43:50.024331",
+        "last_name": "User",
+        "phone": null,
+        "role": "user",
+        "status": "active",
+        "updated_at": "2025-11-21T02:43:50.024632",
+        "username": "newuser_1763693029"
+      },
+      {
+        "avatar_url": null,
+        "created_at": "2025-11-21T02:46:15.509069",
+        "email": "newuser_1763693175@example.com",
+        "first_name": "New",
+        "id": 7,
+        "is_active": true,
+        "is_verified": false,
+        "last_login_at": "2025-11-21T02:46:15.576063",
+        "last_name": "User",
+        "phone": null,
+        "role": "user",
+        "status": "active",
+        "updated_at": "2025-11-21T02:46:15.576428",
+        "username": "newuser_1763693175"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "pages": 1,
+      "per_page": 10,
+      "total": 7
+    }
+  },
+  "message": "Users retrieved successfully",
+  "request_id": "6326bb99-87d1-4ab6-85ab-fd52b8c9655b",
+  "success": true,
+  "timestamp": "2025-11-21T02:46:15.662484Z"
+}</pre>
+                            </div>
+                        </details>
+
+                    </div>
+
+                    <div class="test-item pass">
+                        <div class="test-header">
+                            <div class="test-name">Get User By ID</div>
+                            <div class="test-status">✅ PASS</div>
+                        </div>
+                        <div class="test-details">
+                            <div class="test-detail">
+                                <span class="test-detail-label">Method:</span>
+                                <span class="badge method-get">GET</span>
+                            </div>
+                            <div class="test-detail">
+                                <span class="test-detail-label">Endpoint:</span>
+                                <span class="test-detail-value">/api/v1/users/2</span>
+                            </div>
+                            <div class="test-detail">
+                                <span class="test-detail-label">Duration:</span>
+                                <span class="test-detail-value">5ms</span>
+                            </div>
+
+                            <div class="test-detail">
+                                <span class="test-detail-label">Status Code:</span>
+                                <span class="test-detail-value" style="color: #28a745;">
+                                    200 (expected: 200)
+                                </span>
+                            </div>
+
+                        </div>
+
+                        <details style="margin-top: 10px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: #667eea;">
+                                View Response Data
+                            </summary>
+                            <div class="code-block">
+                                <pre>{
+  "data": {
+    "avatar_url": null,
+    "created_at": "2025-11-21T01:54:41.546177",
+    "email": "testuser1@example.com",
+    "first_name": "John",
+    "id": 2,
+    "is_active": true,
+    "is_verified": true,
+    "last_login_at": "2025-11-21T02:46:15.437322",
+    "last_name": "Doe",
+    "phone": null,
+    "role": "user",
+    "status": "active",
+    "updated_at": "2025-11-21T02:46:15.437725",
+    "username": "testuser1"
+  },
+  "message": "User retrieved successfully",
+  "request_id": "89083bd2-28c8-4dc4-9111-dcaf79367496",
+  "success": true,
+  "timestamp": "2025-11-21T02:46:15.667498Z"
+}</pre>
+                            </div>
+                        </details>
+
+                    </div>
+
+                    <div class="test-item pass">
+                        <div class="test-header">
+                            <div class="test-name">Update User</div>
+                            <div class="test-status">✅ PASS</div>
+                        </div>
+                        <div class="test-details">
+                            <div class="test-detail">
+                                <span class="test-detail-label">Method:</span>
+                                <span class="badge method-put">PUT</span>
+                            </div>
+                            <div class="test-detail">
+                                <span class="test-detail-label">Endpoint:</span>
+                                <span class="test-detail-value">/api/v1/users/2</span>
+                            </div>
+                            <div class="test-detail">
+                                <span class="test-detail-label">Duration:</span>
+                                <span class="test-detail-value">27ms</span>
+                            </div>
+
+                            <div class="test-detail">
+                                <span class="test-detail-label">Status Code:</span>
+                                <span class="test-detail-value" style="color: #28a745;">
+                                    200 (expected: 200)
+                                </span>
+                            </div>
+
+                        </div>
+
+                        <details style="margin-top: 10px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: #667eea;">
+                                View Response Data
+                            </summary>
+                            <div class="code-block">
+                                <pre>{
+  "data": {
+    "avatar_url": null,
+    "created_at": "2025-11-21T01:54:41.546177",
+    "email": "testuser1@example.com",
+    "first_name": "Updated",
+    "id": 2,
+    "is_active": true,
+    "is_verified": true,
+    "last_login_at": "2025-11-21T02:46:15.437322",
+    "last_name": "Name",
+    "phone": null,
+    "role": "user",
+    "status": "active",
+    "updated_at": "2025-11-21T02:46:15.672740",
+    "username": "testuser1"
+  },
+  "message": "User updated successfully",
+  "request_id": "a71a7777-74eb-4088-9b16-184eff8aa3ff",
+  "success": true,
+  "timestamp": "2025-11-21T02:46:15.694266Z"
+}</pre>
+                            </div>
+                        </details>
+
+                    </div>
+
+                    <div class="test-item pass">
+                        <div class="test-header">
+                            <div class="test-name">Search Users</div>
+                            <div class="test-status">✅ PASS</div>
+                        </div>
+                        <div class="test-details">
+                            <div class="test-detail">
+                                <span class="test-detail-label">Method:</span>
+                                <span class="badge method-get">GET</span>
+                            </div>
+                            <div class="test-detail">
+                                <span class="test-detail-label">Endpoint:</span>
+                                <span class="test-detail-value">/api/v1/users</span>
+                            </div>
+                            <div class="test-detail">
+                                <span class="test-detail-label">Duration:</span>
+                                <span class="test-detail-value">13ms</span>
+                            </div>
+
+                            <div class="test-detail">
+                                <span class="test-detail-label">Status Code:</span>
+                                <span class="test-detail-value" style="color: #28a745;">
+                                    200 (expected: 200)
+                                </span>
+                            </div>
+
+                        </div>
+
+                        <details style="margin-top: 10px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: #667eea;">
+                                View Response Data
+                            </summary>
+                            <div class="code-block">
+                                <pre>{
+  "data": {
+    "items": [
+      {
+        "avatar_url": null,
+        "created_at": "2025-11-21T01:54:41.493624",
+        "email": "admin@arcana.com",
+        "first_name": "System",
+        "id": 1,
+        "is_active": true,
+        "is_verified": true,
+        "last_login_at": "2025-11-21T02:46:15.655812",
+        "last_name": "Administrator",
+        "phone": null,
+        "role": "admin",
+        "status": "active",
+        "updated_at": "2025-11-21T02:46:15.656145",
+        "username": "admin"
+      },
+      {
+        "avatar_url": null,
+        "created_at": "2025-11-21T01:54:41.546177",
+        "email": "testuser1@example.com",
+        "first_name": "Updated",
+        "id": 2,
+        "is_active": true,
+        "is_verified": true,
+        "last_login_at": "2025-11-21T02:46:15.437322",
+        "last_name": "Name",
+        "phone": null,
+        "role": "user",
+        "status": "active",
+        "updated_at": "2025-11-21T02:46:15.672740",
+        "username": "testuser1"
+      },
+      {
+        "avatar_url": null,
+        "created_at": "2025-11-21T01:54:41.598221",
+        "email": "testuser2@example.com",
+        "first_name": "Jane",
+        "id": 3,
+        "is_active": true,
+        "is_verified": true,
+        "last_login_at": null,
+        "last_name": "Smith",
+        "phone": null,
+        "role": "user",
+        "status": "active",
+        "updated_at": "2025-11-21T01:54:41.598225",
+        "username": "testuser2"
+      },
+      {
+        "avatar_url": null,
+        "created_at": "2025-11-21T01:55:55.456214",
+        "email": "testuser_1763690155@example.com",
+        "first_name": "Test",
+        "id": 4,
+        "is_active": true,
+        "is_verified": false,
+        "last_login_at": "2025-11-21T01:55:55.516305",
+        "last_name": "User",
+        "phone": null,
+        "role": "user",
+        "status": "active",
+        "updated_at": "2025-11-21T01:55:55.517226",
+        "username": "testuser_1763690155"
+      },
+      {
+        "avatar_url": null,
+        "created_at": "2025-11-21T02:31:18.110331",
+        "email": "newuser_1763692278@example.com",
+        "first_name": "New",
+        "id": 5,
+        "is_active": true,
+        "is_verified": false,
+        "last_login_at": "2025-11-21T02:31:18.173531",
+        "last_name": "User",
+        "phone": null,
+        "role": "user",
+        "status": "active",
+        "updated_at": "2025-11-21T02:31:18.173850",
+        "username": "newuser_1763692278"
+      },
+      {
+        "avatar_url": null,
+        "created_at": "2025-11-21T02:43:49.963717",
+        "email": "newuser_1763693029@example.com",
+        "first_name": "New",
+        "id": 6,
+        "is_active": true,
+        "is_verified": false,
+        "last_login_at": "2025-11-21T02:43:50.024331",
+        "last_name": "User",
+        "phone": null,
+        "role": "user",
+        "status": "active",
+        "updated_at": "2025-11-21T02:43:50.024632",
+        "username": "newuser_1763693029"
+      },
+      {
+        "avatar_url": null,
+        "created_at": "2025-11-21T02:46:15.509069",
+        "email": "newuser_1763693175@example.com",
+        "first_name": "New",
+        "id": 7,
+        "is_active": true,
+        "is_verified": false,
+        "last_login_at": "2025-11-21T02:46:15.576063",
+        "last_name": "User",
+        "phone": null,
+        "role": "user",
+        "status": "active",
+        "updated_at": "2025-11-21T02:46:15.576428",
+        "username": "newuser_1763693175"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "pages": 1,
+      "per_page": 20,
+      "total": 7
+    }
+  },
+  "message": "Users retrieved successfully",
+  "request_id": "e0583b88-31b5-4406-8e71-4043091a400a",
+  "success": true,
+  "timestamp": "2025-11-21T02:46:15.706634Z"
+}</pre>
+                            </div>
+                        </details>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="suite">
+                <div class="suite-header">
+                    <div class="suite-title">Public User Endpoints</div>
+                    <div class="suite-stats">
+                        <div class="suite-stat">✅ 2</div>
+                        <div class="suite-stat">❌ 0</div>
+                        <div class="suite-stat">⚠️ 0</div>
+                        <div class="suite-stat">⏭️ 0</div>
+                        <div class="suite-stat">⏱️ 12ms</div>
+                    </div>
+                </div>
+                <div class="suite-body">
+
+                    <div class="test-item pass">
+                        <div class="test-header">
+                            <div class="test-name">Get All Public Users</div>
+                            <div class="test-status">✅ PASS</div>
+                        </div>
+                        <div class="test-details">
+                            <div class="test-detail">
+                                <span class="test-detail-label">Method:</span>
+                                <span class="badge method-get">GET</span>
+                            </div>
+                            <div class="test-detail">
+                                <span class="test-detail-label">Endpoint:</span>
+                                <span class="test-detail-value">/api/public/users</span>
+                            </div>
+                            <div class="test-detail">
+                                <span class="test-detail-label">Duration:</span>
+                                <span class="test-detail-value">7ms</span>
+                            </div>
+
+                            <div class="test-detail">
+                                <span class="test-detail-label">Status Code:</span>
+                                <span class="test-detail-value" style="color: #28a745;">
+                                    200 (expected: 200)
+                                </span>
+                            </div>
+
+                        </div>
+
+                        <details style="margin-top: 10px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: #667eea;">
+                                View Response Data
+                            </summary>
+                            <div class="code-block">
+                                <pre>{
+  "data": [
+    {
+      "avatar": null,
+      "email": "admin@arcana.com",
+      "first_name": "System",
+      "id": 1,
+      "last_name": "Administrator"
+    },
+    {
+      "avatar": null,
+      "email": "testuser1@example.com",
+      "first_name": "Updated",
+      "id": 2,
+      "last_name": "Name"
+    },
+    {
+      "avatar": null,
+      "email": "testuser2@example.com",
+      "first_name": "Jane",
+      "id": 3,
+      "last_name": "Smith"
+    },
+    {
+      "avatar": null,
+      "email": "testuser_1763690155@example.com",
+      "first_name": "Test",
+      "id": 4,
+      "last_name": "User"
+    },
+    {
+      "avatar": null,
+      "email": "newuser_1763692278@example.com",
+      "first_name": "New",
+      "id": 5,
+      "last_name": "User"
+    },
+    {
+      "avatar": null,
+      "email": "newuser_1763693029@example.com",
+      "first_name": "New",
+      "id": 6,
+      "last_name": "User"
+    },
+    {
+      "avatar": null,
+      "email": "newuser_1763693175@example.com",
+      "first_name": "New",
+      "id": 7,
+      "last_name": "User"
+    }
+  ],
+  "page": 1,
+  "per_page": 20,
+  "total": 0,
+  "total_pages": 0
+}</pre>
+                            </div>
+                        </details>
+
+                    </div>
+
+                    <div class="test-item pass">
+                        <div class="test-header">
+                            <div class="test-name">Get Public User By ID</div>
+                            <div class="test-status">✅ PASS</div>
+                        </div>
+                        <div class="test-details">
+                            <div class="test-detail">
+                                <span class="test-detail-label">Method:</span>
+                                <span class="badge method-get">GET</span>
+                            </div>
+                            <div class="test-detail">
+                                <span class="test-detail-label">Endpoint:</span>
+                                <span class="test-detail-value">/api/public/users/2</span>
+                            </div>
+                            <div class="test-detail">
+                                <span class="test-detail-label">Duration:</span>
+                                <span class="test-detail-value">5ms</span>
+                            </div>
+
+                            <div class="test-detail">
+                                <span class="test-detail-label">Status Code:</span>
+                                <span class="test-detail-value" style="color: #28a745;">
+                                    200 (expected: 200)
+                                </span>
+                            </div>
+
+                        </div>
+
+                        <details style="margin-top: 10px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: #667eea;">
+                                View Response Data
+                            </summary>
+                            <div class="code-block">
+                                <pre>{
+  "data": {
+    "avatar": null,
+    "email": "testuser1@example.com",
+    "first_name": "Updated",
+    "id": 2,
+    "last_name": "Name"
+  }
+}</pre>
+                            </div>
+                        </details>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer">
+            <p>Generated by Arcana Cloud API Test Suite</p>
+            <p style="margin-top: 5px; opacity: 0.7;">
+                2025-11-21 10:46:15
+            </p>
+        </div>
+    </div>
+</body>
+</html>

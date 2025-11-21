@@ -9,20 +9,14 @@ from datetime import datetime
 from app.schemas.UserSchema import PublicUserCreateSchema, PublicUserUpdateSchema
 from app.decorators.ValidationDecorators import validate_schema, validate_pagination
 from app.models.user import User
-from app.repositories.implementations.UserRepositoryImpl import UserRepositoryImpl
-from app.services.implementations.UserServiceImpl import UserServiceImpl
-from app.Extensions import db
 from app.utils.Exceptions import APIException, NotFoundError
+
+# Import DI container
+from app.di_container import get_service_communication
 
 
 # Create blueprint for public user API
 public_user_bp = Blueprint('public_users', __name__, url_prefix='/api/public/users')
-
-
-def get_user_service() -> UserServiceImpl:
-    """Get UserService instance"""
-    user_repo = UserRepositoryImpl(db.session)
-    return UserServiceImpl(user_repo)
 
 
 def public_api_response(data=None, status_code=200, **kwargs):
@@ -74,26 +68,36 @@ def list_users():
     }
     """
     try:
-        user_service = get_user_service()
+        service_comm = get_service_communication()
         page = request.pagination.get('page', 1)
         per_page = request.pagination.get('per_page', 6)  # Default is 6
 
-        # Get users directly from repository instead of using service's getUsers
-        # to avoid the toDict() conversion
-        from app.repositories.implementations.UserRepositoryImpl import UserRepositoryImpl
-        from app.Extensions import db
-        user_repo = UserRepositoryImpl(db.session)
-        users, total = user_repo.getAll(page=page, per_page=per_page)
+        # Get users through communication layer
+        result = service_comm.get_users(page=page, per_page=per_page)
 
         # Convert to public API format
-        users_data = [user.toPublicDict() for user in users]
+        users_data = []
+        for user in result.get('items', []):
+            if isinstance(user, dict):
+                # Already in dict format, extract public fields
+                public_user = {
+                    'id': user.get('id'),
+                    'email': user.get('email'),
+                    'first_name': user.get('first_name'),
+                    'last_name': user.get('last_name'),
+                    'avatar': user.get('avatar_url', user.get('avatar'))
+                }
+            else:
+                # It's a User object, use toPublicDict if available
+                public_user = user.toPublicDict() if hasattr(user, 'toPublicDict') else user
+            users_data.append(public_user)
 
         return public_api_response(
             data=users_data,
             page=page,
             per_page=per_page,
-            total=total,
-            total_pages=(total + per_page - 1) // per_page
+            total=result.get('total', 0),
+            total_pages=result.get('total_pages', 0)
         )
 
     except Exception as e:
@@ -119,10 +123,23 @@ def get_user(user_id: int):
     }
     """
     try:
-        user_service = get_user_service()
-        user = user_service.getUserById(user_id)
+        service_comm = get_service_communication()
+        user_data = service_comm.get_user_by_id(user_id)
 
-        return public_api_response(data=user.toPublicDict())
+        # Convert to public API format if needed
+        if isinstance(user_data, dict) and 'toPublicDict' not in user_data:
+            # Already in dict format, extract public fields
+            public_data = {
+                'id': user_data.get('id'),
+                'email': user_data.get('email'),
+                'first_name': user_data.get('first_name'),
+                'last_name': user_data.get('last_name'),
+                'avatar': user_data.get('avatar_url', user_data.get('avatar'))
+            }
+        else:
+            public_data = user_data
+
+        return public_api_response(data=public_data)
 
     except NotFoundError:
         return jsonify({}), 404
@@ -163,10 +180,9 @@ def create_user():
         # Generate default username from email if not provided
         username = data['email'].split('@')[0]
 
-        # Create user with default password (since public API doesn't require it)
-        # In a real implementation, you might want to send a password reset email
-        user_service = get_user_service()
-        user = user_service.createUser(
+        # Create user through communication layer
+        service_comm = get_service_communication()
+        user_data = service_comm.create_user(
             username=username,
             email=data['email'],
             password='DefaultPass123',  # Default password for public API
@@ -175,8 +191,20 @@ def create_user():
             avatar_url=data.get('avatar')
         )
 
+        # Convert to public API format if needed
+        if isinstance(user_data, dict) and 'toPublicDict' not in user_data:
+            public_data = {
+                'id': user_data.get('id'),
+                'email': user_data.get('email'),
+                'first_name': user_data.get('first_name'),
+                'last_name': user_data.get('last_name'),
+                'avatar': user_data.get('avatar_url', user_data.get('avatar'))
+            }
+        else:
+            public_data = user_data
+
         return public_api_response(
-            data=user.toPublicDict(),
+            data=public_data,
             createdAt=datetime.utcnow().isoformat() + 'Z',
             status_code=201
         )
@@ -216,7 +244,7 @@ def update_user(user_id: int):
     """
     try:
         data = request.validated_data
-        user_service = get_user_service()
+        service_comm = get_service_communication()
 
         # Map avatar field if present
         if 'avatar' in data:
@@ -225,11 +253,23 @@ def update_user(user_id: int):
         # Remove job field (not stored in our model)
         data.pop('job', None)
 
-        # Actually update the user in the database
-        user = user_service.updateUser(user_id, **data)
+        # Update user through communication layer
+        user_data = service_comm.update_user(user_id, **data)
+
+        # Convert to public API format if needed
+        if isinstance(user_data, dict) and 'toPublicDict' not in user_data:
+            public_data = {
+                'id': user_data.get('id'),
+                'email': user_data.get('email'),
+                'first_name': user_data.get('first_name'),
+                'last_name': user_data.get('last_name'),
+                'avatar': user_data.get('avatar_url', user_data.get('avatar'))
+            }
+        else:
+            public_data = user_data
 
         return public_api_response(
-            data=user.toPublicDict(),
+            data=public_data,
             updatedAt=datetime.utcnow().isoformat() + 'Z'
         )
 
@@ -251,10 +291,10 @@ def delete_user(user_id: int):
     Response: 204 No Content
     """
     try:
-        user_service = get_user_service()
+        service_comm = get_service_communication()
 
-        # Actually delete the user from the database
-        user_service.deleteUser(user_id)
+        # Delete user through communication layer
+        service_comm.delete_user(user_id)
 
         # Return 204 No Content on successful deletion
         return '', 204

@@ -32,10 +32,15 @@ def create_app(config_name: str = 'development') -> Flask:
     # Setup CORS
     CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-    # Initialize dependency injection container
+    # Initialize dependency injection container (legacy - for backward compatibility)
     container = Container()
     container.config.from_dict(app.config)
     app.container = container
+
+    # Initialize new DI container for communication layer
+    with app.app_context():
+        from app.di_container import initialize_dependencies
+        initialize_dependencies(app)
 
     # Register blueprints
     register_blueprints(app)
@@ -58,14 +63,26 @@ def initialize_extensions(app: Flask) -> None:
 
 
 def register_blueprints(app: Flask) -> None:
-    """Register blueprints"""
-    from app.controllers import auth_bp, user_bp, public_user_bp
+    """Register blueprints based on deployment layer"""
+    import os
+    deployment_layer = os.getenv('DEPLOYMENT_LAYER', 'monolithic')
 
-    app.register_blueprint(auth_bp, url_prefix='/api/v1/auth')
-    app.register_blueprint(user_bp, url_prefix='/api/v1/users')
+    # Controller layer: Register external API controllers
+    if deployment_layer in ['monolithic', 'controller']:
+        from app.controllers import auth_bp, user_bp, public_user_bp
 
-    # Register public user API (ReqRes-compatible, no authentication)
-    app.register_blueprint(public_user_bp)
+        app.register_blueprint(auth_bp, url_prefix='/api/v1/auth')
+        app.register_blueprint(user_bp, url_prefix='/api/v1/users')
+        app.register_blueprint(public_user_bp)  # Public API (no auth)
+
+    # Service layer: Register internal service API endpoints
+    if deployment_layer in ['monolithic', 'service']:
+        from app.services.routes import user_service_bp
+
+        app.register_blueprint(user_service_bp)  # Internal API at /internal/users
+
+    # Repository layer: Would register repository HTTP endpoints here
+    # (Not yet implemented - repositories are called directly by services)
 
 
 def register_error_handlers(app: Flask) -> None:

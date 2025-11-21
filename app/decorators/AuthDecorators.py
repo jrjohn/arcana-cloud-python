@@ -51,21 +51,17 @@ def token_required(f: Callable) -> Callable:
 
         # Validate token（使用 AuthService）
         try:
-            from app import create_app
-            app = create_app()
+            from app.repositories.implementations.UserRepositoryImpl import UserRepositoryImpl
+            from app.repositories.implementations.OAuthTokenRepositoryImpl import OAuthTokenRepositoryImpl
+            from app.services.implementations.AuthServiceImpl import AuthServiceImpl
+            from app.Extensions import db
 
-            with app.app_context():
-                from app.repositories.implementations.UserRepositoryImpl import UserRepositoryImpl
-                from app.repositories.implementations.OAuthTokenRepositoryImpl import OAuthTokenRepositoryImpl
-                from app.services.implementations.AuthServiceImpl import AuthServiceImpl
-                from app.Extensions import db
+            user_repo = UserRepositoryImpl(db.session)
+            token_repo = OAuthTokenRepositoryImpl(db.session)
+            auth_service = AuthServiceImpl(user_repo, token_repo)
 
-                user_repo = UserRepositoryImpl(db.session)
-                token_repo = OAuthTokenRepositoryImpl(db.session)
-                auth_service = AuthServiceImpl(user_repo, token_repo)
-
-                user = auth_service.validateToken(token)
-                g.current_user = user
+            user = auth_service.validateToken(token)
+            g.current_user = user
 
         except AuthenticationError as e:
             return error_response(
@@ -214,21 +210,17 @@ def optional_token(f: Callable) -> Callable:
             try:
                 token_type, token = auth_header.split(' ')
                 if token_type.lower() == 'bearer':
-                    from app import create_app
-                    app = create_app()
+                    from app.repositories.implementations.UserRepositoryImpl import UserRepositoryImpl
+                    from app.repositories.implementations.OAuthTokenRepositoryImpl import OAuthTokenRepositoryImpl
+                    from app.services.implementations.AuthServiceImpl import AuthServiceImpl
+                    from app.Extensions import db
 
-                    with app.app_context():
-                        from app.repositories.implementations.UserRepositoryImpl import UserRepositoryImpl
-                        from app.repositories.implementations.OAuthTokenRepositoryImpl import OAuthTokenRepositoryImpl
-                        from app.services.implementations.AuthServiceImpl import AuthServiceImpl
-                        from app.Extensions import db
+                    user_repo = UserRepositoryImpl(db.session)
+                    token_repo = OAuthTokenRepositoryImpl(db.session)
+                    auth_service = AuthServiceImpl(user_repo, token_repo)
 
-                        user_repo = UserRepositoryImpl(db.session)
-                        token_repo = OAuthTokenRepositoryImpl(db.session)
-                        auth_service = AuthServiceImpl(user_repo, token_repo)
-
-                        user = auth_service.validateToken(token)
-                        g.current_user = user
+                    user = auth_service.validateToken(token)
+                    g.current_user = user
             except Exception:
                 # Token Validation failed，繼續執行但不設置 current_user
                 pass

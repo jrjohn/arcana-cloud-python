@@ -1,0 +1,91 @@
+✅ Server is running at http://localhost:5555
+
+🚀 ==========================================================
+   ARCANA CLOUD - MONOLITHIC API TEST SUITE
+============================================================
+Base URL: http://localhost:5555
+Started: 2025-11-21 10:30:44
+
+============================================================
+📊 Running Health Check Tests
+============================================================
+
+1️⃣  Testing /health...
+   ✅ PASS (3ms)
+
+2️⃣  Testing /ready...
+   ✅ PASS (8ms)
+
+============================================================
+🔐 Running Authentication Tests
+============================================================
+
+1️⃣  Testing user login...
+   ❌ FAIL (3ms)
+
+2️⃣  Testing get current user profile...
+   ❌ FAIL (2ms)
+
+3️⃣  Testing user registration (newuser_1763692244)...
+   ❌ FAIL (2ms)
+
+4️⃣  Testing duplicate registration (newuser_1763692244)...
+   ❌ FAIL (2ms)
+
+5️⃣  Testing user logout...
+   ❌ FAIL (1ms)
+
+============================================================
+👥 Running User Management Tests
+============================================================
+
+1️⃣  Testing get all users...
+   ❌ FAIL (1ms)
+
+2️⃣  Skipping get user by ID (no user ID available)...
+
+3️⃣  Skipping update user (no user ID available)...
+
+4️⃣  Testing search users...
+   ❌ FAIL (1ms)
+
+============================================================
+🌐 Running Public User Tests
+============================================================
+
+1️⃣  Testing get all public users...
+   ✅ PASS (65ms)
+
+2️⃣  Skipping get public user by ID (no user ID available)...
+
+============================================================
+📊 TEST SUMMARY
+============================================================
+
+Health Checks:
+  Total: 2 | ✅ 2 | ❌ 0 | ⚠️ 0 | ⏭️ 0
+  Duration: 11ms
+
+Authentication:
+  Total: 5 | ✅ 0 | ❌ 5 | ⚠️ 0 | ⏭️ 0
+  Duration: 10ms
+
+User Management:
+  Total: 4 | ✅ 0 | ❌ 2 | ⚠️ 0 | ⏭️ 2
+  Duration: 2ms
+
+Public User Endpoints:
+  Total: 2 | ✅ 1 | ❌ 0 | ⚠️ 0 | ⏭️ 1
+  Duration: 65ms
+
+------------------------------------------------------------
+OVERALL: 13 tests
+  ✅ Passed:  3/13 (23.1%)
+  ❌ Failed:  7/13
+  ⚠️  Errors:  0/13
+  ⏭️  Skipped: 3/13
+  ⏱️  Duration: 89ms
+============================================================
+
+✅ HTML Report generated: docs/API_TEST_REPORT.html
+   Open in browser: file:///Users/jrjohn/Documents/projects/arcana-cloud-python/docs/API_TEST_REPORT.html
