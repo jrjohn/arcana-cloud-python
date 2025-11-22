@@ -70,7 +70,7 @@ def list_users():
     try:
         service_comm = get_service_communication()
         page = request.pagination.get('page', 1)
-        per_page = request.pagination.get('per_page', 6)  # Default is 6
+        per_page = request.pagination.get('per_page', 20)  # System default is 20
 
         # Get users through communication layer
         result = service_comm.get_users(page=page, per_page=per_page)
@@ -178,18 +178,19 @@ def create_user():
         data = request.validated_data
 
         # Generate default username from email if not provided
-        username = data['email'].split('@')[0]
+        # Replace invalid characters (dots, etc.) with underscores
+        username = data['email'].split('@')[0].replace('.', '_')
 
         # Create user through communication layer
         service_comm = get_service_communication()
-        user_data = service_comm.create_user(
-            username=username,
-            email=data['email'],
-            password='DefaultPass123',  # Default password for public API
-            first_name=data['first_name'],
-            last_name=data['last_name'],
-            avatar_url=data.get('avatar')
-        )
+        user_data = service_comm.create_user(user_data={
+            'username': username,
+            'email': data['email'],
+            'password': 'DefaultPass123',  # Default password for public API
+            'first_name': data['first_name'],
+            'last_name': data['last_name'],
+            'avatar_url': data.get('avatar')
+        })
 
         # Convert to public API format if needed
         if isinstance(user_data, dict) and 'toPublicDict' not in user_data:
@@ -254,7 +255,7 @@ def update_user(user_id: int):
         data.pop('job', None)
 
         # Update user through communication layer
-        user_data = service_comm.update_user(user_id, **data)
+        user_data = service_comm.update_user(user_id=user_id, user_data=data)
 
         # Convert to public API format if needed
         if isinstance(user_data, dict) and 'toPublicDict' not in user_data:

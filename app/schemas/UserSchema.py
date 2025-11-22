@@ -103,6 +103,9 @@ class PublicUserSchema(Schema):
 
 class PublicUserCreateSchema(Schema):
     """Public API user creation schema (simplified, no password required)"""
+    class Meta:
+        unknown = 'EXCLUDE'  # Ignore unknown fields for compatibility
+
     email = fields.Email(required=True)
     first_name = fields.Str(required=True)
     last_name = fields.Str(required=True)
@@ -112,6 +115,9 @@ class PublicUserCreateSchema(Schema):
 
 class PublicUserUpdateSchema(Schema):
     """Public API user update schema"""
+    class Meta:
+        unknown = 'EXCLUDE'  # Ignore unknown fields for compatibility
+
     email = fields.Email()
     first_name = fields.Str()
     last_name = fields.Str()
