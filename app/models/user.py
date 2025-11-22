@@ -97,6 +97,16 @@ class User(db.Model):
         self.email = email
         self.setPassword(password)
 
+        # Set defaults for enums if not provided
+        if 'role' not in kwargs:
+            self.role = UserRole.USER
+        if 'status' not in kwargs:
+            self.status = UserStatus.ACTIVE
+        if 'is_verified' not in kwargs:
+            self.is_verified = False
+        if 'is_active' not in kwargs:
+            self.is_active = True
+
         for key, value in kwargs.items():
             if hasattr(self, key):
                 setattr(self, key, value)

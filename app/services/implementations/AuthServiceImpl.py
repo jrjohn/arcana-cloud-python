@@ -3,6 +3,7 @@ Auth Service Implementation
 Authentication Service implementation
 """
 import os
+import uuid
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 import jwt
@@ -59,6 +60,7 @@ class AuthServiceImpl(AuthService):
             'email': user.email,
             'role': user.role.value,
             'token_type': token_type,
+            'jti': str(uuid.uuid4()),  # Unique identifier for each token
             'exp': datetime.utcnow() + timedelta(seconds=expires_in),
             'iat': datetime.utcnow()
         }

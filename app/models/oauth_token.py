@@ -84,6 +84,12 @@ class OAuthToken(db.Model):
         self.access_token = access_token
         self.refresh_token = refresh_token
 
+        # Set defaults
+        if 'token_type' not in kwargs:
+            self.token_type = 'Bearer'
+        if 'is_revoked' not in kwargs:
+            self.is_revoked = False
+
         # Set expiration times
         self.expires_at = datetime.utcnow() + timedelta(seconds=expires_in)
         if refresh_token and refresh_expires_in:

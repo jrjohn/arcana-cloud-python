@@ -79,7 +79,7 @@ def sample_token(db, sample_user) -> OAuthToken:
         password='TestPass123'
     )
 
-    token = token_repo.get_by_access_token(result['access_token'])
+    token = token_repo.getByAccessToken(result['access_token'])
     return token
 
 

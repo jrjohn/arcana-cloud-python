@@ -49,7 +49,7 @@ class UserCreateSchema(Schema):
     )
 
     @validates('password')
-    def validate_password(self, value):
+    def validate_password(self, value, **kwargs):
         """驗證Password強度"""
         if not any(c.isupper() for c in value):
             raise ValidationError('Password must contain at least one uppercase letter')
@@ -78,7 +78,7 @@ class ChangePasswordSchema(Schema):
     )
 
     @validates('new_password')
-    def validate_new_password(self, value):
+    def validate_new_password(self, value, **kwargs):
         """驗證新Password強度"""
         if not any(c.isupper() for c in value):
             raise ValidationError('Password must contain at least one uppercase letter')

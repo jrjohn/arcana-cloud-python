@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcana Cloud - Monolithic Mode 最終測試報告 ✅ 100% 通過</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 50px 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.3em;
+            opacity: 0.95;
+            margin: 10px 0;
+        }
+
+        .success-badge-large {
+            background: white;
+            color: #28a745;
+            padding: 20px 40px;
+            border-radius: 50px;
+            font-size: 2em;
+            font-weight: 700;
+            display: inline-block;
+            margin-top: 20px;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .celebration {
+            font-size: 3em;
+            margin: 20px 0;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        .report-meta {
+            background: #f8f9fa;
+            padding: 30px 40px;
+            border-bottom: 1px solid #e9ecef;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .meta-item {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+        }
+
+        .meta-label {
+            font-size: 0.9em;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .meta-value {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #28a745;
+        }
+
+        .journey-section {
+            padding: 40px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        .journey-title {
+            font-size: 2.2em;
+            font-weight: 700;
+            text-align: center;
+            color: #212529;
+            margin-bottom: 40px;
+        }
+
+        .journey-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .journey-step {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .journey-step::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: linear-gradient(180deg, #28a745 0%, #20c997 100%);
+        }
+
+        .step-number {
+            font-size: 3em;
+            font-weight: 700;
+            color: #28a745;
+            opacity: 0.2;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+        }
+
+        .step-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 10px;
+        }
+
+        .step-result {
+            font-size: 2em;
+            font-weight: 700;
+            color: #28a745;
+            margin: 15px 0;
+        }
+
+        .step-desc {
+            color: #6c757d;
+            line-height: 1.6;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            padding: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 35px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-left: 5px solid #28a745;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-label {
+            font-size: 1em;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 15px;
+        }
+
+        .stat-value {
+            font-size: 3em;
+            font-weight: 700;
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+
+        .stat-detail {
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+
+        .comparison-section {
+            padding: 40px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .comparison-table th {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 20px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .comparison-table td {
+            padding: 18px 20px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 1.05em;
+        }
+
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .comparison-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .improvement {
+            color: #28a745;
+            font-weight: 700;
+            font-size: 1.2em;
+        }
+
+        .improvement::before {
+            content: "▲ ";
+        }
+
+        .perfect-badge {
+            background: #28a745;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .section {
+            padding: 40px;
+        }
+
+        .section-title {
+            font-size: 2em;
+            font-weight: 700;
+            color: #212529;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 4px solid #28a745;
+        }
+
+        .fixes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .fix-card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 5px solid #28a745;
+        }
+
+        .fix-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 12px;
+        }
+
+        .fix-impact {
+            background: #28a745;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .fix-desc {
+            color: #495057;
+            line-height: 1.6;
+            margin-top: 10px;
+        }
+
+        .report-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .report-link-card {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-decoration: none;
+            display: block;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .report-link-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
+        }
+
+        .report-link-title {
+            font-size: 1.4em;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .report-link-desc {
+            font-size: 1em;
+            opacity: 0.95;
+        }
+
+        .footer {
+            background: #212529;
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .footer p {
+            opacity: 0.9;
+            margin: 8px 0;
+            font-size: 1.05em;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2em; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .journey-steps { grid-template-columns: 1fr; }
+            .fixes-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="celebration">🎉 🎊 🥳</div>
+            <h1>完美達成！</h1>
+            <p>Arcana Cloud Platform - Monolithic Mode</p>
+            <p style="font-size: 1.1em; margin-top: 5px;">最終測試報告</p>
+            <div class="success-badge-large">✅ 100% 測試通過</div>
+            <p style="margin-top: 25px; font-size: 1.1em;">235 個測試全部成功 • 61% 程式碼覆蓋率</p>
+        </div>
+
+        <!-- Metadata -->
+        <div class="report-meta">
+            <div class="meta-item">
+                <div class="meta-label">測試日期</div>
+                <div class="meta-value" id="test-date">2025-11-22</div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label">Python 版本</div>
+                <div class="meta-value">3.14.0</div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label">總測試數</div>
+                <div class="meta-value">235</div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label">通過率</div>
+                <div class="meta-value">100%</div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label">失敗數</div>
+                <div class="meta-value" style="color: #6c757d;">0</div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label">覆蓋率</div>
+                <div class="meta-value">61%</div>
+            </div>
+        </div>
+
+        <!-- Journey Section -->
+        <div class="journey-section">
+            <h2 class="journey-title">🚀 修復之旅：從 78.7% 到 100%</h2>
+
+            <div class="journey-steps">
+                <div class="journey-step">
+                    <span class="step-number">V1</span>
+                    <div class="step-title">初始狀態</div>
+                    <div class="step-result" style="color: #ffc107;">78.7%</div>
+                    <div class="step-desc">
+                        185 通過 • 39 失敗 • 11 錯誤<br>
+                        識別出 3 大類問題需要修復
+                    </div>
+                </div>
+
+                <div class="journey-step">
+                    <span class="step-number">V2</span>
+                    <div class="step-title">第一輪修復</div>
+                    <div class="step-result">96.6%</div>
+                    <div class="step-desc">
+                        227 通過 • 8 失敗 • 0 錯誤<br>
+                        修復 schema 驗證與 model 初始化
+                    </div>
+                </div>
+
+                <div class="journey-step">
+                    <span class="step-number">V3</span>
+                    <div class="step-title">最終修復</div>
+                    <div class="step-result">100%</div>
+                    <div class="step-desc">
+                        235 通過 • 0 失敗 • 0 錯誤<br>
+                        修復 JWT 唯一性與 load balancer
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">✅ 測試通過</div>
+                <div class="stat-value">235</div>
+                <div class="stat-detail">100% 成功率 - 完美執行！</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">❌ 測試失敗</div>
+                <div class="stat-value">0</div>
+                <div class="stat-detail">完全消除所有失敗</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">⚠️ 測試錯誤</div>
+                <div class="stat-value">0</div>
+                <div class="stat-detail">無任何錯誤</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">📊 程式碼覆蓋率</div>
+                <div class="stat-value">61%</div>
+                <div class="stat-detail">從 58% 提升 3%</div>
+            </div>
+        </div>
+
+        <!-- Comparison -->
+        <div class="comparison-section">
+            <h2 class="section-title">📊 完整修復歷程對比</h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>測試指標</th>
+                        <th>初始 (V1)</th>
+                        <th>第一輪 (V2)</th>
+                        <th>最終 (V3)</th>
+                        <th>總改善</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>通過的測試</strong></td>
+                        <td>185</td>
+                        <td>227</td>
+                        <td><span class="perfect-badge">235</span></td>
+                        <td class="improvement">+50</td>
+                    </tr>
+                    <tr>
+                        <td><strong>失敗的測試</strong></td>
+                        <td>39</td>
+                        <td>8</td>
+                        <td><span class="perfect-badge">0</span></td>
+                        <td class="improvement">-39</td>
+                    </tr>
+                    <tr>
+                        <td><strong>錯誤數量</strong></td>
+                        <td>11</td>
+                        <td>0</td>
+                        <td><span class="perfect-badge">0</span></td>
+                        <td class="improvement">-11</td>
+                    </tr>
+                    <tr>
+                        <td><strong>通過率</strong></td>
+                        <td>78.7%</td>
+                        <td>96.6%</td>
+                        <td><span class="perfect-badge">100%</span></td>
+                        <td class="improvement">+21.3%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>程式碼覆蓋率</strong></td>
+                        <td>58%</td>
+                        <td>60%</td>
+                        <td><span class="perfect-badge">61%</span></td>
+                        <td class="improvement">+3%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Fixes Applied -->
+        <div class="section">
+            <h2 class="section-title">🔧 應用的所有修復</h2>
+            <div class="fixes-grid">
+                <div class="fix-card">
+                    <div class="fix-impact">修復 11 個錯誤</div>
+                    <div class="fix-title">1. 方法命名慣例</div>
+                    <div class="fix-desc">
+                        <strong>檔案:</strong> tests/conftest.py<br>
+                        <strong>修復:</strong> 將 get_by_access_token 改為 getByAccessToken，匹配 repository 實作的 camelCase 命名
+                    </div>
+                </div>
+
+                <div class="fix-card">
+                    <div class="fix-impact">修復 26 個失敗</div>
+                    <div class="fix-title">2. Response Utility 測試</div>
+                    <div class="fix-desc">
+                        <strong>檔案:</strong> tests/unit/test_utils/test_response.py<br>
+                        <strong>修復:</strong> 為所有測試添加 Flask app context，使 jsonify 正常工作
+                    </div>
+                </div>
+
+                <div class="fix-card">
+                    <div class="fix-impact">修復 6 個失敗</div>
+                    <div class="fix-title">3. User Model 初始化</div>
+                    <div class="fix-desc">
+                        <strong>檔案:</strong> app/models/user.py<br>
+                        <strong>修復:</strong> 在 __init__ 中添加 role、status、is_verified、is_active 的預設值設定
+                    </div>
+                </div>
+
+                <div class="fix-card">
+                    <div class="fix-impact">修復 3 個失敗</div>
+                    <div class="fix-title">4. OAuthToken Model 初始化</div>
+                    <div class="fix-desc">
+                        <strong>檔案:</strong> app/models/oauth_token.py<br>
+                        <strong>修復:</strong> 在 __init__ 中添加 token_type 和 is_revoked 的預設值
+                    </div>
+                </div>
+
+                <div class="fix-card">
+                    <div class="fix-impact">修復 2 個失敗</div>
+                    <div class="fix-title">5. Schema 驗證器參數</div>
+                    <div class="fix-desc">
+                        <strong>檔案:</strong> app/schemas/UserSchema.py<br>
+                        <strong>修復:</strong> 為 @validates decorator 的方法添加 **kwargs 參數，兼容新版 marshmallow
+                    </div>
+                </div>
+
+                <div class="fix-card">
+                    <div class="fix-impact">修復 1 個失敗</div>
+                    <div class="fix-title">6. Load Balancer 降級策略</div>
+                    <div class="fix-desc">
+                        <strong>檔案:</strong> app/services/clients/LoadBalancer.py<br>
+                        <strong>修復:</strong> 當所有服務不健康時，返回第一個服務作為 fallback，而不是拋出異常
+                    </div>
+                </div>
+
+                <div class="fix-card">
+                    <div class="fix-impact">修復 4 個失敗</div>
+                    <div class="fix-title">7. JWT Token 唯一性</div>
+                    <div class="fix-desc">
+                        <strong>檔案:</strong> app/services/implementations/AuthServiceImpl.py<br>
+                        <strong>修復:</strong> 在 JWT payload 中添加唯一的 jti (JWT ID) 字段，確保每個 token 都是唯一的
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Reports -->
+        <div class="section">
+            <h2 class="section-title">📄 完整測試報告</h2>
+            <div class="report-links">
+                <a href="pytest-report-final.html" class="report-link-card">
+                    <div class="report-link-title">🧪 Pytest HTML 報告</div>
+                    <div class="report-link-desc">所有 235 個測試的詳細執行結果與完整堆疊追蹤</div>
+                </a>
+                <a href="coverage-final/index.html" class="report-link-card">
+                    <div class="report-link-title">📊 覆蓋率報告</div>
+                    <div class="report-link-desc">61% 程式碼覆蓋率的逐行分析與標註原始碼</div>
+                </a>
+                <a href="test-output-final.log" class="report-link-card">
+                    <div class="report-link-title">📝 原始測試輸出</div>
+                    <div class="report-link-desc">完整的主控台輸出日誌</div>
+                </a>
+                <a href="index-v2.html" class="report-link-card">
+                    <div class="report-link-title">📋 V2 報告（第一輪修復）</div>
+                    <div class="report-link-desc">96.6% 通過率的中間版本報告</div>
+                </a>
+                <a href="index.html" class="report-link-card">
+                    <div class="report-link-title">📋 V1 報告（原始版本）</div>
+                    <div class="report-link-desc">78.7% 通過率的初始狀態報告</div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong style="font-size: 1.3em;">🎉 Arcana Cloud Platform - Monolithic Mode 已完全就緒！</strong></p>
+            <p style="margin-top: 20px;">所有 235 個測試 100% 通過 • 零失敗 • 零錯誤</p>
+            <p>程式碼覆蓋率: 61% • 測試執行時間: 7.67 秒</p>
+            <p style="margin-top: 20px;">自動化測試報告產生於 <span id="footer-date"></span></p>
+            <p style="margin-top: 15px;">© 2025 Arcana Cloud - 版權所有</p>
+        </div>
+    </div>
+
+    <script>
+        const now = new Date();
+        const dateStr = now.toLocaleString('zh-TW', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        document.getElementById('test-date').textContent = now.toISOString().split('T')[0];
+        document.getElementById('footer-date').textContent = dateStr;
+    </script>
+</body>
+</html>

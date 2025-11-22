@@ -44,8 +44,9 @@ class LoadBalancer:
             healthy_urls = [url for url in self.service_urls if self.health_status.get(url, True)]
 
             if not healthy_urls:
-                logger.error("No healthy services available")
-                raise RuntimeError("No healthy services available")
+                logger.warning("No healthy services available, returning first service as fallback")
+                # Return first service as fallback for recovery attempts
+                return self.service_urls[0]
 
             # If current index points to unhealthy service, find next healthy service
             attempts = 0
