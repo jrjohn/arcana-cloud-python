@@ -43,9 +43,27 @@ def get_users():
 
         filters = {}
         if role_str:
-            filters['role'] = UserRole[role_str.upper()]
+            try:
+                filters['role'] = UserRole[role_str.upper()]
+            except KeyError:
+                valid_roles = [r.name for r in UserRole]
+                return error_response(
+                    message=f'Invalid role: {role_str}',
+                    status_code=400,
+                    error_code='INVALID_ROLE',
+                    details={'valid_roles': valid_roles}
+                )
         if status_str:
-            filters['status'] = UserStatus[status_str.upper()]
+            try:
+                filters['status'] = UserStatus[status_str.upper()]
+            except KeyError:
+                valid_statuses = [s.name for s in UserStatus]
+                return error_response(
+                    message=f'Invalid status: {status_str}',
+                    status_code=400,
+                    error_code='INVALID_STATUS',
+                    details={'valid_statuses': valid_statuses}
+                )
 
         # Call via communication layer (Direct/HTTP/gRPC based on mode)
         result = service_comm.get_users(
@@ -288,9 +306,8 @@ def change_password(user_id: int):
         data = request.validated_data
         service_comm = get_service_communication()
 
-        # Call generic method via communication layer
-        result = service_comm.call(
-            'changePassword',
+        # Call specific method via communication layer
+        result = service_comm.change_password(
             user_id=user_id,
             old_password=data['old_password'],
             new_password=data['new_password']
@@ -329,8 +346,8 @@ def verify_user(user_id: int):
     try:
         service_comm = get_service_communication()
 
-        # Call generic method via communication layer
-        user_data = service_comm.call('verifyUser', user_id=user_id)
+        # Call specific method via communication layer
+        user_data = service_comm.verify_user(user_id=user_id)
 
         return success_response(
             data=user_data,
@@ -388,11 +405,10 @@ def update_user_status(user_id: int):
 
         service_comm = get_service_communication()
 
-        # Call generic method via communication layer
-        user_data = service_comm.call(
-            'updateUserStatus',
+        # Call specific method via communication layer
+        user_data = service_comm.update_user_status(
             user_id=user_id,
-            status=status
+            status=status.name
         )
 
         return success_response(

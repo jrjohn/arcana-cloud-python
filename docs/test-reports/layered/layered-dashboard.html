@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcana Cloud - Layered Mode Test Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header .subtitle {
+            color: #666;
+            font-size: 1.2em;
+        }
+
+        .header .timestamp {
+            color: #999;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .metric-card .label {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .metric-card .value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .metric-card .subtext {
+            color: #999;
+            font-size: 0.85em;
+        }
+
+        .metric-card.success .value {
+            color: #10b981;
+        }
+
+        .metric-card.warning .value {
+            color: #f59e0b;
+        }
+
+        .metric-card.info .value {
+            color: #3b82f6;
+        }
+
+        .metric-card.error .value {
+            color: #ef4444;
+        }
+
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #333;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .progress-bar {
+            background: #e5e7eb;
+            border-radius: 10px;
+            height: 30px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transition: width 1s ease;
+        }
+
+        .test-category {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .test-category h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .test-stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .test-stat {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .test-stat .stat-label {
+            color: #666;
+            font-size: 0.85em;
+            margin-bottom: 5px;
+        }
+
+        .test-stat .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .test-stat.passed .stat-value {
+            color: #10b981;
+        }
+
+        .test-stat.failed .stat-value {
+            color: #ef4444;
+        }
+
+        .test-stat.skipped .stat-value {
+            color: #f59e0b;
+        }
+
+        .failure-list {
+            margin-top: 20px;
+        }
+
+        .failure-item {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+
+        .failure-item .test-name {
+            font-weight: bold;
+            color: #991b1b;
+            margin-bottom: 5px;
+        }
+
+        .failure-item .error-msg {
+            color: #7f1d1d;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .comparison-table th {
+            background: #f3f4f6;
+            color: #374151;
+            font-weight: 600;
+        }
+
+        .comparison-table tr:hover {
+            background: #f9fafb;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .badge.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge.warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .recommendation {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
+        .recommendation h4 {
+            color: #1e40af;
+            margin-bottom: 10px;
+        }
+
+        .recommendation p {
+            color: #1e3a8a;
+            line-height: 1.6;
+        }
+
+        .recommendation ul {
+            margin-top: 10px;
+            margin-left: 20px;
+            color: #1e3a8a;
+        }
+
+        .recommendation li {
+            margin: 5px 0;
+        }
+
+        .chart-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            height: 300px;
+            padding: 20px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .bar {
+            flex: 1;
+            margin: 0 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .bar-fill {
+            width: 100%;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px 8px 0 0;
+            transition: height 1s ease;
+            position: relative;
+        }
+
+        .bar-label {
+            margin-top: 10px;
+            text-align: center;
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .bar-value {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: bold;
+            color: #333;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            padding: 20px;
+        }
+
+        .footer a {
+            color: white;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 Layered Mode Test Dashboard</h1>
+            <div class="subtitle">Arcana Cloud Python - Comprehensive Testing Report</div>
+            <div class="timestamp">Generated: 2025-11-22 | Mode: Layered (Controller Layer) | Database: SQLite</div>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card warning">
+                <div class="label">Pass Rate</div>
+                <div class="value">92.7%</div>
+                <div class="subtext">280 of 302 tests</div>
+            </div>
+
+            <div class="metric-card success">
+                <div class="label">Tests Passed</div>
+                <div class="value">280</div>
+                <div class="subtext">Successfully executed</div>
+            </div>
+
+            <div class="metric-card error">
+                <div class="label">Tests Failed</div>
+                <div class="value">22</div>
+                <div class="subtext">Require attention</div>
+            </div>
+
+            <div class="metric-card info">
+                <div class="label">Code Coverage</div>
+                <div class="value">67.5%</div>
+                <div class="subtext">Overall test coverage</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Overall Test Results</h2>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 92.7%;">92.7% Passed</div>
+            </div>
+
+            <div class="chart-container">
+                <div class="bar-chart">
+                    <div class="bar">
+                        <div class="bar-fill" style="height: 92.7%;">
+                            <div class="bar-value">280</div>
+                        </div>
+                        <div class="bar-label">Passed</div>
+                    </div>
+                    <div class="bar">
+                        <div class="bar-fill" style="height: 7.3%; background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);">
+                            <div class="bar-value">22</div>
+                        </div>
+                        <div class="bar-label">Failed</div>
+                    </div>
+                    <div class="bar">
+                        <div class="bar-fill" style="height: 0%; background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);">
+                            <div class="bar-value">0</div>
+                        </div>
+                        <div class="bar-label">Skipped</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Test Categories Breakdown</h2>
+
+            <div class="test-category">
+                <h3>Auth API Tests</h3>
+                <div class="test-stats">
+                    <div class="test-stat passed">
+                        <div class="stat-label">Passed</div>
+                        <div class="stat-value">54</div>
+                    </div>
+                    <div class="test-stat failed">
+                        <div class="stat-label">Failed</div>
+                        <div class="stat-value">0</div>
+                    </div>
+                    <div class="test-stat">
+                        <div class="stat-label">Pass Rate</div>
+                        <div class="stat-value" style="color: #10b981;">100%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="test-category">
+                <h3>User API Tests</h3>
+                <div class="test-stats">
+                    <div class="test-stat passed">
+                        <div class="stat-label">Passed</div>
+                        <div class="stat-value">44</div>
+                    </div>
+                    <div class="test-stat failed">
+                        <div class="stat-label">Failed</div>
+                        <div class="stat-value">9</div>
+                    </div>
+                    <div class="test-stat">
+                        <div class="stat-label">Pass Rate</div>
+                        <div class="stat-value" style="color: #f59e0b;">83.0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="test-category">
+                <h3>Public User API Tests</h3>
+                <div class="test-stats">
+                    <div class="test-stat passed">
+                        <div class="stat-label">Passed</div>
+                        <div class="stat-value">19</div>
+                    </div>
+                    <div class="test-stat failed">
+                        <div class="stat-label">Failed</div>
+                        <div class="stat-value">10</div>
+                    </div>
+                    <div class="test-stat">
+                        <div class="stat-label">Pass Rate</div>
+                        <div class="stat-value" style="color: #f59e0b;">65.5%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="test-category">
+                <h3>Workflow Tests</h3>
+                <div class="test-stats">
+                    <div class="test-stat passed">
+                        <div class="stat-label">Passed</div>
+                        <div class="stat-value">2</div>
+                    </div>
+                    <div class="test-stat failed">
+                        <div class="stat-label">Failed</div>
+                        <div class="stat-value">3</div>
+                    </div>
+                    <div class="test-stat">
+                        <div class="stat-label">Pass Rate</div>
+                        <div class="stat-value" style="color: #ef4444;">40.0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="test-category">
+                <h3>Unit Tests</h3>
+                <div class="test-stats">
+                    <div class="test-stat passed">
+                        <div class="stat-label">Passed</div>
+                        <div class="stat-value">161</div>
+                    </div>
+                    <div class="test-stat failed">
+                        <div class="stat-label">Failed</div>
+                        <div class="stat-value">0</div>
+                    </div>
+                    <div class="test-stat">
+                        <div class="stat-label">Pass Rate</div>
+                        <div class="stat-value" style="color: #10b981;">100%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>❌ Failed Tests Analysis</h2>
+
+            <div class="failure-list">
+                <h3 style="color: #ef4444; margin-bottom: 15px;">Public User API Failures (10 tests)</h3>
+
+                <div class="failure-item">
+                    <div class="test-name">test_create_user_success</div>
+                    <div class="error-msg">HTTPConnectionPool(host='localhost', port=5001): Max retries exceeded with url: /internal/users</div>
+                    <p style="margin-top: 10px; color: #7f1d1d;">Root Cause: Service layer not available via HTTP</p>
+                </div>
+
+                <div class="failure-item">
+                    <div class="test-name">test_update_user_success</div>
+                    <div class="error-msg">HTTPConnectionPool(host='localhost', port=5001): Max retries exceeded</div>
+                    <p style="margin-top: 10px; color: #7f1d1d;">Root Cause: HTTP communication layer missing</p>
+                </div>
+
+                <div class="failure-item">
+                    <div class="test-name">test_delete_user_success</div>
+                    <div class="error-msg">Connection refused - Service layer unavailable</div>
+                    <p style="margin-top: 10px; color: #7f1d1d;">Root Cause: Layered architecture requires running service layer</p>
+                </div>
+
+                <div class="failure-item">
+                    <div class="test-name">test_create_user_with_unicode, test_create_user_with_special_chars, test_update_user_edge_cases (7 more tests)</div>
+                    <div class="error-msg">Similar HTTP connection errors</div>
+                    <p style="margin-top: 10px; color: #7f1d1d;">All related to missing service layer HTTP endpoint</p>
+                </div>
+            </div>
+
+            <div class="failure-list" style="margin-top: 30px;">
+                <h3 style="color: #ef4444; margin-bottom: 15px;">User API Failures (9 tests)</h3>
+
+                <div class="failure-item">
+                    <div class="test-name">test_change_password_success</div>
+                    <div class="error-msg">404 Not Found - Endpoint not available</div>
+                    <p style="margin-top: 10px; color: #7f1d1d;">Root Cause: Service layer endpoint mapping issue</p>
+                </div>
+
+                <div class="failure-item">
+                    <div class="test-name">test_verify_user_success</div>
+                    <div class="error-msg">404 Not Found</div>
+                    <p style="margin-top: 10px; color: #7f1d1d;">Root Cause: Internal endpoint not exposed</p>
+                </div>
+
+                <div class="failure-item">
+                    <div class="test-name">test_list_users, test_delete_user (7 more tests)</div>
+                    <div class="error-msg">Mix of 404 and 500 errors</div>
+                    <p style="margin-top: 10px; color: #7f1d1d;">Various service layer communication issues</p>
+                </div>
+            </div>
+
+            <div class="failure-list" style="margin-top: 30px;">
+                <h3 style="color: #ef4444; margin-bottom: 15px;">Workflow Failures (3 tests)</h3>
+
+                <div class="failure-item">
+                    <div class="test-name">test_complete_profile_update_flow</div>
+                    <div class="error-msg">AssertionError: Profile update returned None values</div>
+                    <p style="margin-top: 10px; color: #7f1d1d;">Root Cause: Service layer not returning expected data structure</p>
+                </div>
+
+                <div class="failure-item">
+                    <div class="test-name">test_password_change_flow</div>
+                    <div class="error-msg">404 Not Found - changePassword endpoint</div>
+                    <p style="margin-top: 10px; color: #7f1d1d;">Root Cause: Endpoint routing issue in layered mode</p>
+                </div>
+
+                <div class="failure-item">
+                    <div class="test-name">test_admin_user_management_flow</div>
+                    <div class="error-msg">404 Not Found - verifyUser endpoint</div>
+                    <p style="margin-top: 10px; color: #7f1d1d;">Root Cause: Admin endpoints not properly exposed</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📈 Comparison: Monolithic vs Layered Mode</h2>
+
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Monolithic Mode</th>
+                        <th>Layered Mode</th>
+                        <th>Difference</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Total Tests</strong></td>
+                        <td>235</td>
+                        <td>302</td>
+                        <td><span class="badge success">+67 tests</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Pass Rate</strong></td>
+                        <td><span class="badge success">100%</span></td>
+                        <td><span class="badge warning">92.7%</span></td>
+                        <td><span class="badge error">-7.3%</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Failed Tests</strong></td>
+                        <td><span class="badge success">0</span></td>
+                        <td><span class="badge error">22</span></td>
+                        <td><span class="badge error">+22 failures</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Code Coverage</strong></td>
+                        <td>60.0%</td>
+                        <td>67.5%</td>
+                        <td><span class="badge success">+7.5%</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Auth API</strong></td>
+                        <td><span class="badge success">100%</span></td>
+                        <td><span class="badge success">100%</span></td>
+                        <td><span class="badge success">Stable</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>User API</strong></td>
+                        <td><span class="badge success">100%</span></td>
+                        <td><span class="badge warning">83.0%</span></td>
+                        <td><span class="badge error">-17%</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Public User API</strong></td>
+                        <td><span class="badge success">100%</span></td>
+                        <td><span class="badge warning">65.5%</span></td>
+                        <td><span class="badge error">-34.5%</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>🔍 Root Cause Analysis</h2>
+
+            <div class="recommendation">
+                <h4>Primary Issue: Service Layer Not Running</h4>
+                <p>The Layered Mode architecture requires separate processes for each layer:</p>
+                <ul>
+                    <li><strong>Controller Layer</strong> (port 5000) - Running ✅</li>
+                    <li><strong>Service Layer</strong> (port 5001) - Not Running ❌</li>
+                    <li><strong>Repository Layer</strong> (port 5002) - Not Running ❌</li>
+                </ul>
+                <p style="margin-top: 10px;">The controller layer is attempting HTTP requests to <code>localhost:5001/internal/*</code> endpoints, but the service layer server is not available in the test environment.</p>
+            </div>
+
+            <div class="recommendation">
+                <h4>Impact Analysis</h4>
+                <p>All 22 failures are directly related to inter-layer communication issues:</p>
+                <ul>
+                    <li><strong>10 Public User API failures</strong> - Service layer HTTP connection refused</li>
+                    <li><strong>9 User API failures</strong> - Service endpoints returning 404 or 500</li>
+                    <li><strong>3 Workflow failures</strong> - Multi-step operations broken by missing service layer</li>
+                </ul>
+                <p style="margin-top: 10px;">The tests that DO pass (280) are primarily:</p>
+                <ul>
+                    <li>Unit tests that don't require inter-layer communication</li>
+                    <li>Auth tests that may have fallback mechanisms</li>
+                    <li>Tests with mocked service layer responses</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>💡 Recommendations</h2>
+
+            <div class="recommendation">
+                <h4>Short-term Solutions</h4>
+                <ul>
+                    <li><strong>Option 1: Start Service Layer</strong> - Run service layer as separate process during testing
+                        <pre style="background: #1f2937; color: #10b981; padding: 10px; border-radius: 4px; margin-top: 5px;">export DEPLOYMENT_MODE=layered
+export DEPLOYMENT_LAYER=service
+python app.py &  # Start service layer on port 5001</pre>
+                    </li>
+                    <li><strong>Option 2: Mock HTTP Layer</strong> - Implement HTTP mocks for service layer endpoints in tests</li>
+                    <li><strong>Option 3: Use Docker Compose</strong> - Launch all layers together for integration testing</li>
+                </ul>
+            </div>
+
+            <div class="recommendation">
+                <h4>Long-term Improvements</h4>
+                <ul>
+                    <li><strong>Automated Test Environment Setup</strong> - Create test fixtures that automatically start required layers</li>
+                    <li><strong>Health Check Mechanism</strong> - Verify all required services are available before running tests</li>
+                    <li><strong>Test Categorization</strong> - Separate unit tests from integration tests requiring multiple layers</li>
+                    <li><strong>CI/CD Pipeline</strong> - Automated testing with proper service orchestration</li>
+                    <li><strong>gRPC Support Testing</strong> - Verify gRPC communication mode works as well as HTTP</li>
+                </ul>
+            </div>
+
+            <div class="recommendation">
+                <h4>Code Quality Improvements</h4>
+                <ul>
+                    <li><strong>Error Handling</strong> - Improve service layer error responses (replace 500 with proper 400/404)</li>
+                    <li><strong>Coverage Target</strong> - Increase from 67.5% to 80%+ coverage</li>
+                    <li><strong>Endpoint Validation</strong> - Ensure all internal endpoints are properly exposed in layered mode</li>
+                    <li><strong>Documentation</strong> - Document required service layer setup for testing</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📋 Next Steps</h2>
+
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Priority</th>
+                        <th>Task</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="badge error">High</span></td>
+                        <td>Set up service layer for testing environment</td>
+                        <td><span class="badge warning">Pending</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge error">High</span></td>
+                        <td>Fix endpoint routing issues (404 errors)</td>
+                        <td><span class="badge warning">Pending</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge warning">Medium</span></td>
+                        <td>Implement HTTP mocks for unit testing</td>
+                        <td><span class="badge warning">Pending</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge warning">Medium</span></td>
+                        <td>Create Docker Compose test environment</td>
+                        <td><span class="badge warning">Pending</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge success">Low</span></td>
+                        <td>Improve error handling for invalid filters</td>
+                        <td><span class="badge warning">Pending</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge success">Low</span></td>
+                        <td>Increase test coverage to 80%</td>
+                        <td><span class="badge warning">Pending</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <p>Arcana Cloud Python - Layered Mode Test Dashboard</p>
+            <p>Generated on 2025-11-22 | <a href="layered-test-report.html">View Detailed Test Report</a></p>
+        </div>
+    </div>
+</body>
+</html>

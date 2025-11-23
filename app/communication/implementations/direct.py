@@ -74,6 +74,23 @@ class DirectServiceCommunication(ServiceCommunicationInterface):
         self.service.deleteUser(user_id)
         return {'success': True, 'message': 'User deleted successfully'}
 
+    def change_password(self, user_id: int, old_password: str, new_password: str) -> Dict[str, Any]:
+        """Change user password"""
+        self.service.changePassword(user_id, old_password, new_password)
+        return {'success': True, 'message': 'Password changed successfully'}
+
+    def verify_user(self, user_id: int) -> Dict[str, Any]:
+        """Verify user"""
+        user = self.service.verifyUser(user_id)
+        return user.toDict()
+
+    def update_user_status(self, user_id: int, status: str) -> Dict[str, Any]:
+        """Update user status"""
+        from app.models.user import UserStatus
+        status_enum = UserStatus[status.upper()]
+        user = self.service.updateUserStatus(user_id, status_enum)
+        return user.toDict()
+
 
 class DirectRepositoryCommunication(RepositoryCommunicationInterface):
     """

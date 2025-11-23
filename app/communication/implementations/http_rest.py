@@ -118,7 +118,14 @@ class HTTPServiceCommunication(ServiceCommunicationInterface):
 
     def get_users(self, page: int = 1, per_page: int = 20, **filters) -> Dict[str, Any]:
         """Get users list"""
-        params = {'page': page, 'per_page': per_page, **filters}
+        # Convert enum values to strings for HTTP transmission
+        params = {'page': page, 'per_page': per_page}
+        for key, value in filters.items():
+            if hasattr(value, 'name'):  # Check if it's an enum
+                params[key] = value.name
+            else:
+                params[key] = value
+
         result = self._make_request('GET', '/internal/users', params=params)
         return result.get('data', result)
 
@@ -141,6 +148,23 @@ class HTTPServiceCommunication(ServiceCommunicationInterface):
         """Delete user"""
         result = self._make_request('DELETE', f'/internal/users/{user_id}')
         return result if result else {'success': True}
+
+    def change_password(self, user_id: int, old_password: str, new_password: str) -> Dict[str, Any]:
+        """Change user password"""
+        data = {'old_password': old_password, 'new_password': new_password}
+        result = self._make_request('PUT', f'/internal/users/{user_id}/password', data=data)
+        return result if result else {'success': True}
+
+    def verify_user(self, user_id: int) -> Dict[str, Any]:
+        """Verify user"""
+        result = self._make_request('POST', f'/internal/users/{user_id}/verify')
+        return result.get('data', result)
+
+    def update_user_status(self, user_id: int, status: str) -> Dict[str, Any]:
+        """Update user status"""
+        data = {'status': status}
+        result = self._make_request('PUT', f'/internal/users/{user_id}/status', data=data)
+        return result.get('data', result)
 
 
 class HTTPRepositoryCommunication(RepositoryCommunicationInterface):

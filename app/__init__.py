@@ -81,8 +81,11 @@ def register_blueprints(app: Flask) -> None:
 
         app.register_blueprint(user_service_bp)  # Internal API at /internal/users
 
-    # Repository layer: Would register repository HTTP endpoints here
-    # (Not yet implemented - repositories are called directly by services)
+    # Repository layer: Register repository HTTP endpoints for microservices mode
+    if deployment_layer == 'repository':
+        from app.repositories.routes import user_repository_bp
+
+        app.register_blueprint(user_repository_bp)  # Repository API at /repository/users
 
 
 def register_error_handlers(app: Flask) -> None:

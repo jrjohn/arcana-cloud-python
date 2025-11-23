@@ -5,9 +5,7 @@ Exposes UserService business logic as HTTP/REST endpoints for Controller Layer
 from flask import Blueprint, request, jsonify
 from typing import Optional
 
-from app.services.implementations.UserServiceImpl import UserServiceImpl
-from app.repositories.implementations.UserRepositoryImpl import UserRepositoryImpl
-from app.Extensions import db
+from app.di_container import get_user_service as get_service_from_container
 from app.models.user import UserRole, UserStatus
 from app.utils.Exceptions import APIException, NotFoundError
 
@@ -15,10 +13,9 @@ from app.utils.Exceptions import APIException, NotFoundError
 user_service_bp = Blueprint('user_service', __name__, url_prefix='/internal/users')
 
 
-def get_user_service() -> UserServiceImpl:
-    """Get UserService instance"""
-    user_repo = UserRepositoryImpl(db.session)
-    return UserServiceImpl(user_repo)
+def get_user_service():
+    """Get UserService instance from DI container"""
+    return get_service_from_container()
 
 
 @user_service_bp.route('', methods=['GET'])
@@ -39,8 +36,31 @@ def list_users():
         role_str = request.args.get('role')
         status_str = request.args.get('status')
 
-        role = UserRole[role_str.upper()] if role_str else None
-        status = UserStatus[status_str.upper()] if status_str else None
+        # Parse role with proper error handling
+        role = None
+        if role_str:
+            try:
+                role = UserRole[role_str.upper()]
+            except KeyError:
+                valid_roles = [r.name for r in UserRole]
+                return jsonify({
+                    'success': False,
+                    'error': f'Invalid role: {role_str}. Valid roles: {", ".join(valid_roles)}',
+                    'error_code': 'INVALID_ROLE'
+                }), 400
+
+        # Parse status with proper error handling
+        status = None
+        if status_str:
+            try:
+                status = UserStatus[status_str.upper()]
+            except KeyError:
+                valid_statuses = [s.name for s in UserStatus]
+                return jsonify({
+                    'success': False,
+                    'error': f'Invalid status: {status_str}. Valid statuses: {", ".join(valid_statuses)}',
+                    'error_code': 'INVALID_STATUS'
+                }), 400
 
         result = user_service.getUsers(
             page=page,

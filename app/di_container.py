@@ -123,15 +123,25 @@ def initialize_dependencies(app: Flask):
     Args:
         app: Flask application instance
     """
+    import os
     container = get_container()
 
     # Register database session
     container.register_instance('db_session', db.session)
 
+    # Check deployment mode
+    deployment_mode = os.getenv('DEPLOYMENT_MODE', 'monolithic').lower()
+
     # Register repositories
     def create_user_repository():
-        from app.repositories.implementations.UserRepositoryImpl import UserRepositoryImpl
-        return UserRepositoryImpl(container.get('db_session'))
+        if deployment_mode == 'microservices':
+            # In microservices mode, use HTTP client to communicate with repository layer
+            from app.repositories.clients.HTTPUserRepositoryClient import HTTPUserRepositoryClient
+            return HTTPUserRepositoryClient()
+        else:
+            # In monolithic/layered mode, use direct database access
+            from app.repositories.implementations.UserRepositoryImpl import UserRepositoryImpl
+            return UserRepositoryImpl(container.get('db_session'))
 
     def create_oauth_token_repository():
         from app.repositories.implementations.OAuthTokenRepositoryImpl import OAuthTokenRepositoryImpl

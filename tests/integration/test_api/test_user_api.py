@@ -388,8 +388,11 @@ class TestUserAPIEdgeCases:
             headers=admin_auth_headers
         )
 
-        # Assert - should return error (currently returns 500, should be 400)
-        assert response.status_code in [200, 400, 500]
+        # Assert - should return 400 error with valid roles
+        assert response.status_code == 400
+        data = json.loads(response.data)
+        assert data['success'] is False
+        assert 'INVALID_ROLE' in str(data.get('error', {}))
 
     def test_invalid_status_filter(self, client, db, admin_user, admin_auth_headers):
         """Test get users with invalid status filter"""
@@ -399,8 +402,11 @@ class TestUserAPIEdgeCases:
             headers=admin_auth_headers
         )
 
-        # Assert - should return error (currently returns 500, should be 400)
-        assert response.status_code in [200, 400, 500]
+        # Assert - should return 400 error with valid statuses
+        assert response.status_code == 400
+        data = json.loads(response.data)
+        assert data['success'] is False
+        assert 'INVALID_STATUS' in str(data.get('error', {}))
 
     def test_update_user_status_invalid_value(self, client, db, sample_user, admin_user, admin_auth_headers):
         """Test update user status with invalid value"""
