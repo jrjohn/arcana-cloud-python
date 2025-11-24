@@ -65,20 +65,20 @@ Enterprise-grade cloud platform with **gRPC-first architecture** (2.78x faster t
                                  │
 ┌────────────────────────────────▼────────────────────────────────────────┐
 │                    Arcana Cloud Python Backend                          │
-│  Flask 3.1.2 | Python 3.14 | gRPC-first + HTTP REST (dual-protocol)    │
-│                                                                          │
-│  ┌──────────────┐      ┌──────────────┐      ┌──────────────┐          │
-│  │ Controller   │─────▶│   Service    │─────▶│  Repository  │          │
-│  │    Layer     │ gRPC │     Layer    │ gRPC │     Layer    │          │
-│  │  (HTTP API)  │◀─────│  (Business)  │◀─────│  (Database)  │          │
-│  └──────────────┘      └──────────────┘      └──────────────┘          │
+│  Flask 3.1.2 | Python 3.14 | gRPC-first + HTTP REST (dual-protocol)     │
+│                                                                         │
+│  ┌──────────────┐      ┌──────────────┐      ┌──────────────┐           │
+│  │ Controller   │─────▶│   Service    │─────▶│  Repository  │           │
+│  │    Layer     │ gRPC │     Layer    │ gRPC │     Layer    │           │
+│  │  (HTTP API)  │◀─────│  (Business)  │◀─────│  (Database)  │           │
+│  └──────────────┘      └──────────────┘      └──────────────┘           │
 │         │                     │                     │                   │
 │         └─────────────────────┴─────────────────────┘                   │
-│                              │                                          │
-└──────────────────────────────┼──────────────────────────────────────────┘
-                               │
-                    ┌──────────┼──────────┐
-                    │          │          │
+│                               │                                         │
+└──────────────────────────────-┼─────────────────────────────────────────┘
+                                │
+                    ┌─────────-─┼──────────┐
+                    │           │          │
              ┌──────▼───┐  ┌──▼────┐  ┌──▼──────┐
              │  MySQL   │  │ Redis │  │ Celery  │
              │ Database │  │ Cache │  │ Workers │
