@@ -1,0 +1,66 @@
+graph TB
+    subgraph "Dependency Injection Container"
+        DI[Flask DI Container<br/>Singleton Pattern]
+    end
+
+    subgraph "Interfaces (Contracts)"
+        I_USER_SERVICE[IUserService<br/>Abstract Interface]
+        I_AUTH_SERVICE[IAuthService<br/>Abstract Interface]
+        I_USER_REPO[IUserRepository<br/>Abstract Interface]
+    end
+
+    subgraph "HTTP Implementations"
+        HTTP_USER_SERVICE[UserServiceImpl<br/>HTTP Client]
+        HTTP_AUTH_SERVICE[AuthServiceImpl<br/>HTTP Client]
+        HTTP_USER_REPO[HTTPUserRepositoryClient<br/>REST Client]
+    end
+
+    subgraph "gRPC Implementations"
+        GRPC_USER_SERVICE[UserServiceImpl<br/>gRPC Client]
+        GRPC_AUTH_SERVICE[AuthServiceImpl<br/>gRPC Client]
+        GRPC_USER_REPO[gRPCUserRepositoryClient<br/>Protobuf Client]
+    end
+
+    subgraph "Controllers"
+        AUTH_CONTROLLER[AuthController]
+        USER_CONTROLLER[UserController]
+        PUBLIC_CONTROLLER[PublicUserController]
+    end
+
+    DI -->|Register & Resolve| I_USER_SERVICE
+    DI -->|Register & Resolve| I_AUTH_SERVICE
+    DI -->|Register & Resolve| I_USER_REPO
+
+    I_USER_SERVICE -.->|implements| HTTP_USER_SERVICE
+    I_USER_SERVICE -.->|implements| GRPC_USER_SERVICE
+
+    I_AUTH_SERVICE -.->|implements| HTTP_AUTH_SERVICE
+    I_AUTH_SERVICE -.->|implements| GRPC_AUTH_SERVICE
+
+    I_USER_REPO -.->|implements| HTTP_USER_REPO
+    I_USER_REPO -.->|implements| GRPC_USER_REPO
+
+    AUTH_CONTROLLER -->|inject| I_AUTH_SERVICE
+    USER_CONTROLLER -->|inject| I_USER_SERVICE
+    PUBLIC_CONTROLLER -->|inject| I_USER_SERVICE
+
+    I_USER_SERVICE -->|inject| I_USER_REPO
+    I_AUTH_SERVICE -->|inject| I_USER_REPO
+
+    Note1["Runtime Decision:<br/>COMMUNICATION_PROTOCOL=grpc<br/>DI resolves to gRPC implementations"]
+    Note2["Benefits:<br/>Loose Coupling<br/>Easy Testing<br/>Protocol Switching at Runtime<br/>Single Responsibility"]
+
+    DI -.-> Note1
+    I_USER_SERVICE -.-> Note2
+
+    classDef interface fill:#fff9c4,stroke:#f57f17,stroke-width:3px
+    classDef http fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef grpc fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
+    classDef controller fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    classDef di fill:#ffccbc,stroke:#bf360c,stroke-width:3px
+
+    class I_USER_SERVICE,I_AUTH_SERVICE,I_USER_REPO interface
+    class HTTP_USER_SERVICE,HTTP_AUTH_SERVICE,HTTP_USER_REPO http
+    class GRPC_USER_SERVICE,GRPC_AUTH_SERVICE,GRPC_USER_REPO grpc
+    class AUTH_CONTROLLER,USER_CONTROLLER,PUBLIC_CONTROLLER controller
+    class DI di

@@ -1,0 +1,52 @@
+sequenceDiagram
+    participant Client as HTTP Client
+    participant Controller as Controller Layer<br/>(HTTP REST)
+    participant Service as Service Layer<br/>(gRPC Server)
+    participant Repository as Repository Layer<br/>(gRPC Server)
+    participant Cache as Redis Cache
+    participant DB as MySQL Database
+
+    Note over Client,Controller: External Communication<br/>JSON over HTTP REST
+
+    Client->>Controller: POST /api/auth/login<br/>{"username": "user", "password": "pass"}
+    activate Controller
+
+    Note over Controller,Service: Internal Communication<br/>Protocol Buffers over gRPC<br/>⚡ 2.78x faster
+
+    Controller->>Service: AuthenticateUser(username, password)<br/>via gRPC (port 50051)
+    activate Service
+
+    Service->>Service: Validate Credentials<br/>Apply Business Rules
+
+    Service->>Repository: GetUserByUsername(username)<br/>via gRPC (port 50052)
+    activate Repository
+
+    Repository->>Cache: Check Cache<br/>GET user:username
+    activate Cache
+    Cache-->>Repository: Cache Miss
+    deactivate Cache
+
+    Repository->>DB: SELECT * FROM users<br/>WHERE username = ?
+    activate DB
+    DB-->>Repository: User Record
+    deactivate DB
+
+    Repository->>Cache: Store in Cache<br/>SET user:username
+    activate Cache
+    Cache-->>Repository: Cached
+    deactivate Cache
+
+    Repository-->>Service: UserResponse<br/>(Protocol Buffer)<br/>⚡ ~1.5ms vs ~9.5ms HTTP
+    deactivate Repository
+
+    Service->>Service: Generate JWT Tokens<br/>(Access + Refresh)
+
+    Service-->>Controller: AuthResponse<br/>(Protocol Buffer)<br/>⚡ 6.30x faster for point queries
+    deactivate Service
+
+    Controller->>Controller: Serialize to JSON
+
+    Controller-->>Client: 200 OK<br/>{"access_token": "jwt...", "refresh_token": "jwt..."}
+    deactivate Controller
+
+    Note over Controller,Repository: Performance Benefits:<br/>• Binary Protocol (smaller payload)<br/>• HTTP/2 Multiplexing<br/>• Persistent Connections<br/>• Type Safety (Protocol Buffers)

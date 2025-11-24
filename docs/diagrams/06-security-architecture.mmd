@@ -1,0 +1,73 @@
+graph TB
+    subgraph "Layer 1: Network Security"
+        HTTPS[HTTPS/TLS<br/>Encrypted Transport]
+        CORS[CORS Policy<br/>Origin Validation]
+        RATE_LIMIT[Rate Limiting<br/>100 req/hour]
+    end
+
+    subgraph "Layer 2: Authentication"
+        JWT[JWT Token Validation<br/>HS256 Algorithm]
+        TOKEN_CHECK[Token Expiry Check<br/>Access: 1h<br/>Refresh: 30d]
+        BLACKLIST[Token Blacklist<br/>Redis Cache]
+    end
+
+    subgraph "Layer 3: Authorization"
+        RBAC["Role-Based Access Control<br/>ADMIN, USER, GUEST"]
+        PERMISSIONS[Permission Check<br/>@require_role decorator]
+        RESOURCE_OWNER[Resource Ownership<br/>Validation]
+    end
+
+    subgraph "Layer 4: Input Validation"
+        SCHEMA[Marshmallow Schemas<br/>Type Validation]
+        SANITIZE[Input Sanitization<br/>XSS Prevention]
+        SQL_PROTECT[SQL Injection Protection<br/>SQLAlchemy ORM]
+    end
+
+    subgraph "Layer 5: Data Protection"
+        PASSWORD_HASH[Password Hashing<br/>Werkzeug + bcrypt]
+        SENSITIVE_MASK[Sensitive Data Masking<br/>Logs & Responses]
+        ENCRYPTION[Data Encryption at Rest<br/>MySQL TDE]
+    end
+
+    subgraph "Layer 6: Monitoring & Audit"
+        LOGGING[Structured Logging<br/>JSON Format]
+        AUDIT_TRAIL[Audit Trail<br/>User Actions]
+        SECURITY_EVENTS[Security Events<br/>Failed Logins, Access Denied]
+    end
+
+    HTTPS --> JWT
+    CORS --> JWT
+    RATE_LIMIT --> JWT
+
+    JWT --> TOKEN_CHECK
+    TOKEN_CHECK --> BLACKLIST
+
+    BLACKLIST --> RBAC
+    RBAC --> PERMISSIONS
+    PERMISSIONS --> RESOURCE_OWNER
+
+    RESOURCE_OWNER --> SCHEMA
+    SCHEMA --> SANITIZE
+    SANITIZE --> SQL_PROTECT
+
+    SQL_PROTECT --> PASSWORD_HASH
+    PASSWORD_HASH --> SENSITIVE_MASK
+    SENSITIVE_MASK --> ENCRYPTION
+
+    ENCRYPTION --> LOGGING
+    LOGGING --> AUDIT_TRAIL
+    AUDIT_TRAIL --> SECURITY_EVENTS
+
+    classDef layer1 fill:#ffcdd2,stroke:#c62828,stroke-width:3px
+    classDef layer2 fill:#f8bbd0,stroke:#880e4f,stroke-width:3px
+    classDef layer3 fill:#e1bee7,stroke:#4a148c,stroke-width:3px
+    classDef layer4 fill:#c5cae9,stroke:#1a237e,stroke-width:3px
+    classDef layer5 fill:#b3e5fc,stroke:#01579b,stroke-width:3px
+    classDef layer6 fill:#b2dfdb,stroke:#004d40,stroke-width:3px
+
+    class HTTPS,CORS,RATE_LIMIT layer1
+    class JWT,TOKEN_CHECK,BLACKLIST layer2
+    class RBAC,PERMISSIONS,RESOURCE_OWNER layer3
+    class SCHEMA,SANITIZE,SQL_PROTECT layer4
+    class PASSWORD_HASH,SENSITIVE_MASK,ENCRYPTION layer5
+    class LOGGING,AUDIT_TRAIL,SECURITY_EVENTS layer6

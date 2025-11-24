@@ -1,0 +1,76 @@
+graph TB
+    subgraph "Monolithic Mode - Single Process"
+        M_APP[Flask Application]
+        M_CONTROLLER[Controller Layer]
+        M_SERVICE[Service Layer]
+        M_REPOSITORY[Repository Layer]
+
+        M_APP --> M_CONTROLLER
+        M_CONTROLLER --> M_SERVICE
+        M_SERVICE --> M_REPOSITORY
+    end
+
+    subgraph "Layered Mode - 3 Containers"
+        L_CONTROLLER[Controller Container<br/>Port 5000<br/>HTTP REST]
+        L_SERVICE[Service Container<br/>Port 5001/50051<br/>HTTP + gRPC]
+        L_REPOSITORY[Repository Container<br/>Port 5002/50052<br/>HTTP + gRPC]
+
+        L_CONTROLLER -->|gRPC<br/>2.78x faster| L_SERVICE
+        L_SERVICE -->|gRPC| L_REPOSITORY
+    end
+
+    subgraph "Microservices Mode - Kubernetes"
+        K_LB[Load Balancer<br/>Port 80/443]
+        K_INGRESS[Ingress Controller]
+
+        K_CONTROLLER1[Controller Pod 1]
+        K_CONTROLLER2[Controller Pod 2]
+        K_CONTROLLER3[Controller Pod 3]
+
+        K_SERVICE1[Service Pod 1<br/>gRPC:50051]
+        K_SERVICE2[Service Pod 2<br/>gRPC:50051]
+        K_SERVICE3[Service Pod 3<br/>gRPC:50051]
+
+        K_REPO1[Repository Pod 1<br/>gRPC:50052]
+        K_REPO2[Repository Pod 2<br/>gRPC:50052]
+
+        K_LB --> K_INGRESS
+        K_INGRESS --> K_CONTROLLER1
+        K_INGRESS --> K_CONTROLLER2
+        K_INGRESS --> K_CONTROLLER3
+
+        K_CONTROLLER1 -->|gRPC| K_SERVICE1
+        K_CONTROLLER2 -->|gRPC| K_SERVICE2
+        K_CONTROLLER3 -->|gRPC| K_SERVICE3
+
+        K_SERVICE1 -->|gRPC| K_REPO1
+        K_SERVICE2 -->|gRPC| K_REPO2
+        K_SERVICE3 -->|gRPC| K_REPO1
+    end
+
+    subgraph "Shared Infrastructure"
+        DB[(MySQL<br/>StatefulSet)]
+        CACHE[(Redis<br/>Cluster)]
+    end
+
+    M_REPOSITORY --> DB
+    M_REPOSITORY --> CACHE
+
+    L_REPOSITORY --> DB
+    L_REPOSITORY --> CACHE
+
+    K_REPO1 --> DB
+    K_REPO2 --> DB
+    K_SERVICE1 --> CACHE
+    K_SERVICE2 --> CACHE
+    K_SERVICE3 --> CACHE
+
+    classDef monolithic fill:#e3f2fd,stroke:#1565c0,stroke-width:3px
+    classDef layered fill:#f3e5f5,stroke:#6a1b9a,stroke-width:3px
+    classDef microservices fill:#e8f5e9,stroke:#2e7d32,stroke-width:3px
+    classDef infrastructure fill:#fff3e0,stroke:#ef6c00,stroke-width:3px
+
+    class M_APP,M_CONTROLLER,M_SERVICE,M_REPOSITORY monolithic
+    class L_CONTROLLER,L_SERVICE,L_REPOSITORY layered
+    class K_LB,K_INGRESS,K_CONTROLLER1,K_CONTROLLER2,K_CONTROLLER3,K_SERVICE1,K_SERVICE2,K_SERVICE3,K_REPO1,K_REPO2 microservices
+    class DB,CACHE infrastructure

@@ -1,0 +1,67 @@
+graph TB
+    subgraph "External Clients"
+        WEB[Web Browser]
+        MOBILE[Mobile Apps]
+        API_CLIENT[API Clients]
+    end
+
+    subgraph "Controller Layer (API Gateway)"
+        ROUTES[Flask Routes]
+        AUTH[Auth Middleware]
+        VALIDATION[Request Validation]
+        SERIALIZATION[Response Serialization]
+    end
+
+    subgraph "Service Layer (Business Logic)"
+        USER_SERVICE[UserService]
+        AUTH_SERVICE[AuthService]
+        BUSINESS_RULES[Business Rules]
+        DOMAIN_LOGIC[Domain Logic]
+    end
+
+    subgraph "Repository Layer (Data Access)"
+        USER_REPO[UserRepository]
+        CACHE[Redis Cache]
+        DB_OPERATIONS[DB Operations]
+        QUERY_BUILDER[Query Builder]
+    end
+
+    subgraph "Infrastructure"
+        MYSQL[(MySQL Database)]
+        REDIS[(Redis Cache)]
+        CELERY[Celery Workers]
+    end
+
+    WEB --> ROUTES
+    MOBILE --> ROUTES
+    API_CLIENT --> ROUTES
+
+    ROUTES --> AUTH
+    AUTH --> VALIDATION
+    VALIDATION --> SERIALIZATION
+
+    SERIALIZATION --> USER_SERVICE
+    SERIALIZATION --> AUTH_SERVICE
+
+    USER_SERVICE --> BUSINESS_RULES
+    AUTH_SERVICE --> BUSINESS_RULES
+    BUSINESS_RULES --> DOMAIN_LOGIC
+
+    DOMAIN_LOGIC --> USER_REPO
+    USER_REPO --> CACHE
+    USER_REPO --> DB_OPERATIONS
+    DB_OPERATIONS --> QUERY_BUILDER
+
+    CACHE --> REDIS
+    QUERY_BUILDER --> MYSQL
+    BUSINESS_RULES --> CELERY
+
+    classDef controller fill:#e1f5ff,stroke:#01579b,stroke-width:2px
+    classDef service fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef repository fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
+    classDef infrastructure fill:#fff3e0,stroke:#e65100,stroke-width:2px
+
+    class ROUTES,AUTH,VALIDATION,SERIALIZATION controller
+    class USER_SERVICE,AUTH_SERVICE,BUSINESS_RULES,DOMAIN_LOGIC service
+    class USER_REPO,CACHE,DB_OPERATIONS,QUERY_BUILDER repository
+    class MYSQL,REDIS,CELERY infrastructure

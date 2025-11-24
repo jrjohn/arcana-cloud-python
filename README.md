@@ -19,7 +19,7 @@ Enterprise-grade cloud platform with **gRPC-first architecture** (2.78x faster t
 | Category | Links |
 |----------|-------|
 | **🎯 Getting Started** | [Quick Start](#-quick-start) • [Installation](#installation) • [Configuration](#configuration) |
-| **🏗️ Architecture** | [Overview](#-architecture-highlights) • [Deployment Modes](#-deployment-modes) • [Communication Protocols](#communication-protocols) |
+| **🏗️ Architecture** | [Overview](#-architecture-highlights) • [Diagrams](#-architecture-diagrams) • [Deployment Modes](#-deployment-modes) • [Communication Protocols](#communication-protocols) |
 | **📖 Documentation** | [API Reference](#-api-documentation) • [Architecture Docs](docs/architecture/) • [Deployment Guides](docs/deployment/) |
 | **🧪 Testing** | [Test Reports](docs/test-reports/) • [Coverage](#-testing-strategy) • [Performance](#-performance-metrics) |
 | **🔗 Full-Stack** | [Arcana Angular](https://github.com/jrjohn/arcana-angular) • [Arcana Android](https://github.com/jrjohn/arcana-android) • [Arcana iOS](https://github.com/jrjohn/arcana-ios) |
@@ -35,6 +35,7 @@ Enterprise-grade cloud platform with **gRPC-first architecture** (2.78x faster t
 - [Deployment Modes](#-deployment-modes)
 - [Communication Protocols](#communication-protocols)
 - [Performance Metrics](#-performance-metrics)
+- [Architecture Diagrams](#-architecture-diagrams)
 - [Project Structure](#-project-structure)
 - [API Documentation](#-api-documentation)
 - [Testing Strategy](#-testing-strategy)
@@ -404,6 +405,147 @@ export REPOSITORY_URL=http://localhost:5002
 - ✅ List operations show consistent improvement
 
 📖 **[View Detailed Performance Report](docs/testing/COMMUNICATION-LAYER-PERFORMANCE.md)**
+
+---
+
+## 🏛️ Architecture Diagrams
+
+> **Note:** All architecture diagrams are generated at high resolution (2400px width, 3x scale) for maximum clarity. Click any diagram to view full-size.
+
+### 1. Clean Architecture Layers
+
+**The application follows Clean Architecture principles with three distinct layers: Controller Layer, Service Layer, and Repository Layer.**
+
+<p align="center">
+  <img src="docs/diagrams/01-clean-architecture-layers.png" alt="Clean Architecture Layers" width="100%"/>
+</p>
+
+Each layer has clear responsibilities and dependencies flow inward:
+
+- **Controller Layer (API Gateway)**: HTTP REST endpoints, request validation, JWT authentication, response serialization
+- **Service Layer (Business Logic)**: Business rules, domain logic, orchestration, communication abstraction
+- **Repository Layer (Data Access)**: Database operations, caching strategy, query building, data persistence
+
+**Key Benefits:**
+- ✅ **Separation of Concerns**: Each layer has a single, well-defined responsibility
+- ✅ **Testability**: Easy to mock dependencies and test in isolation
+- ✅ **Maintainability**: Changes in one layer don't affect others
+- ✅ **Scalability**: Layers can be deployed and scaled independently
+
+---
+
+### 2. Deployment Modes
+
+**Three flexible deployment architectures for different scalability needs.**
+
+<p align="center">
+  <img src="docs/diagrams/02-deployment-modes.png" alt="Deployment Modes" width="100%"/>
+</p>
+
+**Deployment Comparison:**
+
+| Mode | Containers | Complexity | Scalability | Use Case |
+|------|-----------|------------|-------------|----------|
+| **Monolithic** | 1 | Low | Vertical | Development, Small Apps |
+| **Layered** | 3 | Medium | Horizontal (per layer) | Production, Medium Apps |
+| **Microservices** | 11+ | High | Horizontal (per service) | Enterprise, Large Scale |
+
+All modes support both HTTP REST and gRPC communication protocols, with gRPC as the default for better performance.
+
+---
+
+### 3. gRPC Communication Flow
+
+**Binary protocol communication using Protocol Buffers for 2.78x average speedup.**
+
+<p align="center">
+  <img src="docs/diagrams/03-grpc-communication-flow.png" alt="gRPC Communication Flow" width="100%"/>
+</p>
+
+**Communication Pattern:**
+
+1. **External Communication**: HTTP REST with JSON (client → controller)
+2. **Internal Communication**: gRPC with Protocol Buffers (controller → service → repository)
+3. **Performance Optimization**: Binary serialization, HTTP/2 multiplexing, persistent connections
+
+**Performance Benefits:**
+- **Point Queries**: 6.30x faster (1.42ms vs 8.97ms)
+- **List Operations**: 1.26x faster with less payload size
+- **Write Operations**: 1.27x faster with binary encoding
+- **Network Efficiency**: ~30% smaller payload size
+
+---
+
+### 4. Dependency Injection
+
+**Interface-driven design with runtime protocol switching.**
+
+<p align="center">
+  <img src="docs/diagrams/04-dependency-injection.png" alt="Dependency Injection" width="100%"/>
+</p>
+
+**How It Works:**
+
+1. **Interfaces (Contracts)**: Abstract base classes define service contracts
+2. **Multiple Implementations**: HTTP and gRPC implementations for each interface
+3. **DI Container**: Flask singleton container manages registration and resolution
+4. **Runtime Selection**: Environment variable `COMMUNICATION_PROTOCOL` determines which implementation to use
+
+**Benefits:**
+- **Loose Coupling**: Controllers depend on interfaces, not implementations
+- **Easy Testing**: Mock implementations can be injected for unit tests
+- **Protocol Switching**: Change from HTTP to gRPC without code changes
+- **Single Responsibility**: Each implementation focuses on its protocol
+
+---
+
+### 5. Data Flow
+
+**Sequential request processing through all architectural layers.**
+
+<p align="center">
+  <img src="docs/diagrams/05-data-flow.png" alt="Data Flow" width="100%"/>
+</p>
+
+**Request Flow Steps:**
+
+1. **Client Request**: HTTP POST/GET/PUT/DELETE from client application
+2. **Route & Validation**: Flask route matching, JWT authentication, Marshmallow schema validation
+3. **Controller**: Request deserialization, controller method invocation
+4. **Service Layer**: Business rules application, domain logic execution
+5. **Repository Layer**: Redis cache check, MySQL database operations, cache update
+6. **Response**: Data serialization, HTTP response with proper status code
+
+**Error Handling**: Each layer can raise specific exceptions that are caught and transformed into appropriate HTTP error responses.
+
+---
+
+### 6. Security Architecture
+
+**Multi-layered security implementation with defense-in-depth strategy.**
+
+<p align="center">
+  <img src="docs/diagrams/06-security-architecture.png" alt="Security Architecture" width="100%"/>
+</p>
+
+**Security Layers:**
+
+| Layer | Features | Protection Against |
+|-------|----------|---------------------|
+| **1. Network** | HTTPS/TLS, CORS, Rate Limiting | MitM, CSRF, DoS |
+| **2. Authentication** | JWT (HS256), Token Expiry, Blacklist | Unauthorized Access |
+| **3. Authorization** | RBAC (Admin/User/Guest), Permissions | Privilege Escalation |
+| **4. Input Validation** | Marshmallow Schemas, Sanitization, ORM | XSS, SQL Injection |
+| **5. Data Protection** | Password Hashing (bcrypt), Masking, Encryption | Data Breach |
+| **6. Monitoring** | Structured Logging, Audit Trail, Security Events | Detection & Response |
+
+**Security Standards:**
+- ✅ OWASP Top 10 compliance
+- ✅ OAuth2 + JWT token-based authentication
+- ✅ bcrypt password hashing with salt
+- ✅ SQL injection prevention via SQLAlchemy ORM
+- ✅ XSS prevention via input sanitization
+- ✅ CSRF protection via token validation
 
 ---
 

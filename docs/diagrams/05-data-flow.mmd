@@ -1,0 +1,68 @@
+graph LR
+    subgraph "Step 1: Request"
+        CLIENT[Client Request<br/>HTTP POST /api/users]
+    end
+
+    subgraph "Step 2: Route & Validation"
+        ROUTE[Flask Route<br/>@users_bp.route]
+        AUTH_MW[JWT Authentication<br/>Middleware]
+        VALIDATE[Schema Validation<br/>Marshmallow]
+    end
+
+    subgraph "Step 3: Controller"
+        CONTROLLER[UserController<br/>create_user method]
+        DESERIALIZE[Deserialize Request<br/>UserSchema.load]
+    end
+
+    subgraph "Step 4: Service Layer"
+        SERVICE[UserService<br/>Business Logic]
+        RULES[Apply Business Rules<br/>• Duplicate Check<br/>• Password Policy<br/>• Role Validation]
+    end
+
+    subgraph "Step 5: Repository Layer"
+        REPO[UserRepository<br/>Data Access]
+        CACHE_CHECK[Check Redis Cache]
+        DB_WRITE[Write to MySQL]
+        CACHE_UPDATE[Update Cache]
+    end
+
+    subgraph "Step 6: Response"
+        SERIALIZE[Serialize Response<br/>UserSchema.dump]
+        RESPONSE[HTTP 201 Created<br/>JSON Response]
+    end
+
+    CLIENT --> ROUTE
+    ROUTE --> AUTH_MW
+    AUTH_MW --> VALIDATE
+
+    VALIDATE --> CONTROLLER
+    CONTROLLER --> DESERIALIZE
+
+    DESERIALIZE --> SERVICE
+    SERVICE --> RULES
+
+    RULES --> REPO
+    REPO --> CACHE_CHECK
+    CACHE_CHECK -->|Cache Miss| DB_WRITE
+    DB_WRITE --> CACHE_UPDATE
+
+    CACHE_UPDATE --> SERVICE
+    SERVICE --> CONTROLLER
+
+    CONTROLLER --> SERIALIZE
+    SERIALIZE --> RESPONSE
+    RESPONSE --> CLIENT
+
+    classDef step1 fill:#ffebee,stroke:#c62828,stroke-width:2px
+    classDef step2 fill:#e8eaf6,stroke:#3949ab,stroke-width:2px
+    classDef step3 fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    classDef step4 fill:#e0f2f1,stroke:#00695c,stroke-width:2px
+    classDef step5 fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
+    classDef step6 fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+
+    class CLIENT step1
+    class ROUTE,AUTH_MW,VALIDATE step2
+    class CONTROLLER,DESERIALIZE step3
+    class SERVICE,RULES step4
+    class REPO,CACHE_CHECK,DB_WRITE,CACHE_UPDATE step5
+    class SERIALIZE,RESPONSE step6
