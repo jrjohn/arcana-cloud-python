@@ -227,7 +227,11 @@ def get_user_tokens():
         auth_service = get_auth_service()
 
         tokens = auth_service.getUserTokens(user.id)
-        token_list = [token.toDict() for token in tokens]
+        # Handle both OAuthToken objects (monolithic/layered) and dicts (microservices)
+        if tokens and isinstance(tokens[0], dict):
+            token_list = tokens  # Already serialized by HTTP client
+        else:
+            token_list = [token.toDict() for token in tokens]
 
         return success_response(
             data={'tokens': token_list},

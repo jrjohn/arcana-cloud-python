@@ -15,7 +15,10 @@ from app.communication.interfaces import (
     CommunicationProtocol,
     DeploymentMode
 )
-from app.utils.Exceptions import APIException, NotFoundError
+from app.utils.Exceptions import (
+    APIException, NotFoundError, ConflictError,
+    ValidationError, AuthenticationError, AuthorizationError
+)
 
 
 class HTTPServiceCommunication(ServiceCommunicationInterface):
@@ -85,9 +88,32 @@ class HTTPServiceCommunication(ServiceCommunicationInterface):
             return response.json()
 
         except requests.exceptions.HTTPError as e:
-            if e.response.status_code == 404:
-                raise NotFoundError(f"Resource not found: {url}")
-            raise APIException(f"HTTP error: {e.response.status_code}")
+            # Try to parse error response from service layer
+            error_msg = f"HTTP error: {e.response.status_code}"
+            error_code = "HTTP_ERROR"
+
+            try:
+                error_data = e.response.json()
+                if isinstance(error_data, dict):
+                    error_msg = error_data.get('error', error_msg)
+                    error_code = error_data.get('error_code', error_code)
+            except:
+                pass
+
+            # Map HTTP status codes to appropriate exception types
+            status_code = e.response.status_code
+            if status_code == 404:
+                raise NotFoundError(error_msg)
+            elif status_code == 409:
+                raise ConflictError(error_msg)
+            elif status_code == 400:
+                raise ValidationError(error_msg)
+            elif status_code == 401:
+                raise AuthenticationError(error_msg)
+            elif status_code == 403:
+                raise AuthorizationError(error_msg)
+            else:
+                raise APIException(error_msg, error_code=error_code, status_code=status_code)
         except requests.exceptions.ConnectionError:
             raise APIException(f"Cannot connect to service: {base_url}")
         except requests.exceptions.Timeout:

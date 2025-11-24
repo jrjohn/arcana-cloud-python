@@ -75,29 +75,63 @@ class HTTPUserRepositoryClient(UserRepository):
         if data is None:
             return None
 
+        # Create User with a dummy password (will be overridden)
+        # Repository Layer doesn't send password_hash for security reasons
         user = User(
             username=data['username'],
             email=data['email'],
-            password_hash=data.get('password_hash', ''),
-            first_name=data.get('first_name'),
-            last_name=data.get('last_name'),
-            role=UserRole[data['role']] if data.get('role') else UserRole.USER,
-            status=UserStatus[data['status']] if data.get('status') else UserStatus.ACTIVE
+            password='DUMMY_PASSWORD_NOT_USED'  # Dummy password to satisfy __init__
         )
+
+        # Now set the actual attributes from repository data
         user.id = data.get('id')
+        user.first_name = data.get('first_name')
+        user.last_name = data.get('last_name')
+        user.role = UserRole[data['role']] if data.get('role') else UserRole.USER
+        user.status = UserStatus[data['status']] if data.get('status') else UserStatus.ACTIVE
+        user.is_verified = data.get('is_verified', False)
+        user.is_active = data.get('is_active', True)
+
+        # Set optional fields
+        user.phone = data.get('phone')
+        user.avatar_url = data.get('avatar_url')
+
+        # Set password_hash if provided (needed for Service Layer password verification)
+        if data.get('password_hash'):
+            user.password_hash = data['password_hash']
+
+        # Set optional datetime fields
+        from datetime import datetime
+        if data.get('created_at'):
+            user.created_at = datetime.fromisoformat(data['created_at'])
+        if data.get('updated_at'):
+            user.updated_at = datetime.fromisoformat(data['updated_at'])
+        if data.get('last_login_at'):
+            user.last_login_at = datetime.fromisoformat(data['last_login_at'])
+
         return user
 
     def _serialize_user(self, user: User) -> dict:
         """Convert User object to dict"""
-        return {
+        data = {
             'username': user.username,
             'email': user.email,
             'password_hash': user.password_hash,
             'first_name': user.first_name,
             'last_name': user.last_name,
             'role': user.role.name if user.role else 'USER',
-            'status': user.status.name if user.status else 'ACTIVE'
+            'status': user.status.name if user.status else 'ACTIVE',
+            'is_verified': getattr(user, 'is_verified', False),
+            'is_active': getattr(user, 'is_active', True)
         }
+
+        # Add optional fields if present
+        if hasattr(user, 'phone') and user.phone:
+            data['phone'] = user.phone
+        if hasattr(user, 'avatar_url') and user.avatar_url:
+            data['avatar_url'] = user.avatar_url
+
+        return data
 
     def create(self, user: User) -> User:
         """Create user"""

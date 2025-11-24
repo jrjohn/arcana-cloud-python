@@ -125,6 +125,8 @@ class UserServiceImpl(UserService):
 
     def deleteUser(self, user_id: int) -> bool:
         """Delete user"""
+        # Check if user exists first - this will raise NotFoundError if not
+        self.getUserById(user_id)
         return self.user_repository.delete(user_id)
 
     def changePassword(self, user_id: int, old_password: str, new_password: str) -> bool:

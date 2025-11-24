@@ -23,11 +23,19 @@ source venv/bin/activate
 # Set Python path
 export PYTHONPATH="$PROJECT_ROOT:$PYTHONPATH"
 
-# Set common environment
-export DATABASE_URL="sqlite:///$PROJECT_ROOT/arcana_test.db"
+# Set common environment - Use MySQL for better multi-process support
+export DATABASE_URL="mysql+pymysql://arcana:arcana_pass@localhost:3306/arcana_cloud_test"
+export TEST_DATABASE_URL="mysql+pymysql://arcana:arcana_pass@localhost:3306/arcana_cloud_test"
 export SECRET_KEY="test-secret-key"
 export JWT_SECRET_KEY="test-jwt-secret"
 export FLASK_ENV="testing"
+
+# Clean and initialize database
+echo -e "${YELLOW}Cleaning and initializing database...${NC}"
+docker exec arcana-cloud-python-mysql-1 mysql -u arcana -parcana_pass arcana_cloud_test -e "DROP DATABASE IF EXISTS arcana_cloud_test; CREATE DATABASE arcana_cloud_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" 2>/dev/null || true
+docker exec arcana-cloud-python-mysql-1 mysql -u root -proot_password -e "CREATE DATABASE IF NOT EXISTS arcana_cloud_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; GRANT ALL PRIVILEGES ON arcana_cloud_test.* TO 'arcana'@'%'; FLUSH PRIVILEGES;" 2>/dev/null
+python scripts/init_test_db.py
+echo ""
 
 # Kill any existing processes
 echo -e "${YELLOW}Cleaning up existing processes...${NC}"
@@ -38,9 +46,9 @@ sleep 2
 
 # Start Repository Layer (port 5002)
 echo -e "${YELLOW}Starting Repository Layer (port 5002)...${NC}"
-export DEPLOYMENT_MODE=microservices
-export DEPLOYMENT_LAYER=repository
-export PORT=5002
+DEPLOYMENT_MODE=microservices DEPLOYMENT_LAYER=repository PORT=5002 \
+DATABASE_URL="$DATABASE_URL" TEST_DATABASE_URL="$TEST_DATABASE_URL" \
+SECRET_KEY="$SECRET_KEY" JWT_SECRET_KEY="$JWT_SECRET_KEY" FLASK_ENV="$FLASK_ENV" \
 python app/repository_server.py > logs/repository.log 2>&1 &
 REPO_PID=$!
 echo "Repository PID: $REPO_PID"
@@ -57,11 +65,10 @@ fi
 
 # Start Service Layer (port 5001)
 echo -e "${YELLOW}Starting Service Layer (port 5001)...${NC}"
-export DEPLOYMENT_MODE=microservices
-export DEPLOYMENT_LAYER=service
-export PORT=5001
-export REPOSITORY_URL="http://localhost:5002"
-export USER_REPO_URLS="http://localhost:5002"
+DEPLOYMENT_MODE=microservices DEPLOYMENT_LAYER=service PORT=5001 \
+REPOSITORY_URL="http://localhost:5002" USER_REPO_URLS="http://localhost:5002" \
+DATABASE_URL="$DATABASE_URL" TEST_DATABASE_URL="$TEST_DATABASE_URL" \
+SECRET_KEY="$SECRET_KEY" JWT_SECRET_KEY="$JWT_SECRET_KEY" FLASK_ENV="$FLASK_ENV" \
 python app/service_server.py > logs/service.log 2>&1 &
 SERVICE_PID=$!
 echo "Service PID: $SERVICE_PID"
@@ -79,11 +86,10 @@ fi
 
 # Start Controller Layer (port 5003 - avoiding macOS AirPlay on 5000)
 echo -e "${YELLOW}Starting Controller Layer (port 5003)...${NC}"
-export DEPLOYMENT_MODE=microservices
-export DEPLOYMENT_LAYER=controller
-export PORT=5003
-export SERVICE_URL="http://localhost:5001"
-export USER_SERVICE_URLS="http://localhost:5001"
+DEPLOYMENT_MODE=microservices DEPLOYMENT_LAYER=controller PORT=5003 \
+SERVICE_URL="http://localhost:5001" USER_SERVICE_URLS="http://localhost:5001" \
+DATABASE_URL="$DATABASE_URL" TEST_DATABASE_URL="$TEST_DATABASE_URL" \
+SECRET_KEY="$SECRET_KEY" JWT_SECRET_KEY="$JWT_SECRET_KEY" FLASK_ENV="$FLASK_ENV" \
 python app/controller_server.py > logs/controller.log 2>&1 &
 CONTROLLER_PID=$!
 echo "Controller PID: $CONTROLLER_PID"

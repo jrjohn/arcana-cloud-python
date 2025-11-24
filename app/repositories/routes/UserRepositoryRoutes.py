@@ -31,9 +31,11 @@ def serialize_user(user: User) -> dict:
         'last_name': user.last_name,
         'role': user.role.name if user.role else None,
         'status': user.status.name if user.status else None,
+        'password_hash': user.password_hash,  # Needed for Service Layer password verification
+        'is_verified': user.is_verified if hasattr(user, 'is_verified') else False,
         'created_at': user.created_at.isoformat() if user.created_at else None,
         'updated_at': user.updated_at.isoformat() if user.updated_at else None,
-        'last_login': user.last_login.isoformat() if user.last_login else None
+        'last_login_at': user.last_login_at.isoformat() if user.last_login_at else None
     }
 
 
@@ -231,16 +233,22 @@ def create_user():
         data = request.get_json()
         user_repo = get_user_repository()
 
-        # Create User object
+        # Create User object with dummy password (will be replaced with actual hash)
         user = User(
             username=data['username'],
             email=data['email'],
-            password_hash=data.get('password_hash'),
-            first_name=data.get('first_name'),
-            last_name=data.get('last_name'),
-            role=UserRole[data['role'].upper()] if 'role' in data else UserRole.USER,
-            status=UserStatus[data['status'].upper()] if 'status' in data else UserStatus.ACTIVE
+            password='DUMMY_PASSWORD_WILL_BE_REPLACED'
         )
+
+        # Set password_hash if provided (from service layer that already hashed it)
+        if 'password_hash' in data:
+            user.password_hash = data['password_hash']
+
+        # Set other optional fields
+        user.first_name = data.get('first_name')
+        user.last_name = data.get('last_name')
+        user.role = UserRole[data['role'].upper()] if 'role' in data else UserRole.USER
+        user.status = UserStatus[data['status'].upper()] if 'status' in data else UserStatus.ACTIVE
 
         created_user = user_repo.create(user)
 
@@ -304,6 +312,14 @@ def update_user(user_id: int):
             user.status = UserStatus[data['status'].upper()]
         if 'password_hash' in data:
             user.password_hash = data['password_hash']
+        if 'is_verified' in data:
+            user.is_verified = data['is_verified']
+        if 'is_active' in data:
+            user.is_active = data['is_active']
+        if 'phone' in data:
+            user.phone = data['phone']
+        if 'avatar_url' in data:
+            user.avatar_url = data['avatar_url']
 
         updated_user = user_repo.update(user)
 

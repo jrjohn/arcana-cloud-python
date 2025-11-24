@@ -77,9 +77,10 @@ def register_blueprints(app: Flask) -> None:
 
     # Service layer: Register internal service API endpoints
     if deployment_layer in ['monolithic', 'service']:
-        from app.services.routes import user_service_bp
+        from app.services.routes import user_service_bp, auth_service_bp
 
         app.register_blueprint(user_service_bp)  # Internal API at /internal/users
+        app.register_blueprint(auth_service_bp)  # Internal API at /internal/auth
 
     # Repository layer: Register repository HTTP endpoints for microservices mode
     if deployment_layer == 'repository':

@@ -1,0 +1,199 @@
+/Users/jrjohn/Documents/projects/arcana-cloud-python/venv/lib/python3.14/site-packages/pytest_asyncio/plugin.py:208: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+============================= test session starts ==============================
+platform darwin -- Python 3.14.0, pytest-8.3.4, pluggy-1.6.0 -- /Users/jrjohn/Documents/projects/arcana-cloud-python/venv/bin/python
+cachedir: .pytest_cache
+metadata: {'Python': '3.14.0', 'Platform': 'macOS-26.1-arm64-arm-64bit-Mach-O', 'Packages': {'pytest': '8.3.4', 'pluggy': '1.6.0'}, 'Plugins': {'asyncio': '0.24.0', 'cov': '6.0.0', 'flask': '1.3.0', 'html': '4.1.1', 'metadata': '3.1.1', 'Faker': '33.1.0', 'mock': '3.14.0', 'xdist': '3.6.1'}, 'JAVA_HOME': '/Users/jrjohn/Library/Java/JavaVirtualMachines/ms-17.0.16/Contents/Home'}
+rootdir: /Users/jrjohn/Documents/projects/arcana-cloud-python
+configfile: pytest.ini
+plugins: asyncio-0.24.0, cov-6.0.0, flask-1.3.0, html-4.1.1, metadata-3.1.1, Faker-33.1.0, mock-3.14.0, xdist-3.6.1
+asyncio: mode=Mode.STRICT, default_loop_scope=None
+collecting ... collected 83 items
+
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_register_success PASSED [  1%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_register_duplicate_username PASSED [  2%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_login_success PASSED [  3%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_login_invalid_password PASSED [  4%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_get_current_user PASSED [  6%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_get_current_user_without_token PASSED [  7%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_logout_success PASSED [  8%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_refresh_token_success FAILED [  9%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_get_user_tokens FAILED [ 10%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_revoke_all_tokens PASSED [ 12%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_register_missing_required_fields PASSED [ 13%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_register_weak_password PASSED [ 14%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_register_invalid_email PASSED [ 15%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_login_with_email PASSED [ 16%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_login_nonexistent_user PASSED [ 18%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_refresh_token_invalid PASSED [ 19%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_refresh_token_missing PASSED [ 20%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_protected_endpoint_invalid_token PASSED [ 21%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_protected_endpoint_malformed_header PASSED [ 22%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_logout_without_token PASSED [ 24%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPIEdgeCases::test_sql_injection_in_login PASSED [ 25%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPIEdgeCases::test_xss_in_registration FAILED [ 26%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPIEdgeCases::test_multiple_rapid_login_attempts PASSED [ 27%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPIEdgeCases::test_very_long_username PASSED [ 28%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPIEdgeCases::test_unicode_in_credentials PASSED [ 30%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPIEdgeCases::test_null_byte_in_password PASSED [ 31%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPIEdgeCases::test_case_sensitivity_in_login PASSED [ 32%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_list_users_default_pagination PASSED [ 33%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_list_users_custom_pagination PASSED [ 34%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_list_users_response_format PASSED [ 36%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_get_single_user_success PASSED [ 37%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_get_single_user_not_found PASSED [ 38%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_create_user_success PASSED [ 39%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_create_user_duplicate_email FAILED [ 40%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_create_user_missing_required_fields PASSED [ 42%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_create_user_invalid_email PASSED [ 43%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_update_user_put_success PASSED [ 44%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_update_user_patch_success PASSED [ 45%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_update_user_not_found PASSED [ 46%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_delete_user_success PASSED [ 48%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_delete_user_not_found FAILED [ 49%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_public_api_no_authentication_required PASSED [ 50%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_public_api_response_structure PASSED [ 51%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_avatar_url_field_mapping PASSED [ 53%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPIEdgeCases::test_pagination_edge_case_page_zero PASSED [ 54%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPIEdgeCases::test_pagination_edge_case_negative_page PASSED [ 55%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPIEdgeCases::test_pagination_edge_case_large_per_page PASSED [ 56%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPIEdgeCases::test_create_user_with_extra_fields PASSED [ 57%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPIEdgeCases::test_update_user_empty_payload PASSED [ 59%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPIEdgeCases::test_content_type_handling PASSED [ 60%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPIEdgeCases::test_malformed_json PASSED [ 61%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPIEdgeCases::test_special_characters_in_names PASSED [ 62%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPIEdgeCases::test_unicode_in_names PASSED [ 63%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPIEdgeCases::test_very_long_email PASSED [ 65%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_get_users_as_admin PASSED [ 66%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_get_users_as_regular_user PASSED [ 67%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_get_user_by_id_self PASSED [ 68%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_update_user_self PASSED [ 69%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_change_password PASSED [ 71%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_create_user_as_admin PASSED [ 72%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_delete_user_as_admin PASSED [ 73%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_verify_user_as_admin FAILED [ 74%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_update_user_status_as_admin PASSED [ 75%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_get_user_permission_denied PASSED [ 77%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_update_other_user_permission_denied PASSED [ 78%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_create_user_as_regular_user PASSED [ 79%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_delete_user_as_regular_user PASSED [ 80%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_change_password_wrong_old_password FAILED [ 81%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_change_password_weak_new_password PASSED [ 83%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_get_users_with_filters PASSED [ 84%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_update_user_invalid_email PASSED [ 85%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_update_user_duplicate_email FAILED [ 86%]
+tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_get_nonexistent_user PASSED [ 87%]
+tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_update_nonexistent_user PASSED [ 89%]
+tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_delete_nonexistent_user FAILED [ 90%]
+tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_verify_nonexistent_user PASSED [ 91%]
+tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_pagination_boundary_values PASSED [ 92%]
+tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_invalid_role_filter PASSED [ 93%]
+tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_invalid_status_filter PASSED [ 95%]
+tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_update_user_status_invalid_value PASSED [ 96%]
+tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_update_user_status_missing_value PASSED [ 97%]
+tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_user_endpoints_without_authentication PASSED [ 98%]
+tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_special_characters_in_user_fields PASSED [100%]/Users/jrjohn/Documents/projects/arcana-cloud-python/venv/lib/python3.14/site-packages/pytest_cov/plugin.py:355: CovFailUnderWarning: Coverage failure: total of 31 is less than fail-under=80
+  warnings.warn(CovFailUnderWarning(message), stacklevel=1)
+
+ERROR: Coverage failure: total of 31 is less than fail-under=80
+
+
+=================================== FAILURES ===================================
+/Users/jrjohn/Documents/projects/arcana-cloud-python/tests/integration/test_api/test_auth_api.py:143: AttributeError: 'MockToken' object has no attribute 'refresh_token'
+/Users/jrjohn/Documents/projects/arcana-cloud-python/tests/integration/test_api/test_auth_api.py:168: assert 500 == 200
+/Users/jrjohn/Documents/projects/arcana-cloud-python/tests/integration/test_api/test_auth_api.py:396: assert 401 in [201, 400]
+/Users/jrjohn/Documents/projects/arcana-cloud-python/tests/integration/test_api/test_public_user_api.py:128: assert 500 in [400, 409]
+/Users/jrjohn/Documents/projects/arcana-cloud-python/tests/integration/test_api/test_public_user_api.py:248: assert 204 == 404
+/Users/jrjohn/Documents/projects/arcana-cloud-python/tests/integration/test_api/test_user_api.py:142: assert False is True
+/Users/jrjohn/Documents/projects/arcana-cloud-python/tests/integration/test_api/test_user_api.py:238: assert 500 in [400, 401]
+/Users/jrjohn/Documents/projects/arcana-cloud-python/tests/integration/test_api/test_user_api.py:303: assert 500 in [400, 409]
+/Users/jrjohn/Documents/projects/arcana-cloud-python/tests/integration/test_api/test_user_api.py:347: assert 200 == 404
+=============================== warnings summary ===============================
+app/Extensions.py:7
+  /Users/jrjohn/Documents/projects/arcana-cloud-python/app/Extensions.py:7: UserWarning: Flask-SQLAlchemy integration requires marshmallow-sqlalchemy to be installed.
+    from flask_marshmallow import Marshmallow
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /Users/jrjohn/Documents/projects/arcana-cloud-python/docs/test-reports/microservices/api-test-microservices-fixed-final.xml -
+
+---------- coverage: platform darwin, python 3.14.0-final-0 ----------
+Name                                                           Stmts   Miss  Cover   Missing
+--------------------------------------------------------------------------------------------
+app/Config.py                                                     65      4    94%   121-124
+app/Container.py                                                  16      0   100%
+app/Extensions.py                                                 15      3    80%   42-44
+app/__init__.py                                                   68     15    78%   80-83, 87-89, 99, 103, 107, 118, 124-130
+app/communication/__init__.py                                      3      3     0%   5-8
+app/communication/factory.py                                      89     89     0%   5-284
+app/communication/implementations/__init__.py                      4      4     0%   2-15
+app/communication/implementations/direct.py                       76     76     0%   5-164
+app/communication/implementations/grpc_impl.py                   112    112     0%   5-290
+app/communication/implementations/http_rest.py                   138    138     0%   5-271
+app/communication/interfaces.py                                   63     63     0%   5-138
+app/controller_server.py                                           7      7     0%   5-16
+app/controllers/AuthController.py                                 88     59    33%   33-59, 79-108, 125-145, 164-183, 200-208, 225-238, 255-267
+app/controllers/PublicUserController.py                           90     68    24%   34-42, 70-104, 125-147, 177-216, 246-282, 294-306
+app/controllers/UserController.py                                143    101    29%   35-91, 108-137, 163-184, 207-237, 255-273, 295-328, 346-365, 386-427
+app/controllers/__init__.py                                        7      0   100%
+app/decorators/AuthDecorators.py                                  86     68    21%   28-80, 103-124, 149-190, 205-230
+app/decorators/ValidationDecorators.py                            47     29    38%   41-80, 105-135
+app/decorators/__init__.py                                         3      0   100%
+app/di_container.py                                               95     50    47%   44-45, 72-86, 90, 94-96, 137-144, 147-148, 155-156, 159-168, 178-190, 195-207, 224, 234, 244, 254, 264
+app/models/__init__.py                                             3      0   100%
+app/models/oauth_token.py                                         60     28    53%   83-100, 109, 118-120, 129, 133-134, 138, 150-168, 171
+app/models/user.py                                                64      9    86%   102, 133, 137, 149-169, 178, 187
+app/repositories/implementations/OAuthTokenRepositoryImpl.py      87     70    20%   25, 29-36, 40-45, 49-54, 58-66, 70-76, 80-92, 96-111, 115-131, 135-142
+app/repositories/implementations/UserRepositoryImpl.py            82     64    22%   24, 28-35, 39-42, 46-49, 53-56, 60-66, 70-82, 86-91, 95-100, 110-128, 132-135
+app/repositories/implementations/__init__.py                       3      0   100%
+app/repositories/interfaces/OAuthTokenRepository.py               32      9    72%   26, 39, 52, 66, 79, 92, 105, 118, 131
+app/repositories/interfaces/UserRepository.py                     34     10    71%   25, 38, 51, 64, 77, 90, 103, 116, 138, 148
+app/repositories/interfaces/__init__.py                            3      0   100%
+app/repository_server.py                                           7      7     0%   5-16
+app/schemas/AuthSchema.py                                         12      0   100%
+app/schemas/UserSchema.py                                         70     12    83%   54-59, 83-88
+app/schemas/__init__.py                                            3      0   100%
+app/service_server.py                                              7      7     0%   5-16
+app/services/clients/LoadBalancer.py                              47     35    26%   22-30, 42-65, 74-77, 86-89, 98, 107-108, 117-118
+app/services/clients/ServiceClient.py                             77     58    25%   37-72, 99-164, 170, 174, 178, 182, 186, 195-200, 209
+app/services/clients/__init__.py                                   3      0   100%
+app/services/implementations/AuthServiceImpl.py                  113     90    20%   39-43, 57-68, 83-89, 102-144, 154-160, 165-197, 206-235, 239, 243, 255-269, 273
+app/services/implementations/UserServiceImpl.py                   89     68    24%   29, 33-35, 39-46, 50-53, 64-77, 81-84, 88-91, 95-98, 102-124, 128, 132-144, 148-150, 154-156, 166-173
+app/services/implementations/__init__.py                           3      0   100%
+app/services/interfaces/AuthService.py                            29      8    72%   43, 59, 76, 93, 106, 119, 145, 159
+app/services/interfaces/UserService.py                            34     10    71%   38, 54, 70, 86, 104, 120, 140, 156, 173, 195
+app/services/interfaces/__init__.py                                3      0   100%
+app/tasks/BackgroundTasks.py                                      54     54     0%   4-166
+app/tasks/CeleryWorker.py                                         10     10     0%   5-82
+app/tasks/ScheduledTasks.py                                       66     66     0%   4-145
+app/tasks/TaskDecorators.py                                       77     77     0%   5-200
+app/tasks/__init__.py                                              3      3     0%   2-5
+app/utils/Exceptions.py                                           32     13    59%   18-22, 29, 41, 52, 63, 75, 86, 97, 108
+app/utils/Response.py                                             17      9    47%   27-35, 56-67, 90-106, 116-118
+app/utils/__init__.py                                              3      0   100%
+--------------------------------------------------------------------------------------------
+TOTAL                                                           2342   1606    31%
+Coverage HTML written to dir htmlcov
+Coverage XML written to file coverage.xml
+
+FAIL Required test coverage of 80% not reached. Total coverage: 31.43%
+- Generated html report: file:///Users/jrjohn/Documents/projects/arcana-cloud-python/docs/test-reports/microservices/api-test-microservices-fixed-final.html -
+=========================== short test summary info ============================
+FAILED tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_refresh_token_success - AttributeError: 'MockToken' object has no attribute 'refresh_token'
+FAILED tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_get_user_tokens - assert 500 == 200
+ +  where 500 = <tests.http_client.HTTPResponse object at 0x10af3c050>.status_code
+FAILED tests/integration/test_api/test_auth_api.py::TestAuthAPIEdgeCases::test_xss_in_registration - assert 401 in [201, 400]
+ +  where 401 = <tests.http_client.HTTPResponse object at 0x10aec7a80>.status_code
+FAILED tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_create_user_duplicate_email - assert 500 in [400, 409]
+ +  where 500 = <tests.http_client.HTTPResponse object at 0x10af6c820>.status_code
+FAILED tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_delete_user_not_found - assert 204 == 404
+ +  where 204 = <tests.http_client.HTTPResponse object at 0x10af6d220>.status_code
+FAILED tests/integration/test_api/test_user_api.py::TestUserAPI::test_verify_user_as_admin - assert False is True
+FAILED tests/integration/test_api/test_user_api.py::TestUserAPI::test_change_password_wrong_old_password - assert 500 in [400, 401]
+ +  where 500 = <tests.http_client.HTTPResponse object at 0x10afd5f90>.status_code
+FAILED tests/integration/test_api/test_user_api.py::TestUserAPI::test_update_user_duplicate_email - assert 500 in [400, 409]
+ +  where 500 = <tests.http_client.HTTPResponse object at 0x10afd6670>.status_code
+FAILED tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_delete_nonexistent_user - assert 200 == 404
+ +  where 200 = <tests.http_client.HTTPResponse object at 0x10af6d220>.status_code
+=================== 9 failed, 74 passed, 1 warning in 15.34s ===================

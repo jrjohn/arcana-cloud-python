@@ -1,0 +1,425 @@
+/Users/jrjohn/Documents/projects/arcana-cloud-python/venv/lib/python3.14/site-packages/pytest_asyncio/plugin.py:208: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+============================= test session starts ==============================
+platform darwin -- Python 3.14.0, pytest-8.3.4, pluggy-1.6.0 -- /Users/jrjohn/Documents/projects/arcana-cloud-python/venv/bin/python
+cachedir: .pytest_cache
+metadata: {'Python': '3.14.0', 'Platform': 'macOS-26.1-arm64-arm-64bit-Mach-O', 'Packages': {'pytest': '8.3.4', 'pluggy': '1.6.0'}, 'Plugins': {'asyncio': '0.24.0', 'cov': '6.0.0', 'flask': '1.3.0', 'html': '4.1.1', 'metadata': '3.1.1', 'Faker': '33.1.0', 'mock': '3.14.0', 'xdist': '3.6.1'}, 'JAVA_HOME': '/Users/jrjohn/Library/Java/JavaVirtualMachines/ms-17.0.16/Contents/Home'}
+rootdir: /Users/jrjohn/Documents/projects/arcana-cloud-python
+configfile: pytest.ini
+plugins: asyncio-0.24.0, cov-6.0.0, flask-1.3.0, html-4.1.1, metadata-3.1.1, Faker-33.1.0, mock-3.14.0, xdist-3.6.1
+asyncio: mode=Mode.STRICT, default_loop_scope=None
+collecting ... collected 83 items
+
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_register_success FAILED [  1%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_register_duplicate_username PASSED [  2%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_login_success FAILED [  3%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_login_invalid_password FAILED [  4%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_get_current_user PASSED [  6%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_get_current_user_without_token PASSED [  7%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_logout_success PASSED [  8%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_refresh_token_success FAILED [  9%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_get_user_tokens PASSED [ 10%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_revoke_all_tokens PASSED [ 12%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_register_missing_required_fields PASSED [ 13%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_register_weak_password PASSED [ 14%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_register_invalid_email PASSED [ 15%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_login_with_email FAILED [ 16%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_login_nonexistent_user PASSED [ 18%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_refresh_token_invalid PASSED [ 19%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_refresh_token_missing PASSED [ 20%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_protected_endpoint_invalid_token PASSED [ 21%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_protected_endpoint_malformed_header PASSED [ 22%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_logout_without_token PASSED [ 24%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPIEdgeCases::test_sql_injection_in_login PASSED [ 25%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPIEdgeCases::test_xss_in_registration FAILED [ 26%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPIEdgeCases::test_multiple_rapid_login_attempts FAILED [ 27%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPIEdgeCases::test_very_long_username PASSED [ 28%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPIEdgeCases::test_unicode_in_credentials FAILED [ 30%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPIEdgeCases::test_null_byte_in_password FAILED [ 31%]
+tests/integration/test_api/test_auth_api.py::TestAuthAPIEdgeCases::test_case_sensitivity_in_login FAILED [ 32%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_list_users_default_pagination FAILED [ 33%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_list_users_custom_pagination FAILED [ 34%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_list_users_response_format FAILED [ 36%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_get_single_user_success FAILED [ 37%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_get_single_user_not_found PASSED [ 38%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_create_user_success FAILED [ 39%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_create_user_duplicate_email FAILED [ 40%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_create_user_missing_required_fields PASSED [ 42%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_create_user_invalid_email PASSED [ 43%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_update_user_put_success FAILED [ 44%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_update_user_patch_success FAILED [ 45%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_update_user_not_found PASSED [ 46%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_delete_user_success PASSED [ 48%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_delete_user_not_found FAILED [ 49%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_public_api_no_authentication_required FAILED [ 50%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_public_api_response_structure FAILED [ 51%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_avatar_url_field_mapping FAILED [ 53%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPIEdgeCases::test_pagination_edge_case_page_zero PASSED [ 54%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPIEdgeCases::test_pagination_edge_case_negative_page PASSED [ 55%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPIEdgeCases::test_pagination_edge_case_large_per_page PASSED [ 56%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPIEdgeCases::test_create_user_with_extra_fields FAILED [ 57%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPIEdgeCases::test_update_user_empty_payload FAILED [ 59%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPIEdgeCases::test_content_type_handling PASSED [ 60%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPIEdgeCases::test_malformed_json PASSED [ 61%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPIEdgeCases::test_special_characters_in_names PASSED [ 62%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPIEdgeCases::test_unicode_in_names PASSED [ 63%]
+tests/integration/test_api/test_public_user_api.py::TestPublicUserAPIEdgeCases::test_very_long_email PASSED [ 65%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_get_users_as_admin FAILED [ 66%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_get_users_as_regular_user PASSED [ 67%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_get_user_by_id_self FAILED [ 68%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_update_user_self FAILED [ 69%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_change_password FAILED [ 71%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_create_user_as_admin FAILED [ 72%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_delete_user_as_admin PASSED [ 73%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_verify_user_as_admin FAILED [ 74%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_update_user_status_as_admin FAILED [ 75%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_get_user_permission_denied PASSED [ 77%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_update_other_user_permission_denied PASSED [ 78%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_create_user_as_regular_user PASSED [ 79%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_delete_user_as_regular_user PASSED [ 80%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_change_password_wrong_old_password FAILED [ 81%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_change_password_weak_new_password PASSED [ 83%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_get_users_with_filters FAILED [ 84%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_update_user_invalid_email PASSED [ 85%]
+tests/integration/test_api/test_user_api.py::TestUserAPI::test_update_user_duplicate_email FAILED [ 86%]
+tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_get_nonexistent_user PASSED [ 87%]
+tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_update_nonexistent_user PASSED [ 89%]
+tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_delete_nonexistent_user FAILED [ 90%]
+tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_verify_nonexistent_user PASSED [ 91%]
+tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_pagination_boundary_values PASSED [ 92%]
+tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_invalid_role_filter PASSED [ 93%]
+tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_invalid_status_filter PASSED [ 95%]
+tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_update_user_status_invalid_value PASSED [ 96%]
+tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_update_user_status_missing_value PASSED [ 97%]
+tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_user_endpoints_without_authentication PASSED [ 98%]
+tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_special_characters_in_user_fields FAILED [100%]/Users/jrjohn/Documents/projects/arcana-cloud-python/venv/lib/python3.14/site-packages/pytest_cov/plugin.py:355: CovFailUnderWarning: Coverage failure: total of 59 is less than fail-under=80
+  warnings.warn(CovFailUnderWarning(message), stacklevel=1)
+
+ERROR: Coverage failure: total of 59 is less than fail-under=80
+
+
+=================================== FAILURES ===================================
+______________________ TestAuthAPI.test_register_success _______________________
+tests/integration/test_api/test_auth_api.py:31: in test_register_success
+    assert response.status_code == 201
+E   assert 500 == 201
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+________________________ TestAuthAPI.test_login_success ________________________
+tests/integration/test_api/test_auth_api.py:75: in test_login_success
+    assert response.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+___________________ TestAuthAPI.test_login_invalid_password ____________________
+tests/integration/test_api/test_auth_api.py:98: in test_login_invalid_password
+    assert response.status_code == 401
+E   assert 500 == 401
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+____________________ TestAuthAPI.test_refresh_token_success ____________________
+tests/integration/test_api/test_auth_api.py:154: in test_refresh_token_success
+    assert response.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+______________________ TestAuthAPI.test_login_with_email _______________________
+tests/integration/test_api/test_auth_api.py:260: in test_login_with_email
+    assert response.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+________________ TestAuthAPIEdgeCases.test_xss_in_registration _________________
+tests/integration/test_api/test_auth_api.py:396: in test_xss_in_registration
+    assert response.status_code in [201, 400]
+E   assert 500 in [201, 400]
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+___________ TestAuthAPIEdgeCases.test_multiple_rapid_login_attempts ____________
+tests/integration/test_api/test_auth_api.py:418: in test_multiple_rapid_login_attempts
+    assert response.status_code in [401, 429]  # 429 = Too Many Requests
+E   assert 500 in [401, 429]
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+_______________ TestAuthAPIEdgeCases.test_unicode_in_credentials _______________
+tests/integration/test_api/test_auth_api.py:456: in test_unicode_in_credentials
+    assert response.status_code in [201, 400]
+E   assert 500 in [201, 400]
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+_______________ TestAuthAPIEdgeCases.test_null_byte_in_password ________________
+tests/integration/test_api/test_auth_api.py:475: in test_null_byte_in_password
+    assert response.status_code in [201, 400]
+E   assert 500 in [201, 400]
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+_____________ TestAuthAPIEdgeCases.test_case_sensitivity_in_login ______________
+tests/integration/test_api/test_auth_api.py:492: in test_case_sensitivity_in_login
+    assert response.status_code in [200, 401]
+E   assert 500 in [200, 401]
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+_____________ TestPublicUserAPI.test_list_users_default_pagination _____________
+tests/integration/test_api/test_public_user_api.py:18: in test_list_users_default_pagination
+    assert response.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+_____________ TestPublicUserAPI.test_list_users_custom_pagination ______________
+tests/integration/test_api/test_public_user_api.py:34: in test_list_users_custom_pagination
+    assert response.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+______________ TestPublicUserAPI.test_list_users_response_format _______________
+tests/integration/test_api/test_public_user_api.py:46: in test_list_users_response_format
+    assert response.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+________________ TestPublicUserAPI.test_get_single_user_success ________________
+tests/integration/test_api/test_public_user_api.py:68: in test_get_single_user_success
+    assert response.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+__________________ TestPublicUserAPI.test_create_user_success __________________
+tests/integration/test_api/test_public_user_api.py:103: in test_create_user_success
+    assert response.status_code == 201
+E   assert 500 == 201
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+______________ TestPublicUserAPI.test_create_user_duplicate_email ______________
+tests/integration/test_api/test_public_user_api.py:128: in test_create_user_duplicate_email
+    assert response.status_code in [400, 409]  # Bad request or conflict
+E   assert 500 in [400, 409]
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+________________ TestPublicUserAPI.test_update_user_put_success ________________
+tests/integration/test_api/test_public_user_api.py:185: in test_update_user_put_success
+    assert response.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+_______________ TestPublicUserAPI.test_update_user_patch_success _______________
+tests/integration/test_api/test_public_user_api.py:207: in test_update_user_patch_success
+    assert response.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+_________________ TestPublicUserAPI.test_delete_user_not_found _________________
+tests/integration/test_api/test_public_user_api.py:248: in test_delete_user_not_found
+    assert response.status_code == 404
+E   assert 204 == 404
+E    +  where 204 = <WrapperTestResponse streamed [204 NO CONTENT]>.status_code
+_________ TestPublicUserAPI.test_public_api_no_authentication_required _________
+tests/integration/test_api/test_public_user_api.py:254: in test_public_api_no_authentication_required
+    assert response.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+_____________ TestPublicUserAPI.test_public_api_response_structure _____________
+tests/integration/test_api/test_public_user_api.py:278: in test_public_api_response_structure
+    assert 'data' in list_data
+E   assert 'data' in {'error': "HTTPConnectionPool(host='localhost', port=5001): Max retries exceeded with url: /internal/users?page=1&per_page=20 (Caused by ResponseError('too many 500 error responses'))"}
+_______________ TestPublicUserAPI.test_avatar_url_field_mapping ________________
+tests/integration/test_api/test_public_user_api.py:304: in test_avatar_url_field_mapping
+    assert response.status_code == 201
+E   assert 500 == 201
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+________ TestPublicUserAPIEdgeCases.test_create_user_with_extra_fields _________
+tests/integration/test_api/test_public_user_api.py:347: in test_create_user_with_extra_fields
+    assert response.status_code in [201, 400]
+E   assert 500 in [201, 400]
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+__________ TestPublicUserAPIEdgeCases.test_update_user_empty_payload ___________
+tests/integration/test_api/test_public_user_api.py:358: in test_update_user_empty_payload
+    assert response.status_code in [200, 400, 404]
+E   assert 500 in [200, 400, 404]
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+_____________________ TestUserAPI.test_get_users_as_admin ______________________
+tests/integration/test_api/test_user_api.py:21: in test_get_users_as_admin
+    assert response.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+_____________________ TestUserAPI.test_get_user_by_id_self _____________________
+tests/integration/test_api/test_user_api.py:47: in test_get_user_by_id_self
+    assert response.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+______________________ TestUserAPI.test_update_user_self _______________________
+tests/integration/test_api/test_user_api.py:68: in test_update_user_self
+    assert response.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+_______________________ TestUserAPI.test_change_password _______________________
+tests/integration/test_api/test_user_api.py:89: in test_change_password
+    assert response.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+____________________ TestUserAPI.test_create_user_as_admin _____________________
+tests/integration/test_api/test_user_api.py:112: in test_create_user_as_admin
+    assert response.status_code == 201
+E   assert 500 == 201
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+____________________ TestUserAPI.test_verify_user_as_admin _____________________
+tests/integration/test_api/test_user_api.py:139: in test_verify_user_as_admin
+    assert response.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+_________________ TestUserAPI.test_update_user_status_as_admin _________________
+tests/integration/test_api/test_user_api.py:160: in test_update_user_status_as_admin
+    assert response.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+_____________ TestUserAPI.test_change_password_wrong_old_password ______________
+tests/integration/test_api/test_user_api.py:238: in test_change_password_wrong_old_password
+    assert response.status_code in [400, 401]
+E   assert 500 in [400, 401]
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+___________________ TestUserAPI.test_get_users_with_filters ____________________
+tests/integration/test_api/test_user_api.py:267: in test_get_users_with_filters
+    assert response.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+_________________ TestUserAPI.test_update_user_duplicate_email _________________
+tests/integration/test_api/test_user_api.py:303: in test_update_user_duplicate_email
+    assert response.status_code in [400, 409]
+E   assert 500 in [400, 409]
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+______________ TestUserAPIEdgeCases.test_delete_nonexistent_user _______________
+tests/integration/test_api/test_user_api.py:347: in test_delete_nonexistent_user
+    assert response.status_code == 404
+E   assert 200 == 404
+E    +  where 200 = <WrapperTestResponse streamed [200 OK]>.status_code
+_________ TestUserAPIEdgeCases.test_special_characters_in_user_fields __________
+tests/integration/test_api/test_user_api.py:493: in test_special_characters_in_user_fields
+    assert response.status_code in [200, 400]
+E   assert 500 in [200, 400]
+E    +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+=============================== warnings summary ===============================
+app/Extensions.py:7
+  /Users/jrjohn/Documents/projects/arcana-cloud-python/app/Extensions.py:7: UserWarning: Flask-SQLAlchemy integration requires marshmallow-sqlalchemy to be installed.
+    from flask_marshmallow import Marshmallow
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /Users/jrjohn/Documents/projects/arcana-cloud-python/docs/test-reports/microservices/api-test-microservices-mysql-fixed.xml -
+
+---------- coverage: platform darwin, python 3.14.0-final-0 ----------
+Name                                                           Stmts   Miss  Cover   Missing
+--------------------------------------------------------------------------------------------
+app/Config.py                                                     65      4    94%   121-124
+app/Container.py                                                  16      0   100%
+app/Extensions.py                                                 15      3    80%   42-44
+app/__init__.py                                                   67     14    79%   80-82, 86-88, 98, 102, 106, 117, 123-129
+app/communication/__init__.py                                      3      0   100%
+app/communication/factory.py                                      89     42    53%   62-63, 76-79, 96, 102, 108, 122, 175-184, 194, 235-264, 274-284
+app/communication/implementations/__init__.py                      4      0   100%
+app/communication/implementations/direct.py                       76     49    36%   27-29, 33-39, 43, 47, 51, 55, 59-60, 64-65, 69-70, 74-75, 79-80, 84-85, 89-92, 108-110, 114-120, 124, 128, 132, 138-139, 148-149, 153-154, 158-159, 163-164
+app/communication/implementations/grpc_impl.py                   112     76    32%   34-49, 53-67, 75-77, 90-112, 116, 120, 124, 128-135, 139, 147, 151, 155, 159, 163-164, 181-196, 200-203, 211-213, 217-226, 230, 234, 238, 242-246, 251, 260, 267, 274, 282, 289-290
+app/communication/implementations/http_rest.py                   138     60    57%   41, 92, 94, 99-100, 104, 108, 112-117, 127, 130, 135, 140, 145, 156, 161, 167, 184-201, 205-207, 212-227, 231-232, 236, 240, 244-249, 254-255, 259, 263, 267, 271
+app/communication/interfaces.py                                   63     14    78%   58, 63, 68, 73, 85, 90, 95, 100, 105, 118, 123, 128, 133, 138
+app/controller_server.py                                           7      7     0%   5-16
+app/controllers/AuthController.py                                 88     15    83%   45, 58-59, 95, 137-145, 170, 207-208, 237-238, 266-267
+app/controllers/PublicUserController.py                           90     32    64%   34-42, 79-95, 130-142, 196-207, 215-216, 252, 261-272, 280, 303-306
+app/controllers/UserController.py                                143     19    87%   75, 84, 124, 170, 183-184, 224, 265-273, 300, 316, 321, 352, 364-365, 414, 420
+app/controllers/__init__.py                                        7      0   100%
+app/decorators/AuthDecorators.py                                  86     42    51%   40, 72-73, 104, 149-190, 205-230
+app/decorators/ValidationDecorators.py                            47      9    81%   49-54, 72-73, 128-129
+app/decorators/__init__.py                                         3      0   100%
+app/di_container.py                                               79     14    82%   44-45, 77, 90, 94-96, 143-144, 176-177, 204, 214, 234
+app/models/__init__.py                                             3      0   100%
+app/models/oauth_token.py                                         60      5    92%   119, 164-166, 171
+app/models/user.py                                                64      3    95%   167, 178, 187
+app/repositories/clients/HTTPUserRepositoryClient.py              80     23    71%   65, 71, 87-88, 106, 125-127, 131-132, 152-166, 170-171
+app/repositories/implementations/OAuthTokenRepositoryImpl.py      87     43    51%   34-36, 44-45, 53-54, 65-66, 74-76, 80-92, 109-111, 115-131, 135-142
+app/repositories/implementations/UserRepositoryImpl.py            82     55    33%   28-35, 41-42, 48-49, 53-56, 64-66, 70-82, 86-91, 95-100, 110-128, 132-135
+app/repositories/implementations/__init__.py                       3      0   100%
+app/repositories/interfaces/OAuthTokenRepository.py               32      9    72%   26, 39, 52, 66, 79, 92, 105, 118, 131
+app/repositories/interfaces/UserRepository.py                     34     10    71%   25, 38, 51, 64, 77, 90, 103, 116, 138, 148
+app/repositories/interfaces/__init__.py                            3      0   100%
+app/repository_server.py                                           7      7     0%   5-16
+app/schemas/AuthSchema.py                                         12      0   100%
+app/schemas/UserSchema.py                                         70      6    91%   55, 57, 59, 84, 86, 88
+app/schemas/__init__.py                                            3      0   100%
+app/service_server.py                                              7      7     0%   5-16
+app/services/clients/LoadBalancer.py                              47     35    26%   22-30, 42-65, 74-77, 86-89, 98, 107-108, 117-118
+app/services/clients/ServiceClient.py                             77     58    25%   37-72, 99-164, 170, 174, 178, 182, 186, 195-200, 209
+app/services/clients/__init__.py                                   3      0   100%
+app/services/implementations/AuthServiceImpl.py                  113     24    79%   87, 113, 117, 120, 156, 168, 175, 179, 182, 186-197, 209, 216, 220, 225, 229, 262, 269, 273
+app/services/implementations/UserServiceImpl.py                   89     67    25%   33-35, 39-46, 50-53, 64-77, 81-84, 88-91, 95-98, 102-124, 128, 132-144, 148-150, 154-156, 166-173
+app/services/implementations/__init__.py                           3      0   100%
+app/services/interfaces/AuthService.py                            29      8    72%   43, 59, 76, 93, 106, 119, 145, 159
+app/services/interfaces/UserService.py                            34     10    71%   38, 54, 70, 86, 104, 120, 140, 156, 173, 195
+app/services/interfaces/__init__.py                                3      0   100%
+app/tasks/BackgroundTasks.py                                      54     54     0%   4-166
+app/tasks/CeleryWorker.py                                         10     10     0%   5-82
+app/tasks/ScheduledTasks.py                                       66     66     0%   4-145
+app/tasks/TaskDecorators.py                                       77     77     0%   5-200
+app/tasks/__init__.py                                              3      3     0%   2-5
+app/utils/Exceptions.py                                           32      4    88%   29, 52, 86, 97
+app/utils/Response.py                                             17      3    82%   90-106, 117
+app/utils/__init__.py                                              3      0   100%
+--------------------------------------------------------------------------------------------
+TOTAL                                                           2405    987    59%
+Coverage HTML written to dir htmlcov
+Coverage XML written to file coverage.xml
+
+FAIL Required test coverage of 80% not reached. Total coverage: 58.96%
+- Generated html report: file:///Users/jrjohn/Documents/projects/arcana-cloud-python/docs/test-reports/microservices/api-test-microservices-mysql-fixed.html -
+=========================== short test summary info ============================
+FAILED tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_register_success - assert 500 == 201
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_login_success - assert 500 == 200
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_login_invalid_password - assert 500 == 401
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_refresh_token_success - assert 500 == 200
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_auth_api.py::TestAuthAPI::test_login_with_email - assert 500 == 200
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_auth_api.py::TestAuthAPIEdgeCases::test_xss_in_registration - assert 500 in [201, 400]
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_auth_api.py::TestAuthAPIEdgeCases::test_multiple_rapid_login_attempts - assert 500 in [401, 429]
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_auth_api.py::TestAuthAPIEdgeCases::test_unicode_in_credentials - assert 500 in [201, 400]
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_auth_api.py::TestAuthAPIEdgeCases::test_null_byte_in_password - assert 500 in [201, 400]
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_auth_api.py::TestAuthAPIEdgeCases::test_case_sensitivity_in_login - assert 500 in [200, 401]
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_list_users_default_pagination - assert 500 == 200
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_list_users_custom_pagination - assert 500 == 200
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_list_users_response_format - assert 500 == 200
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_get_single_user_success - assert 500 == 200
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_create_user_success - assert 500 == 201
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_create_user_duplicate_email - assert 500 in [400, 409]
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_update_user_put_success - assert 500 == 200
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_update_user_patch_success - assert 500 == 200
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_delete_user_not_found - assert 204 == 404
+ +  where 204 = <WrapperTestResponse streamed [204 NO CONTENT]>.status_code
+FAILED tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_public_api_no_authentication_required - assert 500 == 200
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_public_api_response_structure - assert 'data' in {'error': "HTTPConnectionPool(host='localhost', port=5001): Max retries exceeded with url: /internal/users?page=1&per_page=20 (Caused by ResponseError('too many 500 error responses'))"}
+FAILED tests/integration/test_api/test_public_user_api.py::TestPublicUserAPI::test_avatar_url_field_mapping - assert 500 == 201
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_public_user_api.py::TestPublicUserAPIEdgeCases::test_create_user_with_extra_fields - assert 500 in [201, 400]
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_public_user_api.py::TestPublicUserAPIEdgeCases::test_update_user_empty_payload - assert 500 in [200, 400, 404]
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_user_api.py::TestUserAPI::test_get_users_as_admin - assert 500 == 200
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_user_api.py::TestUserAPI::test_get_user_by_id_self - assert 500 == 200
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_user_api.py::TestUserAPI::test_update_user_self - assert 500 == 200
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_user_api.py::TestUserAPI::test_change_password - assert 500 == 200
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_user_api.py::TestUserAPI::test_create_user_as_admin - assert 500 == 201
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_user_api.py::TestUserAPI::test_verify_user_as_admin - assert 500 == 200
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_user_api.py::TestUserAPI::test_update_user_status_as_admin - assert 500 == 200
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_user_api.py::TestUserAPI::test_change_password_wrong_old_password - assert 500 in [400, 401]
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_user_api.py::TestUserAPI::test_get_users_with_filters - assert 500 == 200
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_user_api.py::TestUserAPI::test_update_user_duplicate_email - assert 500 in [400, 409]
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+FAILED tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_delete_nonexistent_user - assert 200 == 404
+ +  where 200 = <WrapperTestResponse streamed [200 OK]>.status_code
+FAILED tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_special_characters_in_user_fields - assert 500 in [200, 400]
+ +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+================== 36 failed, 47 passed, 1 warning in 37.41s ===================

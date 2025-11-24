@@ -21,6 +21,14 @@ def app() -> Flask:
 @pytest.fixture(scope='function')
 def client(app):
     """Create test client"""
+    deployment_mode = os.getenv('DEPLOYMENT_MODE', 'monolithic')
+
+    if deployment_mode == 'microservices':
+        # Use HTTP client for microservices mode (makes actual HTTP requests)
+        from tests.http_client import HTTPTestClient
+        return HTTPTestClient()
+
+    # Use Flask test client for monolithic/layered modes
     return app.test_client()
 
 
@@ -73,7 +81,7 @@ def sample_user(app, db) -> User:
         existing_user = db.session.query(User).filter_by(username='testuser').first()
         if existing_user:
             # Reset user to active status and correct password in case previous test modified it
-            existing_user.password = 'TestPass123'  # Reset password
+            existing_user.setPassword('TestPass123')  # Use setPassword() method to properly hash
             existing_user.status = UserStatus.ACTIVE  # Ensure active
             existing_user.is_active = True
             db.session.commit()
@@ -104,7 +112,7 @@ def admin_user(app, db) -> User:
         existing_user = db.session.query(User).filter_by(username='admin').first()
         if existing_user:
             # Reset user to active status and correct password in case previous test modified it
-            existing_user.password = 'AdminPass123'  # Reset password
+            existing_user.setPassword('AdminPass123')  # Use setPassword() method to properly hash
             existing_user.status = UserStatus.ACTIVE  # Ensure active
             existing_user.is_active = True
             db.session.commit()
@@ -126,8 +134,30 @@ def admin_user(app, db) -> User:
 
 
 @pytest.fixture(scope='function')
-def sample_token(db, sample_user) -> OAuthToken:
+def sample_token(db, sample_user, client) -> OAuthToken:
     """Create sample token"""
+    deployment_mode = os.getenv('DEPLOYMENT_MODE', 'monolithic')
+
+    if deployment_mode in ['layered', 'microservices']:
+        # In layered/microservices mode, use API endpoint to login
+        response = client.post('/api/v1/auth/login', json={
+            'username_or_email': 'testuser',
+            'password': 'TestPass123'
+        })
+
+        if response.status_code == 200:
+            data = response.json
+            # Create a mock token object for compatibility
+            class MockToken:
+                def __init__(self, access_token, refresh_token=None):
+                    self.access_token = access_token
+                    self.refresh_token = refresh_token
+            return MockToken(
+                data['data']['access_token'],
+                data['data'].get('refresh_token')
+            )
+
+    # Monolithic mode: use direct service access
     from app.services.implementations.AuthServiceImpl import AuthServiceImpl
     from app.repositories.implementations.UserRepositoryImpl import UserRepositoryImpl
     from app.repositories.implementations.OAuthTokenRepositoryImpl import OAuthTokenRepositoryImpl
@@ -155,8 +185,25 @@ def auth_headers(sample_token) -> dict:
 
 
 @pytest.fixture(scope='function')
-def admin_auth_headers(db, admin_user) -> dict:
+def admin_auth_headers(db, admin_user, client) -> dict:
     """Create admin authentication headers"""
+    deployment_mode = os.getenv('DEPLOYMENT_MODE', 'monolithic')
+
+    if deployment_mode in ['layered', 'microservices']:
+        # In layered/microservices mode, use API endpoint to login
+        response = client.post('/api/v1/auth/login', json={
+            'username_or_email': 'admin',
+            'password': 'AdminPass123'
+        })
+
+        if response.status_code == 200:
+            data = response.json
+            return {
+                'Authorization': f'Bearer {data["data"]["access_token"]}',
+                'Content-Type': 'application/json'
+            }
+
+    # Monolithic mode: use direct service access
     from app.services.implementations.AuthServiceImpl import AuthServiceImpl
     from app.repositories.implementations.UserRepositoryImpl import UserRepositoryImpl
     from app.repositories.implementations.OAuthTokenRepositoryImpl import OAuthTokenRepositoryImpl

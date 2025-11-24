@@ -156,26 +156,56 @@ def initialize_dependencies(app: Flask):
         return UserServiceImpl(container.get('user_repository'))
 
     def create_auth_service():
-        from app.services.implementations.AuthServiceImpl import AuthServiceImpl
-        return AuthServiceImpl(
-            container.get('user_repository'),
-            container.get('oauth_token_repository')
-        )
+        deployment_layer = os.getenv('DEPLOYMENT_LAYER', 'monolithic').lower()
+
+        # In microservices/controller mode, use HTTP client to communicate with service layer
+        if deployment_mode == 'microservices' and deployment_layer == 'controller':
+            from app.services.clients.HTTPAuthServiceClient import HTTPAuthServiceClient
+            return HTTPAuthServiceClient()
+        else:
+            # In other modes, use direct implementation
+            from app.services.implementations.AuthServiceImpl import AuthServiceImpl
+            return AuthServiceImpl(
+                container.get('user_repository'),
+                container.get('oauth_token_repository')
+            )
 
     container.register_singleton('user_service', create_user_service)
     container.register_singleton('auth_service', create_auth_service)
 
     # Register communication layer
     def create_service_communication():
+        import os
         from app.communication import CommunicationFactory
+
+        deployment_mode = os.getenv('DEPLOYMENT_MODE', 'monolithic').lower()
+        deployment_layer = os.getenv('DEPLOYMENT_LAYER', 'monolithic').lower()
+
+        # Only create service instance if we're NOT in microservices/controller mode
+        # In microservices/controller mode, we should use HTTP to reach Service Layer
+        service_instance = None
+        if not (deployment_mode == 'microservices' and deployment_layer == 'controller'):
+            service_instance = container.get('user_service')
+
         return CommunicationFactory.create_service_communication(
-            service_instance=container.get('user_service')
+            service_instance=service_instance
         )
 
     def create_repository_communication():
+        import os
         from app.communication import CommunicationFactory
+
+        deployment_mode = os.getenv('DEPLOYMENT_MODE', 'monolithic').lower()
+        deployment_layer = os.getenv('DEPLOYMENT_LAYER', 'monolithic').lower()
+
+        # Only create repository instance if we're NOT in microservices/service mode
+        # In microservices/service mode, we should use HTTP to reach Repository Layer
+        repository_instance = None
+        if not (deployment_mode == 'microservices' and deployment_layer == 'service'):
+            repository_instance = container.get('user_repository')
+
         return CommunicationFactory.create_repository_communication(
-            repository_instance=container.get('user_repository')
+            repository_instance=repository_instance
         )
 
     # Communication layer is singleton in monolithic mode,
