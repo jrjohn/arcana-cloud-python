@@ -6,6 +6,12 @@ import pytest
 import json
 
 
+def generate_unique_email(base="test"):
+    """Generate unique email with UUID"""
+    import uuid
+    return f"{base}_{uuid.uuid4().hex[:8]}@example.com"
+
+
 class TestPublicUserAPI:
     """Public User API test class"""
 
@@ -84,8 +90,9 @@ class TestPublicUserAPI:
     def test_create_user_success(self, client, db):
         """Test create user via public API"""
         # Arrange
+        unique_email = generate_unique_email('eve.holt')
         payload = {
-            'email': 'eve.holt@example.com',
+            'email': unique_email,
             'first_name': 'Eve',
             'last_name': 'Holt',
             'avatar': 'https://ui-avatars.com/api/?name=Eve&background=007bff&color=fff&size=128',
@@ -104,7 +111,7 @@ class TestPublicUserAPI:
         data = json.loads(response.data)
         assert 'data' in data
         assert 'createdAt' in data
-        assert data['data']['email'] == 'eve.holt@example.com'
+        assert data['data']['email'] == unique_email
         assert data['data']['first_name'] == 'Eve'
         assert data['data']['last_name'] == 'Holt'
 
@@ -164,20 +171,34 @@ class TestPublicUserAPI:
         # Assert
         assert response.status_code == 400
 
-    def test_update_user_put_success(self, client, db, sample_user):
+    def test_update_user_put_success(self, client, db):
         """Test update user via PUT"""
-        # Arrange
-        payload = {
-            'email': 'updated@example.com',
+        # Arrange - Create a user first
+        unique_email = generate_unique_email('updatetest')
+        create_payload = {
+            'email': unique_email,
+            'first_name': 'Original',
+            'last_name': 'User'
+        }
+        create_response = client.post(
+            '/api/public/users',
+            data=json.dumps(create_payload),
+            content_type='application/json'
+        )
+        assert create_response.status_code == 201
+        created_data = json.loads(create_response.data)
+        user_id = created_data['data']['id']
+
+        # Act - Update the user
+        update_payload = {
+            'email': generate_unique_email('updated'),
             'first_name': 'Updated',
             'last_name': 'User',
             'job': 'Senior Developer'
         }
-
-        # Act
         response = client.put(
-            f'/api/public/users/{sample_user.id}',
-            data=json.dumps(payload),
+            f'/api/public/users/{user_id}',
+            data=json.dumps(update_payload),
             content_type='application/json'
         )
 
@@ -186,19 +207,33 @@ class TestPublicUserAPI:
         data = json.loads(response.data)
         assert 'data' in data
         assert 'updatedAt' in data
-        assert data['data']['email'] == 'updated@example.com'
+        assert data['data']['email'] == update_payload['email']
         assert data['data']['first_name'] == 'Updated'
 
-    def test_update_user_patch_success(self, client, db, sample_user):
+    def test_update_user_patch_success(self, client, db):
         """Test partial update user via PATCH"""
-        # Arrange
+        # Arrange - Create a user first
+        unique_email = generate_unique_email('patchtest')
+        create_payload = {
+            'email': unique_email,
+            'first_name': 'Original',
+            'last_name': 'User'
+        }
+        create_response = client.post(
+            '/api/public/users',
+            data=json.dumps(create_payload),
+            content_type='application/json'
+        )
+        assert create_response.status_code == 201
+        created_data = json.loads(create_response.data)
+        user_id = created_data['data']['id']
+
+        # Act - Patch the user
         payload = {
             'first_name': 'Patched'
         }
-
-        # Act
         response = client.patch(
-            f'/api/public/users/{sample_user.id}',
+            f'/api/public/users/{user_id}',
             data=json.dumps(payload),
             content_type='application/json'
         )
@@ -258,8 +293,9 @@ class TestPublicUserAPI:
         assert response.status_code == 200
 
         # Test POST without auth
+        unique_email = generate_unique_email('noauth')
         payload = {
-            'email': 'noauth@example.com',
+            'email': unique_email,
             'first_name': 'No',
             'last_name': 'Auth'
         }
@@ -288,8 +324,9 @@ class TestPublicUserAPI:
     def test_avatar_url_field_mapping(self, client, db, sample_user):
         """Test avatar field is properly mapped to avatar_url"""
         # Create user with avatar field
+        unique_email = generate_unique_email('avatar')
         payload = {
-            'email': 'avatar@example.com',
+            'email': unique_email,
             'first_name': 'Avatar',
             'last_name': 'Test',
             'avatar': 'https://example.com/avatar.png'
@@ -328,8 +365,9 @@ class TestPublicUserAPIEdgeCases:
 
     def test_create_user_with_extra_fields(self, client, db):
         """Test create user with extra fields"""
+        unique_email = generate_unique_email('extra')
         payload = {
-            'email': 'extra@example.com',
+            'email': unique_email,
             'first_name': 'Extra',
             'last_name': 'Fields',
             'job': 'Developer',
@@ -359,8 +397,9 @@ class TestPublicUserAPIEdgeCases:
 
     def test_content_type_handling(self, client, db):
         """Test API handles missing content-type"""
+        unique_email = generate_unique_email('contenttype')
         payload = {
-            'email': 'contenttype@example.com',
+            'email': unique_email,
             'first_name': 'Content',
             'last_name': 'Type'
         }
@@ -386,8 +425,9 @@ class TestPublicUserAPIEdgeCases:
 
     def test_special_characters_in_names(self, client, db):
         """Test special characters in user names"""
+        unique_email = generate_unique_email('special')
         payload = {
-            'email': 'special@example.com',
+            'email': unique_email,
             'first_name': "O'Brien",
             'last_name': 'José-María'
         }
@@ -403,8 +443,9 @@ class TestPublicUserAPIEdgeCases:
 
     def test_unicode_in_names(self, client, db):
         """Test unicode characters in names"""
+        unique_email = generate_unique_email('unicode')
         payload = {
-            'email': 'unicode@example.com',
+            'email': unique_email,
             'first_name': '张',
             'last_name': '伟'
         }

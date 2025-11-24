@@ -4,6 +4,17 @@ Authentication API integration tests
 """
 import pytest
 import json
+import uuid
+
+
+def generate_unique_username(base="user"):
+    """Generate unique username for test isolation"""
+    return f"{base}_{uuid.uuid4().hex[:8]}"
+
+
+def generate_unique_email(base="test"):
+    """Generate unique email for test isolation"""
+    return f"{base}_{uuid.uuid4().hex[:8]}@example.com"
 
 
 class TestAuthAPI:
@@ -12,9 +23,11 @@ class TestAuthAPI:
     def test_register_success(self, client, db):
         """Test successful registration"""
         # Arrange
+        unique_username = generate_unique_username('newuser')
+        unique_email = generate_unique_email('newuser')
         payload = {
-            'username': 'newuser',
-            'email': 'newuser@example.com',
+            'username': unique_username,
+            'email': unique_email,
             'password': 'NewPass123',
             'first_name': 'New',
             'last_name': 'User'
@@ -33,7 +46,7 @@ class TestAuthAPI:
         assert data['success'] is True
         assert 'access_token' in data['data']
         assert 'user' in data['data']
-        assert data['data']['user']['username'] == 'newuser'
+        assert data['data']['user']['username'] == unique_username
 
     def test_register_duplicate_username(self, client, db, sample_user):
         """Test duplicate username registration"""
@@ -439,9 +452,11 @@ class TestAuthAPIEdgeCases:
     def test_unicode_in_credentials(self, client, db):
         """Test unicode characters in credentials"""
         # Arrange
+        unique_username = f'用户名_{uuid.uuid4().hex[:8]}'
+        unique_email = generate_unique_email('unicode')
         payload = {
-            'username': '用户名',
-            'email': 'unicode@example.com',
+            'username': unique_username,
+            'email': unique_email,
             'password': 'Unicode123密码'
         }
 
@@ -458,9 +473,11 @@ class TestAuthAPIEdgeCases:
     def test_null_byte_in_password(self, client, db):
         """Test null byte in password"""
         # Arrange
+        unique_username = generate_unique_username('nullbyte')
+        unique_email = generate_unique_email('null')
         payload = {
-            'username': 'nullbyte',
-            'email': 'null@example.com',
+            'username': unique_username,
+            'email': unique_email,
             'password': 'Pass\x00word123'
         }
 

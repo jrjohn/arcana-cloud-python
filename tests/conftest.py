@@ -52,15 +52,18 @@ def db(app, db_session):
         # Clean up test-created users after each test
         # Keep fixture users (testuser, admin) but delete all others
         try:
-            # Delete all users except testuser and admin
-            users_to_delete = db_session.session.query(User).filter(
-                ~User.username.in_(['testuser', 'admin'])
-            ).all()
+            if deployment_mode == 'monolithic':
+                # Direct database cleanup for monolithic mode
+                users_to_delete = db_session.session.query(User).filter(
+                    ~User.username.in_(['testuser', 'admin'])
+                ).all()
 
-            for user in users_to_delete:
-                db_session.session.delete(user)
+                for user in users_to_delete:
+                    db_session.session.delete(user)
 
-            db_session.session.commit()
+                db_session.session.commit()
+            # For microservices/layered mode, cleanup happens between test runs
+            # via the benchmark script, not per-test (to avoid API overhead)
         except Exception:
             db_session.session.rollback()
 
@@ -72,10 +75,96 @@ def db(app, db_session):
 
 
 @pytest.fixture(scope='function')
-def sample_user(app, db) -> User:
+def sample_user(app, db, client) -> User:
     """Create sample user (function-scoped to ensure availability for each test)"""
+    import logging
     from app.models.user import UserStatus
+    deployment_mode = os.getenv('DEPLOYMENT_MODE', 'monolithic')
 
+    if deployment_mode == 'microservices':
+        # In microservices mode, try to log in first
+        # If login fails, recreate the user via registration endpoint
+        logging.info("[FIXTURE] sample_user: Attempting login in microservices mode")
+        login_response = client.post('/api/v1/auth/login', json={
+            'username_or_email': 'testuser',
+            'password': 'TestPass123'
+        })
+
+        logging.info(f"[FIXTURE] Login response status: {login_response.status_code}")
+
+        # If login fails, recreate the user via registration
+        if login_response.status_code != 200:
+            logging.warning(f"[FIXTURE] Login failed, attempting to recreate user via registration")
+            register_response = client.post('/api/v1/auth/register', json={
+                'username': 'testuser',
+                'email': 'test@example.com',
+                'password': 'TestPass123',
+                'first_name': 'Test',
+                'last_name': 'User'
+            })
+            logging.info(f"[FIXTURE] Registration response status: {register_response.status_code}")
+
+            if register_response.status_code == 201:
+                logging.info("[FIXTURE] User recreated successfully, attempting login again")
+                login_response = client.post('/api/v1/auth/login', json={
+                    'username_or_email': 'testuser',
+                    'password': 'TestPass123'
+                })
+                logging.info(f"[FIXTURE] Second login response status: {login_response.status_code}")
+            else:
+                logging.error(f"[FIXTURE] Registration failed: {register_response.json}")
+
+        if login_response.status_code == 200:
+            logging.info(f"[FIXTURE] Login response data: {login_response.json}")
+            access_token = login_response.json['data']['access_token']
+            logging.info(f"[FIXTURE] Access token obtained: {access_token[:50]}...")
+
+            # Get current user to fetch the ID
+            logging.info("[FIXTURE] Fetching current user via /api/v1/auth/me")
+            me_response = client.get('/api/v1/auth/me', headers={
+                'Authorization': f'Bearer {access_token}'
+            })
+
+            logging.info(f"[FIXTURE] /auth/me response status: {me_response.status_code}")
+            logging.info(f"[FIXTURE] /auth/me response data: {me_response.json}")
+
+            if me_response.status_code == 200:
+                user_data = me_response.json['data']
+                user_id = user_data['id']
+                logging.info(f"[FIXTURE] Successfully got user ID: {user_id}")
+
+                # Create a mock user object with the actual ID
+                class MockUser:
+                    def __init__(self, user_id):
+                        self.id = user_id
+                        self.username = 'testuser'
+                        self.email = 'test@example.com'
+                        self.password = 'TestPass123'
+                        self.role = UserRole.USER
+                        self.first_name = 'Test'
+                        self.last_name = 'User'
+
+                return MockUser(user_id)
+            else:
+                logging.error(f"[FIXTURE] /auth/me failed with status {me_response.status_code}")
+        else:
+            logging.error(f"[FIXTURE] All attempts to get user failed")
+
+        # Fallback: create mock user without ID
+        logging.warning("[FIXTURE] Falling back to MockUser with id=None")
+        class MockUser:
+            def __init__(self):
+                self.id = None
+                self.username = 'testuser'
+                self.email = 'test@example.com'
+                self.password = 'TestPass123'
+                self.role = UserRole.USER
+                self.first_name = 'Test'
+                self.last_name = 'User'
+
+        return MockUser()
+
+    # Monolithic/layered mode: use direct database access
     with app.app_context():
         # Always check if user exists first
         existing_user = db.session.query(User).filter_by(username='testuser').first()
@@ -107,10 +196,57 @@ def sample_user(app, db) -> User:
 
 
 @pytest.fixture(scope='function')
-def admin_user(app, db) -> User:
+def admin_user(app, db, client) -> User:
     """Create admin user (function-scoped to ensure availability for each test)"""
     from app.models.user import UserStatus
+    deployment_mode = os.getenv('DEPLOYMENT_MODE', 'monolithic')
 
+    if deployment_mode == 'microservices':
+        # In microservices mode, admin user already exists from fixture population
+        # Get user ID by logging in and fetching current user info
+        login_response = client.post('/api/v1/auth/login', json={
+            'username_or_email': 'admin',
+            'password': 'AdminPass123'
+        })
+
+        if login_response.status_code == 200:
+            access_token = login_response.json['data']['access_token']
+
+            # Get current user to fetch the ID
+            me_response = client.get('/api/v1/auth/me', headers={
+                'Authorization': f'Bearer {access_token}'
+            })
+
+            if me_response.status_code == 200:
+                user_data = me_response.json['data']
+
+                # Create a mock user object with the actual ID
+                class MockUser:
+                    def __init__(self, user_id):
+                        self.id = user_id
+                        self.username = 'admin'
+                        self.email = 'admin@example.com'
+                        self.password = 'AdminPass123'
+                        self.role = UserRole.ADMIN
+                        self.first_name = 'Admin'
+                        self.last_name = 'User'
+
+                return MockUser(user_data['id'])
+
+        # Fallback: create mock user without ID
+        class MockUser:
+            def __init__(self):
+                self.id = None
+                self.username = 'admin'
+                self.email = 'admin@example.com'
+                self.password = 'AdminPass123'
+                self.role = UserRole.ADMIN
+                self.first_name = 'Admin'
+                self.last_name = 'User'
+
+        return MockUser()
+
+    # Monolithic/layered mode: use direct database access
     with app.app_context():
         # Always check if user exists first
         existing_user = db.session.query(User).filter_by(username='admin').first()
@@ -144,26 +280,35 @@ def admin_user(app, db) -> User:
 @pytest.fixture(scope='function')
 def sample_token(db, sample_user, client) -> OAuthToken:
     """Create sample token"""
+    import logging
     deployment_mode = os.getenv('DEPLOYMENT_MODE', 'monolithic')
 
     if deployment_mode in ['layered', 'microservices']:
         # In layered/microservices mode, use API endpoint to login
+        logging.info("[FIXTURE] sample_token: Attempting login in layered/microservices mode")
         response = client.post('/api/v1/auth/login', json={
             'username_or_email': 'testuser',
             'password': 'TestPass123'
         })
 
+        logging.info(f"[FIXTURE] sample_token: Login response status: {response.status_code}")
         if response.status_code == 200:
             data = response.json
+            logging.info(f"[FIXTURE] sample_token: Login successful, got access token: {data['data']['access_token'][:50]}...")
             # Create a mock token object for compatibility
             class MockToken:
                 def __init__(self, access_token, refresh_token=None):
                     self.access_token = access_token
                     self.refresh_token = refresh_token
-            return MockToken(
+            mock_token = MockToken(
                 data['data']['access_token'],
                 data['data'].get('refresh_token')
             )
+            logging.info(f"[FIXTURE] sample_token: Created MockToken with access_token: {mock_token.access_token[:50]}...")
+            return mock_token
+        else:
+            logging.error(f"[FIXTURE] sample_token: Login failed with status {response.status_code}: {response.json}")
+            return None
 
     # Monolithic mode: use direct service access
     from app.services.implementations.auth_service_impl import AuthServiceImpl
@@ -186,28 +331,50 @@ def sample_token(db, sample_user, client) -> OAuthToken:
 @pytest.fixture(scope='function')
 def auth_headers(sample_token) -> dict:
     """Create authentication headers"""
-    return {
+    import logging
+    if sample_token is None:
+        logging.error("[FIXTURE] auth_headers: sample_token is None!")
+        return {
+            'Content-Type': 'application/json'
+        }
+
+    logging.info(f"[FIXTURE] auth_headers: Creating headers with token: {sample_token.access_token[:50]}...")
+    headers = {
         'Authorization': f'Bearer {sample_token.access_token}',
         'Content-Type': 'application/json'
     }
+    logging.info(f"[FIXTURE] auth_headers: Headers created successfully")
+    return headers
 
 
 @pytest.fixture(scope='function')
 def admin_auth_headers(db, admin_user, client) -> dict:
     """Create admin authentication headers"""
+    import logging
     deployment_mode = os.getenv('DEPLOYMENT_MODE', 'monolithic')
 
     if deployment_mode in ['layered', 'microservices']:
         # In layered/microservices mode, use API endpoint to login
+        logging.info("[FIXTURE] admin_auth_headers: Attempting admin login in layered/microservices mode")
         response = client.post('/api/v1/auth/login', json={
             'username_or_email': 'admin',
             'password': 'AdminPass123'
         })
 
+        logging.info(f"[FIXTURE] admin_auth_headers: Login response status: {response.status_code}")
         if response.status_code == 200:
             data = response.json
+            access_token = data["data"]["access_token"]
+            logging.info(f"[FIXTURE] admin_auth_headers: Got admin access token: {access_token[:50]}...")
+            headers = {
+                'Authorization': f'Bearer {access_token}',
+                'Content-Type': 'application/json'
+            }
+            logging.info(f"[FIXTURE] admin_auth_headers: Headers created successfully")
+            return headers
+        else:
+            logging.error(f"[FIXTURE] admin_auth_headers: Login failed with status {response.status_code}: {response.json}")
             return {
-                'Authorization': f'Bearer {data["data"]["access_token"]}',
                 'Content-Type': 'application/json'
             }
 

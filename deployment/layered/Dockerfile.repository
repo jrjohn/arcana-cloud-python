@@ -17,13 +17,22 @@ ENV DEPLOYMENT_LAYER=repository \
 ENV SQLALCHEMY_POOL_SIZE=20 \
     SQLALCHEMY_MAX_OVERFLOW=40 \
     SQLALCHEMY_POOL_TIMEOUT=30 \
-    SQLALCHEMY_POOL_RECYCLE=3600
+    SQLALCHEMY_POOL_RECYCLE=3600 \
+    GRPC_PORT=50052
 
-# Expose repository port
-EXPOSE 5002
+# Expose repository ports (HTTP and gRPC)
+EXPOSE 5002 50052
 
-# Copy repository-specific entrypoint
-COPY --chmod=755 docker/entrypoint-repository.sh /usr/local/bin/entrypoint.sh
+# Switch back to root to install entrypoint and health check
+USER root
+COPY docker/entrypoint-repository.sh /usr/local/bin/entrypoint.sh
+COPY docker/healthcheck-repository.sh /usr/local/bin/healthcheck-repository.sh
+RUN chmod 755 /usr/local/bin/entrypoint.sh && \
+    chmod 755 /usr/local/bin/healthcheck-repository.sh
+USER appuser
+
+# Set entrypoint
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 # Start Gunicorn with optimized settings for database operations
 # Fewer workers but more connections to database
@@ -44,6 +53,6 @@ CMD ["gunicorn", \
      "--statsd-host", "localhost:8125", \
      "wsgi:app"]
 
-# Health check specific to repository layer (includes DB check)
+# Health check specific to repository layer (protocol-aware, includes DB check for HTTP)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=45s --retries=3 \
-    CMD curl -f http://localhost:5002/ready || exit 1
+    CMD /usr/local/bin/healthcheck-repository.sh

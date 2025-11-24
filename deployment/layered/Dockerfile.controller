@@ -20,7 +20,7 @@ ENV USER_SERVICE_URLS=http://service-layer:5001 \
 EXPOSE 5000
 
 # Copy controller-specific entrypoint
-COPY --chmod=755 docker/entrypoint-controller.sh /usr/local/bin/entrypoint.sh
+COPY docker/entrypoint-controller.sh /usr/local/bin/entrypoint.sh
 
 # Start Gunicorn with optimized settings for API gateway
 CMD ["gunicorn", \

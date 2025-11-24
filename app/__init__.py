@@ -59,7 +59,13 @@ def initialize_extensions(app: Flask) -> None:
     db.init_app(app)
     migrate.init_app(app, db)
     ma.init_app(app)
-    limiter.init_app(app)
+
+    # Only initialize rate limiter if enabled
+    if app.config.get('RATELIMIT_ENABLED', True):
+        limiter.init_app(app)
+    else:
+        # Disable limiter for tests
+        limiter._enabled = False
 
 
 def register_blueprints(app: Flask) -> None:
@@ -82,11 +88,18 @@ def register_blueprints(app: Flask) -> None:
         app.register_blueprint(user_service_bp)  # Internal API at /internal/users
         app.register_blueprint(auth_service_bp)  # Internal API at /internal/auth
 
+        # Exempt internal service blueprints from rate limiting
+        limiter.exempt(user_service_bp)
+        limiter.exempt(auth_service_bp)
+
     # Repository layer: Register repository HTTP endpoints for microservices mode
     if deployment_layer == 'repository':
         from app.repositories.routes import user_repository_bp
 
         app.register_blueprint(user_repository_bp)  # Repository API at /repository/users
+
+        # Exempt repository blueprint from rate limiting
+        limiter.exempt(user_repository_bp)
 
 
 def register_error_handlers(app: Flask) -> None:

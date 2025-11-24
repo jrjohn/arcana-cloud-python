@@ -38,6 +38,14 @@ flask db upgrade || {
 
 echo "Repository layer initialization complete"
 
-# Execute the main command
-echo "Starting repository application on port ${SERVICE_PORT}..."
-exec "$@"
+# Detect communication protocol and start appropriate server
+PROTOCOL=${COMMUNICATION_PROTOCOL:-http}
+echo "Communication protocol: ${PROTOCOL}"
+
+if [ "$PROTOCOL" = "grpc" ]; then
+    echo "Starting gRPC server on port ${GRPC_PORT:-50052}..."
+    exec python -m app.grpc_protos.servers.grpc_server_runner
+else
+    echo "Starting HTTP Flask server on port ${SERVICE_PORT}..."
+    exec "$@"
+fi

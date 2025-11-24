@@ -4,6 +4,17 @@ End-to-end tests for complete user workflows
 """
 import pytest
 import json
+import uuid
+
+
+def generate_unique_username(base="user"):
+    """Generate unique username for test isolation"""
+    return f"{base}_{uuid.uuid4().hex[:8]}"
+
+
+def generate_unique_email(base="test"):
+    """Generate unique email for test isolation"""
+    return f"{base}_{uuid.uuid4().hex[:8]}@example.com"
 
 
 class TestCompleteUserWorkflow:
@@ -14,9 +25,12 @@ class TestCompleteUserWorkflow:
         Test complete workflow: Register -> Login -> Get Profile -> Logout
         """
         # Step 1: Register a new user
+        unique_username = generate_unique_username('newuser')
+        unique_email = generate_unique_email('newuser')
+
         register_payload = {
-            'username': 'newuser',
-            'email': 'newuser@example.com',
+            'username': unique_username,
+            'email': unique_email,
             'password': 'NewPass123',
             'first_name': 'New',
             'last_name': 'User'
@@ -37,7 +51,7 @@ class TestCompleteUserWorkflow:
 
         # Step 2: Login with the new user
         login_payload = {
-            'username_or_email': 'newuser',
+            'username_or_email': unique_username,
             'password': 'NewPass123'
         }
 
@@ -65,8 +79,8 @@ class TestCompleteUserWorkflow:
 
         assert profile_response.status_code == 200
         profile_data = json.loads(profile_response.data)
-        assert profile_data['data']['username'] == 'newuser'
-        assert profile_data['data']['email'] == 'newuser@example.com'
+        assert profile_data['data']['username'] == unique_username
+        assert profile_data['data']['email'] == unique_email
 
         # Step 4: Logout
         logout_response = client.post(
@@ -377,9 +391,12 @@ class TestCompleteUserWorkflow:
         Test workflow: Same user logs in multiple times (multiple sessions)
         """
         # Register user
+        unique_username = generate_unique_username('multiuser')
+        unique_email = generate_unique_email('multi')
+
         register_payload = {
-            'username': 'multiuser',
-            'email': 'multi@example.com',
+            'username': unique_username,
+            'email': unique_email,
             'password': 'MultiPass123'
         }
 
@@ -391,7 +408,7 @@ class TestCompleteUserWorkflow:
 
         # Login multiple times
         login_payload = {
-            'username_or_email': 'multiuser',
+            'username_or_email': unique_username,
             'password': 'MultiPass123'
         }
 

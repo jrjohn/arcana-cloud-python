@@ -11,19 +11,36 @@ echo "============================================"
 echo "Starting Arcana Cloud - Service Layer"
 echo "============================================"
 
-# Wait for repository layer to be ready
-echo "Waiting for repository layer to be available..."
-for repo_url in ${USER_REPO_URLS//,/ }; do
-    host=$(echo $repo_url | sed -e 's|^http://||' -e 's|:.*||')
-    port=$(echo $repo_url | sed -e 's|.*:||' -e 's|/.*||')
+# Detect communication protocol
+PROTOCOL=${COMMUNICATION_PROTOCOL:-http}
 
-    echo "Waiting for $host:$port..."
-    timeout 60 bash -c "until nc -z $host $port; do sleep 1; done"
-    echo "$host:$port is available"
-done
+# Wait for repository layer to be ready (only for HTTP mode)
+# gRPC servers don't respond to simple TCP checks, so we skip this for gRPC
+if [ "$PROTOCOL" != "grpc" ]; then
+    echo "Waiting for repository layer to be available..."
+    for repo_url in ${USER_REPO_URLS//,/ }; do
+        # Remove protocol prefix if present (http:// or grpc://)
+        repo_url=$(echo $repo_url | sed -e 's|^[a-z]*://||')
+        # Extract host and port
+        host=$(echo $repo_url | sed -e 's|:.*||')
+        port=$(echo $repo_url | sed -e 's|.*:||' -e 's|/.*||')
 
-echo "Repository layer is ready"
+        echo "Waiting for $host:$port..."
+        timeout 60 bash -c "until nc -z $host $port; do sleep 1; done"
+        echo "$host:$port is available"
+    done
+    echo "Repository layer is ready"
+else
+    echo "gRPC mode: Skipping TCP connectivity check (gRPC servers will handle connections)"
+fi
 
-# Execute the main command
-echo "Starting service application on port ${SERVICE_PORT}..."
-exec "$@"
+# Start appropriate server
+echo "Communication protocol: ${PROTOCOL}"
+
+if [ "$PROTOCOL" = "grpc" ]; then
+    echo "Starting gRPC server on port ${GRPC_PORT:-50051}..."
+    exec python -m app.grpc_protos.servers.grpc_server_runner
+else
+    echo "Starting HTTP Flask server on port ${SERVICE_PORT}..."
+    exec "$@"
+fi

@@ -13,13 +13,22 @@ ENV DEPLOYMENT_LAYER=service \
     SERVICE_PORT=5001
 
 # Service-specific environment variables
-ENV USER_REPO_URLS=http://repository-layer:5002
+ENV USER_REPO_URLS=http://repository-layer:5002 \
+    GRPC_PORT=50051
 
-# Expose service port
-EXPOSE 5001
+# Expose service ports (HTTP and gRPC)
+EXPOSE 5001 50051
 
-# Copy service-specific entrypoint
-COPY --chmod=755 docker/entrypoint-service.sh /usr/local/bin/entrypoint.sh
+# Switch back to root to install entrypoint and health check
+USER root
+COPY docker/entrypoint-service.sh /usr/local/bin/entrypoint.sh
+COPY docker/healthcheck-service.sh /usr/local/bin/healthcheck-service.sh
+RUN chmod 755 /usr/local/bin/entrypoint.sh && \
+    chmod 755 /usr/local/bin/healthcheck-service.sh
+USER appuser
+
+# Set entrypoint
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 # Start Gunicorn with optimized settings for business logic processing
 CMD ["gunicorn", \
@@ -39,6 +48,6 @@ CMD ["gunicorn", \
      "--statsd-host", "localhost:8125", \
      "wsgi:app"]
 
-# Health check specific to service layer
+# Health check specific to service layer (protocol-aware)
 HEALTHCHECK --interval=20s --timeout=5s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:5001/health || exit 1
+    CMD /usr/local/bin/healthcheck-service.sh

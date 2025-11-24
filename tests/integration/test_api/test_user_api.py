@@ -6,6 +6,69 @@ import pytest
 import json
 
 
+def generate_unique_username(base="user"):
+    """Generate unique username with UUID"""
+    import uuid
+    return f"{base}_{uuid.uuid4().hex[:8]}"
+
+
+def generate_unique_email(base="test"):
+    """Generate unique email with UUID"""
+    import uuid
+    return f"{base}_{uuid.uuid4().hex[:8]}@example.com"
+
+
+def create_test_user(client, admin_auth_headers, base="testuser"):
+    """Helper to create a test user and return user_id, username, password"""
+    import uuid
+    username = f"{base}_{uuid.uuid4().hex[:8]}"
+    email = f"{base}_{uuid.uuid4().hex[:8]}@example.com"
+    password = "TestPass123"
+
+    payload = {
+        'username': username,
+        'email': email,
+        'password': password,
+        'first_name': 'Test',
+        'last_name': 'User'
+    }
+
+    response = client.post(
+        '/api/v1/users',
+        data=json.dumps(payload),
+        headers=admin_auth_headers,
+        content_type='application/json'
+    )
+
+    if response.status_code != 201:
+        raise Exception(f"Failed to create test user: {response.status_code} - {response.data}")
+
+    data = json.loads(response.data)
+    user_id = data['data']['id']
+
+    return user_id, username, email, password
+
+
+def get_user_token(client, username, password):
+    """Helper to login and get auth headers for a user"""
+    response = client.post(
+        '/api/v1/auth/login',
+        data=json.dumps({'username_or_email': username, 'password': password}),
+        content_type='application/json'
+    )
+
+    if response.status_code != 200:
+        raise Exception(f"Failed to login: {response.status_code} - {response.data}")
+
+    data = json.loads(response.data)
+    token = data['data']['access_token']
+
+    return {
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json'
+    }
+
+
 class TestUserAPI:
     """User API test class"""
 
@@ -24,34 +87,45 @@ class TestUserAPI:
         assert 'items' in data['data']
         assert 'pagination' in data['data']
 
-    def test_get_users_as_regular_user(self, client, db, sample_user, auth_headers):
+    def test_get_users_as_regular_user(self, client, db, admin_auth_headers):
         """Test regular user cannot get user list"""
+        # Arrange - Create a regular user and get their token
+        user_id, username, email, password = create_test_user(client, admin_auth_headers, 'regularuser')
+        user_headers = get_user_token(client, username, password)
+
         # Act
         response = client.get(
             '/api/v1/users?page=1&per_page=20',
-            headers=auth_headers
+            headers=user_headers
         )
 
         # Assert
         assert response.status_code == 403
 
-    def test_get_user_by_id_self(self, client, db, sample_user, auth_headers):
+    def test_get_user_by_id_self(self, client, db, admin_auth_headers):
         """Test get own user information"""
+        # Arrange - Create a user and get their token
+        user_id, username, email, password = create_test_user(client, admin_auth_headers, 'selfuser')
+        user_headers = get_user_token(client, username, password)
+
         # Act
         response = client.get(
-            f'/api/v1/users/{sample_user.id}',
-            headers=auth_headers
+            f'/api/v1/users/{user_id}',
+            headers=user_headers
         )
 
         # Assert
         assert response.status_code == 200
         data = json.loads(response.data)
         assert data['success'] is True
-        assert data['data']['id'] == sample_user.id
+        assert data['data']['id'] == user_id
 
-    def test_update_user_self(self, client, db, sample_user, auth_headers):
+    def test_update_user_self(self, client, db, admin_auth_headers):
         """Test update own user information"""
-        # Arrange
+        # Arrange - Create a user and get their token
+        user_id, username, email, password = create_test_user(client, admin_auth_headers, 'updateself')
+        user_headers = get_user_token(client, username, password)
+
         payload = {
             'first_name': 'Updated',
             'last_name': 'Name'
@@ -59,9 +133,9 @@ class TestUserAPI:
 
         # Act
         response = client.put(
-            f'/api/v1/users/{sample_user.id}',
+            f'/api/v1/users/{user_id}',
             data=json.dumps(payload),
-            headers=auth_headers
+            headers=user_headers
         )
 
         # Assert
@@ -70,19 +144,22 @@ class TestUserAPI:
         assert data['success'] is True
         assert data['data']['first_name'] == 'Updated'
 
-    def test_change_password(self, client, db, sample_user, auth_headers):
+    def test_change_password(self, client, db, admin_auth_headers):
         """Test change password"""
-        # Arrange
+        # Arrange - Create a user and get their token
+        user_id, username, email, password = create_test_user(client, admin_auth_headers, 'changepass')
+        user_headers = get_user_token(client, username, password)
+
         payload = {
-            'old_password': 'TestPass123',
+            'old_password': password,
             'new_password': 'NewPass456'
         }
 
         # Act
         response = client.put(
-            f'/api/v1/users/{sample_user.id}/password',
+            f'/api/v1/users/{user_id}/password',
             data=json.dumps(payload),
-            headers=auth_headers
+            headers=user_headers
         )
 
         # Assert
@@ -93,9 +170,11 @@ class TestUserAPI:
     def test_create_user_as_admin(self, client, db, admin_user, admin_auth_headers):
         """Test admin create user"""
         # Arrange
+        unique_username = generate_unique_username('createduser')
+        unique_email = generate_unique_email('created')
         payload = {
-            'username': 'createduser',
-            'email': 'created@example.com',
+            'username': unique_username,
+            'email': unique_email,
             'password': 'CreatedPass123',
             'first_name': 'Created',
             'last_name': 'User'
@@ -112,13 +191,32 @@ class TestUserAPI:
         assert response.status_code == 201
         data = json.loads(response.data)
         assert data['success'] is True
-        assert data['data']['username'] == 'createduser'
+        assert data['data']['username'] == unique_username
 
-    def test_delete_user_as_admin(self, client, db, sample_user, admin_user, admin_auth_headers):
+    def test_delete_user_as_admin(self, client, db, admin_user, admin_auth_headers):
         """Test admin delete user"""
-        # Act
+        # Arrange - Create a user to delete
+        unique_username = generate_unique_username('deletetestuser')
+        unique_email = generate_unique_email('deletetest')
+        create_payload = {
+            'username': unique_username,
+            'email': unique_email,
+            'password': 'DeleteTest123',
+            'first_name': 'Delete',
+            'last_name': 'Test'
+        }
+        create_response = client.post(
+            '/api/v1/users',
+            data=json.dumps(create_payload),
+            headers=admin_auth_headers
+        )
+        assert create_response.status_code == 201
+        created_data = json.loads(create_response.data)
+        user_id = created_data['data']['id']
+
+        # Act - Delete the user
         response = client.delete(
-            f'/api/v1/users/{sample_user.id}',
+            f'/api/v1/users/{user_id}',
             headers=admin_auth_headers
         )
 
@@ -127,11 +225,30 @@ class TestUserAPI:
         data = json.loads(response.data)
         assert data['success'] is True
 
-    def test_verify_user_as_admin(self, client, db, sample_user, admin_user, admin_auth_headers):
+    def test_verify_user_as_admin(self, client, db, admin_user, admin_auth_headers):
         """Test admin verify user"""
-        # Act
+        # Arrange - Create a user to verify
+        unique_username = generate_unique_username('verifytest')
+        unique_email = generate_unique_email('verify')
+        create_payload = {
+            'username': unique_username,
+            'email': unique_email,
+            'password': 'VerifyTest123',
+            'first_name': 'Verify',
+            'last_name': 'Test'
+        }
+        create_response = client.post(
+            '/api/v1/users',
+            data=json.dumps(create_payload),
+            headers=admin_auth_headers
+        )
+        assert create_response.status_code == 201
+        created_data = json.loads(create_response.data)
+        user_id = created_data['data']['id']
+
+        # Act - Verify the user
         response = client.post(
-            f'/api/v1/users/{sample_user.id}/verify',
+            f'/api/v1/users/{user_id}/verify',
             headers=admin_auth_headers
         )
 
@@ -141,16 +258,33 @@ class TestUserAPI:
         assert data['success'] is True
         assert data['data']['is_verified'] is True
 
-    def test_update_user_status_as_admin(self, client, db, sample_user, admin_user, admin_auth_headers):
+    def test_update_user_status_as_admin(self, client, db, admin_user, admin_auth_headers):
         """Test admin update user status"""
-        # Arrange
+        # Arrange - Create a user to update status
+        unique_username = generate_unique_username('statustest')
+        unique_email = generate_unique_email('status')
+        create_payload = {
+            'username': unique_username,
+            'email': unique_email,
+            'password': 'StatusTest123',
+            'first_name': 'Status',
+            'last_name': 'Test'
+        }
+        create_response = client.post(
+            '/api/v1/users',
+            data=json.dumps(create_payload),
+            headers=admin_auth_headers
+        )
+        assert create_response.status_code == 201
+        created_data = json.loads(create_response.data)
+        user_id = created_data['data']['id']
+
+        # Act - Update the user status
         payload = {
             'status': 'suspended'
         }
-
-        # Act
         response = client.put(
-            f'/api/v1/users/{sample_user.id}/status',
+            f'/api/v1/users/{user_id}/status',
             data=json.dumps(payload),
             headers=admin_auth_headers,
             content_type='application/json'
@@ -161,40 +295,56 @@ class TestUserAPI:
         data = json.loads(response.data)
         assert data['success'] is True
 
-    def test_get_user_permission_denied(self, client, db, sample_user, admin_user, auth_headers):
+    def test_get_user_permission_denied(self, client, db, admin_user, admin_auth_headers):
         """Test regular user cannot view other users"""
-        # Act - try to view admin user as regular user
+        # Arrange - Create a regular user and another target user
+        user_id, username, email, password = create_test_user(client, admin_auth_headers, 'viewinguser')
+        user_headers = get_user_token(client, username, password)
+
+        # Create another user to try to view
+        target_id, _, _, _ = create_test_user(client, admin_auth_headers, 'targetuser')
+
+        # Act - try to view target user as regular user
         response = client.get(
-            f'/api/v1/users/{admin_user.id}',
-            headers=auth_headers
+            f'/api/v1/users/{target_id}',
+            headers=user_headers
         )
 
         # Assert
         assert response.status_code == 403
 
-    def test_update_other_user_permission_denied(self, client, db, sample_user, admin_user, auth_headers):
+    def test_update_other_user_permission_denied(self, client, db, admin_auth_headers):
         """Test regular user cannot update other users"""
-        # Arrange
+        # Arrange - Create a regular user and another target user
+        user_id, username, email, password = create_test_user(client, admin_auth_headers, 'updatinguser')
+        user_headers = get_user_token(client, username, password)
+
+        # Create another user to try to update
+        target_id, _, _, _ = create_test_user(client, admin_auth_headers, 'updatetarget')
+
         payload = {
             'first_name': 'Hacked'
         }
 
         # Act
         response = client.put(
-            f'/api/v1/users/{admin_user.id}',
+            f'/api/v1/users/{target_id}',
             data=json.dumps(payload),
-            headers=auth_headers
+            headers=user_headers
         )
 
         # Assert
         assert response.status_code == 403
 
-    def test_create_user_as_regular_user(self, client, db, sample_user, auth_headers):
+    def test_create_user_as_regular_user(self, client, db, admin_auth_headers):
         """Test regular user cannot create users"""
-        # Arrange
+        # Arrange - Create a regular user and get their token
+        user_id, username, email, password = create_test_user(client, admin_auth_headers, 'creatinguser')
+        user_headers = get_user_token(client, username, password)
+
         payload = {
-            'username': 'unauthorized',
-            'email': 'unauthorized@example.com',
+            'username': generate_unique_username('unauthorized'),
+            'email': generate_unique_email('unauthorized'),
             'password': 'Unauthorized123'
         }
 
@@ -202,26 +352,36 @@ class TestUserAPI:
         response = client.post(
             '/api/v1/users',
             data=json.dumps(payload),
-            headers=auth_headers
+            headers=user_headers
         )
 
         # Assert
         assert response.status_code == 403
 
-    def test_delete_user_as_regular_user(self, client, db, sample_user, auth_headers):
+    def test_delete_user_as_regular_user(self, client, db, admin_auth_headers):
         """Test regular user cannot delete users"""
+        # Arrange - Create a regular user and another target user
+        user_id, username, email, password = create_test_user(client, admin_auth_headers, 'deletinguser')
+        user_headers = get_user_token(client, username, password)
+
+        # Create another user to try to delete
+        target_id, _, _, _ = create_test_user(client, admin_auth_headers, 'deletetarget')
+
         # Act
         response = client.delete(
-            f'/api/v1/users/{sample_user.id}',
-            headers=auth_headers
+            f'/api/v1/users/{target_id}',
+            headers=user_headers
         )
 
         # Assert
         assert response.status_code == 403
 
-    def test_change_password_wrong_old_password(self, client, db, sample_user, auth_headers):
+    def test_change_password_wrong_old_password(self, client, db, admin_auth_headers):
         """Test change password with wrong old password"""
-        # Arrange
+        # Arrange - Create a user and get their token
+        user_id, username, email, password = create_test_user(client, admin_auth_headers, 'wrongpass')
+        user_headers = get_user_token(client, username, password)
+
         payload = {
             'old_password': 'WrongOldPass123',
             'new_password': 'NewPass456'
@@ -229,27 +389,30 @@ class TestUserAPI:
 
         # Act
         response = client.put(
-            f'/api/v1/users/{sample_user.id}/password',
+            f'/api/v1/users/{user_id}/password',
             data=json.dumps(payload),
-            headers=auth_headers
+            headers=user_headers
         )
 
         # Assert
         assert response.status_code in [400, 401]
 
-    def test_change_password_weak_new_password(self, client, db, sample_user, auth_headers):
+    def test_change_password_weak_new_password(self, client, db, admin_auth_headers):
         """Test change password with weak new password"""
-        # Arrange
+        # Arrange - Create a user and get their token
+        user_id, username, email, password = create_test_user(client, admin_auth_headers, 'weakpass')
+        user_headers = get_user_token(client, username, password)
+
         payload = {
-            'old_password': 'TestPass123',
+            'old_password': password,
             'new_password': 'weak'  # Too weak
         }
 
         # Act
         response = client.put(
-            f'/api/v1/users/{sample_user.id}/password',
+            f'/api/v1/users/{user_id}/password',
             data=json.dumps(payload),
-            headers=auth_headers
+            headers=user_headers
         )
 
         # Assert
@@ -268,35 +431,44 @@ class TestUserAPI:
         data = json.loads(response.data)
         assert data['success'] is True
 
-    def test_update_user_invalid_email(self, client, db, sample_user, auth_headers):
+    def test_update_user_invalid_email(self, client, db, admin_auth_headers):
         """Test update user with invalid email"""
-        # Arrange
+        # Arrange - Create a user and get their token
+        user_id, username, email, password = create_test_user(client, admin_auth_headers, 'invalidemail')
+        user_headers = get_user_token(client, username, password)
+
         payload = {
             'email': 'not-valid-email'
         }
 
         # Act
         response = client.put(
-            f'/api/v1/users/{sample_user.id}',
+            f'/api/v1/users/{user_id}',
             data=json.dumps(payload),
-            headers=auth_headers
+            headers=user_headers
         )
 
         # Assert
         assert response.status_code == 400
 
-    def test_update_user_duplicate_email(self, client, db, sample_user, admin_user, auth_headers):
+    def test_update_user_duplicate_email(self, client, db, admin_auth_headers):
         """Test update user with duplicate email"""
-        # Arrange
+        # Arrange - Create two users
+        user1_id, user1_username, user1_email, user1_password = create_test_user(client, admin_auth_headers, 'dupuser1')
+        user1_headers = get_user_token(client, user1_username, user1_password)
+
+        user2_id, user2_username, user2_email, user2_password = create_test_user(client, admin_auth_headers, 'dupuser2')
+
+        # Try to update user1 to have user2's email
         payload = {
-            'email': admin_user.email  # Use admin's email
+            'email': user2_email
         }
 
         # Act
         response = client.put(
-            f'/api/v1/users/{sample_user.id}',
+            f'/api/v1/users/{user1_id}',
             data=json.dumps(payload),
-            headers=auth_headers
+            headers=user1_headers
         )
 
         # Assert
@@ -408,16 +580,33 @@ class TestUserAPIEdgeCases:
         assert data['success'] is False
         assert 'INVALID_STATUS' in str(data.get('error', {}))
 
-    def test_update_user_status_invalid_value(self, client, db, sample_user, admin_user, admin_auth_headers):
+    def test_update_user_status_invalid_value(self, client, db, admin_user, admin_auth_headers):
         """Test update user status with invalid value"""
-        # Arrange
+        # Arrange - Create a user to test with
+        unique_username = generate_unique_username('invalidstatustest')
+        unique_email = generate_unique_email('invalidstatus')
+        create_payload = {
+            'username': unique_username,
+            'email': unique_email,
+            'password': 'InvalidStatus123',
+            'first_name': 'Invalid',
+            'last_name': 'Status'
+        }
+        create_response = client.post(
+            '/api/v1/users',
+            data=json.dumps(create_payload),
+            headers=admin_auth_headers
+        )
+        assert create_response.status_code == 201
+        created_data = json.loads(create_response.data)
+        user_id = created_data['data']['id']
+
+        # Act - Try to set invalid status
         payload = {
             'status': 'invalid_status'
         }
-
-        # Act
         response = client.put(
-            f'/api/v1/users/{sample_user.id}/status',
+            f'/api/v1/users/{user_id}/status',
             data=json.dumps(payload),
             headers=admin_auth_headers,
             content_type='application/json'
@@ -426,14 +615,31 @@ class TestUserAPIEdgeCases:
         # Assert
         assert response.status_code == 400
 
-    def test_update_user_status_missing_value(self, client, db, sample_user, admin_user, admin_auth_headers):
+    def test_update_user_status_missing_value(self, client, db, admin_user, admin_auth_headers):
         """Test update user status without status value"""
-        # Arrange
-        payload = {}
+        # Arrange - Create a user to test with
+        unique_username = generate_unique_username('missingstatustest')
+        unique_email = generate_unique_email('missingstatus')
+        create_payload = {
+            'username': unique_username,
+            'email': unique_email,
+            'password': 'MissingStatus123',
+            'first_name': 'Missing',
+            'last_name': 'Status'
+        }
+        create_response = client.post(
+            '/api/v1/users',
+            data=json.dumps(create_payload),
+            headers=admin_auth_headers
+        )
+        assert create_response.status_code == 201
+        created_data = json.loads(create_response.data)
+        user_id = created_data['data']['id']
 
-        # Act
+        # Act - Try to update status without value
+        payload = {}
         response = client.put(
-            f'/api/v1/users/{sample_user.id}/status',
+            f'/api/v1/users/{user_id}/status',
             data=json.dumps(payload),
             headers=admin_auth_headers,
             content_type='application/json'
@@ -442,18 +648,25 @@ class TestUserAPIEdgeCases:
         # Assert
         assert response.status_code == 400
 
-    def test_user_endpoints_without_authentication(self, client, db, sample_user):
+    def test_user_endpoints_without_authentication(self, client, db, admin_auth_headers):
         """Test user endpoints without authentication"""
+        # Create a test user to use in tests (but don't use its token)
+        user_id, username, email, password = create_test_user(client, admin_auth_headers, 'noauthtest')
+
         # Test GET list
         response = client.get('/api/v1/users')
         assert response.status_code == 401
 
         # Test GET single
-        response = client.get(f'/api/v1/users/{sample_user.id}')
+        response = client.get(f'/api/v1/users/{user_id}')
         assert response.status_code == 401
 
         # Test POST
-        payload = {'username': 'test', 'email': 'test@example.com', 'password': 'Test123'}
+        payload = {
+            'username': generate_unique_username('test'),
+            'email': generate_unique_email('test'),
+            'password': 'Test123'
+        }
         response = client.post(
             '/api/v1/users',
             data=json.dumps(payload),
@@ -463,19 +676,22 @@ class TestUserAPIEdgeCases:
 
         # Test PUT
         response = client.put(
-            f'/api/v1/users/{sample_user.id}',
+            f'/api/v1/users/{user_id}',
             data=json.dumps({'first_name': 'Test'}),
             content_type='application/json'
         )
         assert response.status_code == 401
 
         # Test DELETE
-        response = client.delete(f'/api/v1/users/{sample_user.id}')
+        response = client.delete(f'/api/v1/users/{user_id}')
         assert response.status_code == 401
 
-    def test_special_characters_in_user_fields(self, client, db, sample_user, auth_headers):
+    def test_special_characters_in_user_fields(self, client, db, admin_auth_headers):
         """Test special characters in user update fields"""
-        # Arrange
+        # Arrange - Create a user and get their token
+        user_id, username, email, password = create_test_user(client, admin_auth_headers, 'specialchars')
+        user_headers = get_user_token(client, username, password)
+
         payload = {
             'first_name': "O'Brien",
             'last_name': 'José-María',
@@ -484,9 +700,9 @@ class TestUserAPIEdgeCases:
 
         # Act
         response = client.put(
-            f'/api/v1/users/{sample_user.id}',
+            f'/api/v1/users/{user_id}',
             data=json.dumps(payload),
-            headers=auth_headers
+            headers=user_headers
         )
 
         # Assert

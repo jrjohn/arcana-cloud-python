@@ -90,16 +90,16 @@ class TestingConfig(Config):
     """Testing Environment Configuration"""
     TESTING = True
     DEBUG = True
-    # Use SQLite for testing to avoid MySQL dependency
+    # Use MySQL for testing (K8s tests require MySQL)
     SQLALCHEMY_DATABASE_URI = os.getenv(
         'TEST_DATABASE_URL',
-        'sqlite:///:memory:'
+        'mysql+pymysql://arcana:arcana_pass@localhost:3306/arcana_cloud'
     )
     # Disable Redis for tests (use in-memory mock if needed)
     REDIS_URL = os.getenv('TEST_REDIS_URL', 'redis://localhost:6379/1')
     CELERY_BROKER_URL = REDIS_URL
     CELERY_RESULT_BACKEND = REDIS_URL
-    # Disable rate limiting in tests
+    # Disable rate limiting for tests
     RATELIMIT_ENABLED = False
 
 
@@ -114,6 +114,9 @@ class ProductionConfig(Config):
 
     # Production environment log level
     LOG_LEVEL = os.getenv('LOG_LEVEL', 'WARNING')
+
+    # Rate limiting can be controlled via environment variable
+    RATELIMIT_ENABLED = os.getenv('RATELIMIT_ENABLED', 'true').lower() in ('true', '1', 'yes')
 
     @classmethod
     def validate(cls):
