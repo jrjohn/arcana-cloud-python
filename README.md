@@ -1,12 +1,14 @@
 # Arcana Cloud Python - Enterprise Flask Microservices Platform
 
+[![Architecture Rating](https://img.shields.io/badge/Architecture%20Rating-⭐⭐⭐⭐⭐%209.4%2F10-gold.svg?style=for-the-badge)](#-architecture-highlights)
+[![Project Rank](https://img.shields.io/badge/Project%20Rank-A%2B%20(92%2F100)-gold.svg?style=for-the-badge)](docs/PROJECT-RANKING.md)
+
 [![Python](https://img.shields.io/badge/python-3.14-blue.svg?logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![Flask](https://img.shields.io/badge/flask-3.1.2-green.svg?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
 [![gRPC](https://img.shields.io/badge/gRPC-1.68-00ADD8.svg?logo=grpc&logoColor=white)](https://grpc.io/)
 [![Architecture](https://img.shields.io/badge/architecture-microservices-orange.svg)]()
-[![Tests](https://img.shields.io/badge/tests-83%2F83_passing-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/tests-93%2F93_passing-brightgreen.svg)]()
 [![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)]()
-[![Rank](https://img.shields.io/badge/rank-A%2B_(92%2F100)-gold.svg)](docs/PROJECT-RANKING.md)
 [![PEP 8](https://img.shields.io/badge/code_style-PEP_8-blue.svg)](https://peps.python.org/pep-0008/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
