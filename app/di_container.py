@@ -134,12 +134,19 @@ def initialize_dependencies(app: Flask):
 
     # Register repositories
     def create_user_repository():
-        if deployment_mode == 'microservices':
-            # In microservices mode, use HTTP client to communicate with repository layer
-            from app.repositories.clients.HTTPUserRepositoryClient import HTTPUserRepositoryClient
-            return HTTPUserRepositoryClient()
+        deployment_layer = os.getenv('DEPLOYMENT_LAYER', 'monolithic').lower()
+
+        if deployment_mode == 'microservices' and deployment_layer != 'repository':
+            # In microservices mode (Service/Controller layer), use gRPC or HTTP client
+            communication_protocol = os.getenv('COMMUNICATION_PROTOCOL', 'http').lower()
+            if communication_protocol == 'grpc':
+                from app.repositories.clients.GRPCUserRepositoryClient import GRPCUserRepositoryClient
+                return GRPCUserRepositoryClient()
+            else:
+                from app.repositories.clients.HTTPUserRepositoryClient import HTTPUserRepositoryClient
+                return HTTPUserRepositoryClient()
         else:
-            # In monolithic/layered mode, use direct database access
+            # In monolithic/layered mode OR repository layer, use direct database access
             from app.repositories.implementations.UserRepositoryImpl import UserRepositoryImpl
             return UserRepositoryImpl(container.get('db_session'))
 
@@ -156,19 +163,14 @@ def initialize_dependencies(app: Flask):
         return UserServiceImpl(container.get('user_repository'))
 
     def create_auth_service():
-        deployment_layer = os.getenv('DEPLOYMENT_LAYER', 'monolithic').lower()
-
-        # In microservices/controller mode, use HTTP client to communicate with service layer
-        if deployment_mode == 'microservices' and deployment_layer == 'controller':
-            from app.services.clients.HTTPAuthServiceClient import HTTPAuthServiceClient
-            return HTTPAuthServiceClient()
-        else:
-            # In other modes, use direct implementation
-            from app.services.implementations.AuthServiceImpl import AuthServiceImpl
-            return AuthServiceImpl(
-                container.get('user_repository'),
-                container.get('oauth_token_repository')
-            )
+        # Auth service is always local - uses direct implementation with repositories
+        # In microservices mode, it uses gRPC repository clients
+        # This keeps authentication centralized in the controller layer
+        from app.services.implementations.AuthServiceImpl import AuthServiceImpl
+        return AuthServiceImpl(
+            container.get('user_repository'),
+            container.get('oauth_token_repository')
+        )
 
     container.register_singleton('user_service', create_user_service)
     container.register_singleton('auth_service', create_auth_service)

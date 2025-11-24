@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package arcana;
+
+// Common message types
+
+message Empty {}
+
+message User {
+    int32 id = 1;
+    string username = 2;
+    string email = 3;
+    string password_hash = 4;
+    string first_name = 5;
+    string last_name = 6;
+    string role = 7;
+    string status = 8;
+    bool is_verified = 9;
+    bool is_active = 10;
+    string phone = 11;
+    string avatar_url = 12;
+    string created_at = 13;
+    string updated_at = 14;
+    string last_login_at = 15;
+}
+
+message PaginationRequest {
+    int32 page = 1;
+    int32 per_page = 2;
+}
+
+message PaginationResponse {
+    int32 page = 1;
+    int32 per_page = 2;
+    int32 total = 3;
+    int32 total_pages = 4;
+}
+
+message ErrorResponse {
+    string error = 1;
+    string error_code = 2;
+    int32 status_code = 3;
+}
+
+message HealthCheckResponse {
+    string status = 1;
+}

@@ -1,0 +1,119 @@
+syntax = "proto3";
+
+package arcana;
+
+import "common.proto";
+
+// Repository Service - For Service → Repository communication
+
+service RepositoryService {
+    // Query users
+    rpc QueryUsers(QueryUsersRequest) returns (QueryUsersResponse);
+
+    // Get user by ID
+    rpc GetUserById(GetUserByIdRepositoryRequest) returns (User);
+
+    // Get user by username
+    rpc GetUserByUsername(GetUserByUsernameRequest) returns (User);
+
+    // Get user by email
+    rpc GetUserByEmail(GetUserByEmailRequest) returns (User);
+
+    // Create user
+    rpc CreateUser(CreateUserRepositoryRequest) returns (User);
+
+    // Update user
+    rpc UpdateUser(UpdateUserRepositoryRequest) returns (User);
+
+    // Delete user
+    rpc DeleteUser(DeleteUserRepositoryRequest) returns (DeleteUserRepositoryResponse);
+
+    // Check if username exists
+    rpc ExistsByUsername(ExistsByUsernameRequest) returns (ExistsResponse);
+
+    // Check if email exists
+    rpc ExistsByEmail(ExistsByEmailRequest) returns (ExistsResponse);
+
+    // Count users
+    rpc CountUsers(Empty) returns (CountResponse);
+
+    // Health check
+    rpc HealthCheck(Empty) returns (HealthCheckResponse);
+}
+
+message QueryUsersRequest {
+    int32 page = 1;
+    int32 per_page = 2;
+    string role = 3;
+    string status = 4;
+}
+
+message QueryUsersResponse {
+    repeated User users = 1;
+    int32 total = 2;
+}
+
+message GetUserByIdRepositoryRequest {
+    int32 user_id = 1;
+}
+
+message GetUserByUsernameRequest {
+    string username = 1;
+}
+
+message GetUserByEmailRequest {
+    string email = 1;
+}
+
+message CreateUserRepositoryRequest {
+    string username = 1;
+    string email = 2;
+    string password_hash = 3;
+    string first_name = 4;
+    string last_name = 5;
+    string role = 6;
+    string status = 7;
+    bool is_verified = 8;
+    bool is_active = 9;
+    string phone = 10;
+    string avatar_url = 11;
+}
+
+message UpdateUserRepositoryRequest {
+    int32 user_id = 1;
+    string username = 2;
+    string email = 3;
+    string password_hash = 4;
+    string first_name = 5;
+    string last_name = 6;
+    string role = 7;
+    string status = 8;
+    bool is_verified = 9;
+    bool is_active = 10;
+    string phone = 11;
+    string avatar_url = 12;
+}
+
+message DeleteUserRepositoryRequest {
+    int32 user_id = 1;
+}
+
+message DeleteUserRepositoryResponse {
+    bool success = 1;
+}
+
+message ExistsByUsernameRequest {
+    string username = 1;
+}
+
+message ExistsByEmailRequest {
+    string email = 1;
+}
+
+message ExistsResponse {
+    bool exists = 1;
+}
+
+message CountResponse {
+    int32 count = 1;
+}

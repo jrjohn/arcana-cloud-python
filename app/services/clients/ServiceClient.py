@@ -10,7 +10,10 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
 from app.services.clients.LoadBalancer import LoadBalancer
-from app.utils.Exceptions import ServiceUnavailableError
+from app.utils.Exceptions import (
+    ServiceUnavailableError, APIException, NotFoundError, ConflictError,
+    ValidationError, AuthenticationError, AuthorizationError
+)
 
 logger = logging.getLogger(__name__)
 
@@ -138,9 +141,34 @@ class ServiceClient:
             if e.response.status_code >= 500:
                 self.load_balancer.mark_unhealthy(base_url)
 
-            raise ServiceUnavailableError(
-                f"Service {self.service_name} returned error: {e.response.status_code}"
-            )
+            # Try to parse error response from service
+            error_msg = f"Service {self.service_name} returned error: {e.response.status_code}"
+            error_code = "HTTP_ERROR"
+
+            try:
+                error_data = e.response.json()
+                if isinstance(error_data, dict):
+                    error_msg = error_data.get('error', error_msg)
+                    error_code = error_data.get('error_code', error_code)
+            except:
+                pass
+
+            # Map HTTP status codes to appropriate exception types
+            status_code = e.response.status_code
+            if status_code == 400:
+                raise ValidationError(error_msg)
+            elif status_code == 401:
+                raise AuthenticationError(error_msg)
+            elif status_code == 403:
+                raise AuthorizationError(error_msg)
+            elif status_code == 404:
+                raise NotFoundError(error_msg)
+            elif status_code == 409:
+                raise ConflictError(error_msg)
+            elif status_code >= 500:
+                raise ServiceUnavailableError(error_msg)
+            else:
+                raise APIException(error_msg, error_code=error_code, status_code=status_code)
 
         except requests.exceptions.ConnectionError as e:
             logger.error(f"Connection error calling {url}: {e}")

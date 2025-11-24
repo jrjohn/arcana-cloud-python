@@ -1,0 +1,103 @@
+syntax = "proto3";
+
+package arcana;
+
+import "common.proto";
+
+// User Service - For Controller → Service communication
+
+service UserService {
+    // Get users list
+    rpc GetUsers(GetUsersRequest) returns (GetUsersResponse);
+
+    // Get user by ID
+    rpc GetUserById(GetUserByIdRequest) returns (User);
+
+    // Create user
+    rpc CreateUser(CreateUserRequest) returns (User);
+
+    // Update user
+    rpc UpdateUser(UpdateUserRequest) returns (User);
+
+    // Delete user
+    rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+
+    // Change password
+    rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse);
+
+    // Verify user
+    rpc VerifyUser(VerifyUserRequest) returns (User);
+
+    // Update user status
+    rpc UpdateUserStatus(UpdateUserStatusRequest) returns (User);
+
+    // Health check
+    rpc HealthCheck(Empty) returns (HealthCheckResponse);
+}
+
+message GetUsersRequest {
+    int32 page = 1;
+    int32 per_page = 2;
+    string role = 3;
+    string status = 4;
+}
+
+message GetUsersResponse {
+    repeated User users = 1;
+    PaginationResponse pagination = 2;
+}
+
+message GetUserByIdRequest {
+    int32 user_id = 1;
+}
+
+message CreateUserRequest {
+    string username = 1;
+    string email = 2;
+    string password = 3;
+    string first_name = 4;
+    string last_name = 5;
+    string phone = 6;
+    string avatar_url = 7;
+}
+
+message UpdateUserRequest {
+    int32 user_id = 1;
+    string username = 2;
+    string email = 3;
+    string first_name = 4;
+    string last_name = 5;
+    string phone = 6;
+    string avatar_url = 7;
+    string role = 8;
+    string status = 9;
+}
+
+message DeleteUserRequest {
+    int32 user_id = 1;
+}
+
+message DeleteUserResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message ChangePasswordRequest {
+    int32 user_id = 1;
+    string old_password = 2;
+    string new_password = 3;
+}
+
+message ChangePasswordResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message VerifyUserRequest {
+    int32 user_id = 1;
+}
+
+message UpdateUserStatusRequest {
+    int32 user_id = 1;
+    string status = 2;
+}
