@@ -94,10 +94,10 @@ tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_invalid_
 tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_update_user_status_invalid_value PASSED [ 96%]
 tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_update_user_status_missing_value PASSED [ 97%]
 tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_user_endpoints_without_authentication PASSED [ 98%]
-tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_special_characters_in_user_fields PASSED [100%]/Users/jrjohn/Documents/projects/arcana-cloud-python/venv/lib/python3.14/site-packages/pytest_cov/plugin.py:355: CovFailUnderWarning: Coverage failure: total of 31 is less than fail-under=80
+tests/integration/test_api/test_user_api.py::TestUserAPIEdgeCases::test_special_characters_in_user_fields PASSED [100%]/Users/jrjohn/Documents/projects/arcana-cloud-python/venv/lib/python3.14/site-packages/pytest_cov/plugin.py:355: CovFailUnderWarning: Coverage failure: total of 57 is less than fail-under=80
   warnings.warn(CovFailUnderWarning(message), stacklevel=1)
 
-ERROR: Coverage failure: total of 31 is less than fail-under=80
+ERROR: Coverage failure: total of 57 is less than fail-under=80
 
 
 =============================== warnings summary ===============================
@@ -113,59 +113,62 @@ Name                                                           Stmts   Miss  Cov
 app/Config.py                                                     65      4    94%   121-124
 app/Container.py                                                  16      0   100%
 app/Extensions.py                                                 15      3    80%   42-44
-app/__init__.py                                                   68     15    78%   80-83, 87-89, 99, 103, 107, 118, 124-130
-app/communication/__init__.py                                      3      3     0%   5-8
-app/communication/factory.py                                      89     89     0%   5-284
-app/communication/implementations/__init__.py                      4      4     0%   2-15
-app/communication/implementations/direct.py                       76     76     0%   5-164
-app/communication/implementations/grpc_impl.py                   112    112     0%   5-290
-app/communication/implementations/http_rest.py                   156    156     0%   5-297
-app/communication/interfaces.py                                   63     63     0%   5-138
+app/__init__.py                                                   68     12    82%   87-89, 99, 103, 107, 118, 124-130
+app/communication/__init__.py                                      3      0   100%
+app/communication/factory.py                                      89     49    45%   62-63, 76-79, 101-108, 121-126, 177-182, 187-196, 235-264, 274-284
+app/communication/implementations/__init__.py                      4      0   100%
+app/communication/implementations/direct.py                       76     29    62%   33-39, 43, 47, 51, 108-110, 114-120, 124, 128, 132, 138-139, 148-149, 153-154, 158-159, 163-164
+app/communication/implementations/grpc_impl.py                   112     76    32%   34-49, 53-67, 75-77, 90-112, 116, 120, 124, 128-135, 139, 147, 151, 155, 159, 163-164, 181-196, 200-203, 211-213, 217-226, 230, 234, 238, 242-246, 251, 260, 267, 274, 282, 289-290
+app/communication/implementations/http_rest.py                   156    120    23%   38-59, 63-65, 70-120, 125-126, 130, 134, 138-143, 148-156, 160-161, 165-166, 170-171, 175-176, 180-182, 186-187, 191-193, 210-227, 231-233, 238-253, 257-258, 262, 266, 270-275, 280-281, 285, 289, 293, 297
+app/communication/interfaces.py                                   63     14    78%   58, 63, 68, 73, 85, 90, 95, 100, 105, 118, 123, 128, 133, 138
 app/controller_server.py                                           7      7     0%   5-16
-app/controllers/AuthController.py                                 90     61    32%   33-59, 79-108, 125-145, 164-183, 200-208, 225-242, 259-271
-app/controllers/PublicUserController.py                           90     68    24%   34-42, 70-104, 125-147, 177-216, 246-282, 294-306
-app/controllers/UserController.py                                143    101    29%   35-91, 108-137, 163-184, 207-237, 255-273, 295-328, 346-365, 386-427
+app/controllers/AuthController.py                                 90     17    81%   58-59, 107-108, 137-145, 182-183, 207-208, 232, 241-242, 270-271
+app/controllers/PublicUserController.py                           90     17    81%   92, 103-104, 140, 146-147, 205, 215-216, 252, 270, 279-282, 305-306
+app/controllers/UserController.py                                143     23    84%   83-91, 136-137, 176-184, 236-237, 272-273, 300, 327-328, 364-365, 419-427
 app/controllers/__init__.py                                        7      0   100%
-app/decorators/AuthDecorators.py                                  86     68    21%   28-80, 103-124, 149-190, 205-230
-app/decorators/ValidationDecorators.py                            47     29    38%   41-80, 105-135
+app/decorators/AuthDecorators.py                                  86     42    51%   40, 72-73, 104, 149-190, 205-230
+app/decorators/ValidationDecorators.py                            47      9    81%   49-54, 72-73, 128-129
 app/decorators/__init__.py                                         3      0   100%
-app/di_container.py                                               95     50    47%   44-45, 72-86, 90, 94-96, 137-144, 147-148, 155-156, 159-168, 178-190, 195-207, 224, 234, 244, 254, 264
+app/di_container.py                                               95     22    77%   44-45, 77, 90, 94-96, 139-140, 163-164, 195-207, 234, 244, 264
 app/models/__init__.py                                             3      0   100%
-app/models/oauth_token.py                                         60     28    53%   83-100, 109, 118-120, 129, 133-134, 138, 150-168, 171
-app/models/user.py                                                64      9    86%   102, 133, 137, 149-169, 178, 187
-app/repositories/implementations/OAuthTokenRepositoryImpl.py      87     70    20%   25, 29-36, 40-45, 49-54, 58-66, 70-76, 80-92, 96-111, 115-131, 135-142
-app/repositories/implementations/UserRepositoryImpl.py            82     64    22%   24, 28-35, 39-42, 46-49, 53-56, 60-66, 70-82, 86-91, 95-100, 110-128, 132-135
+app/models/oauth_token.py                                         60      5    92%   119, 164-166, 171
+app/models/user.py                                                64      3    95%   167, 178, 187
+app/repositories/implementations/OAuthTokenRepositoryImpl.py      87     43    51%   34-36, 44-45, 53-54, 65-66, 74-76, 80-92, 109-111, 115-131, 135-142
+app/repositories/implementations/UserRepositoryImpl.py            82     28    66%   33-35, 41-42, 48-49, 55-56, 64-66, 73, 78-82, 90-91, 99-100, 127-128, 132-135
 app/repositories/implementations/__init__.py                       3      0   100%
 app/repositories/interfaces/OAuthTokenRepository.py               32      9    72%   26, 39, 52, 66, 79, 92, 105, 118, 131
 app/repositories/interfaces/UserRepository.py                     34     10    71%   25, 38, 51, 64, 77, 90, 103, 116, 138, 148
 app/repositories/interfaces/__init__.py                            3      0   100%
 app/repository_server.py                                           7      7     0%   5-16
-app/schemas/AuthSchema.py                                         21      7    67%   13-28
-app/schemas/UserSchema.py                                         70     12    83%   54-59, 83-88
+app/schemas/AuthSchema.py                                         21      1    95%   14
+app/schemas/UserSchema.py                                         70      6    91%   55, 57, 59, 84, 86, 88
 app/schemas/__init__.py                                            3      0   100%
 app/service_server.py                                              7      7     0%   5-16
 app/services/clients/LoadBalancer.py                              47     35    26%   22-30, 42-65, 74-77, 86-89, 98, 107-108, 117-118
 app/services/clients/ServiceClient.py                             77     58    25%   37-72, 99-164, 170, 174, 178, 182, 186, 195-200, 209
 app/services/clients/__init__.py                                   3      0   100%
-app/services/implementations/AuthServiceImpl.py                  113     90    20%   39-43, 57-68, 83-89, 102-144, 154-160, 165-197, 206-235, 239, 243, 255-269, 273
-app/services/implementations/UserServiceImpl.py                   90     69    23%   29, 33-35, 39-46, 50-53, 64-77, 81-84, 88-91, 95-98, 102-124, 129-130, 134-146, 150-152, 156-158, 168-175
+app/services/implementations/AuthServiceImpl.py                  113     16    86%   87, 117, 120, 156, 168, 175, 179, 182, 187, 209, 216, 220, 225, 229, 262, 273
+app/services/implementations/UserServiceImpl.py                   90     19    79%   35, 40, 42, 44, 46, 53, 70, 88-91, 95-98, 111-113, 117
 app/services/implementations/__init__.py                           3      0   100%
 app/services/interfaces/AuthService.py                            29      8    72%   43, 59, 76, 93, 106, 119, 145, 159
 app/services/interfaces/UserService.py                            34     10    71%   38, 54, 70, 86, 104, 120, 140, 156, 173, 195
 app/services/interfaces/__init__.py                                3      0   100%
+app/services/routes/AuthServiceRoutes.py                         111     89    20%   17, 36-61, 84-115, 133-156, 174-203, 221-250, 265-282, 297-313, 332-360
+app/services/routes/UserServiceRoutes.py                         123    100    19%   18, 30-84, 99-120, 142-167, 186-209, 224-245, 264-286, 301-317, 335-368
+app/services/routes/__init__.py                                    3      0   100%
 app/tasks/BackgroundTasks.py                                      54     54     0%   4-166
 app/tasks/CeleryWorker.py                                         10     10     0%   5-82
 app/tasks/ScheduledTasks.py                                       66     66     0%   4-145
 app/tasks/TaskDecorators.py                                       77     77     0%   5-200
 app/tasks/__init__.py                                              3      3     0%   2-5
-app/utils/Exceptions.py                                           32     13    59%   18-22, 29, 41, 52, 63, 75, 86, 97, 108
-app/utils/Response.py                                             17      9    47%   27-35, 56-67, 90-106, 116-118
+app/utils/Exceptions.py                                           32      4    88%   52, 86, 97, 108
+app/utils/Response.py                                             17      1    94%   117
 app/utils/__init__.py                                              3      0   100%
 --------------------------------------------------------------------------------------------
-TOTAL                                                           2372   1634    31%
+TOTAL                                                           2609   1113    57%
 Coverage HTML written to dir htmlcov
 Coverage XML written to file coverage.xml
 
-FAIL Required test coverage of 80% not reached. Total coverage: 31.11%
-- Generated html report: file:///Users/jrjohn/Documents/projects/arcana-cloud-python/docs/test-reports/microservices/api-test-microservices-final.html -
-======================== 83 passed, 1 warning in 15.72s ========================
+FAIL Required test coverage of 80% not reached. Total coverage: 57.34%
+- Generated html report: file:///Users/jrjohn/Documents/projects/arcana-cloud-python/docs/test-reports/monolithic/api-test-monolithic-final.html -
+======================== 83 passed, 1 warning in 8.25s =========================
