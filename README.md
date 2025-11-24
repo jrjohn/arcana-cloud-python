@@ -404,6 +404,25 @@ export REPOSITORY_URL=http://localhost:5002
 - ✅ Write operations benefit from binary protocol
 - ✅ List operations show consistent improvement
 
+### Kubernetes Integration Test Performance
+
+| Protocol | Test Duration | Tests | Pass Rate | Performance |
+|----------|---------------|-------|-----------|-------------|
+| **gRPC** | ~25-30s | 83/83 | 100% | ⚡ **2.78x faster** |
+| **HTTP** | 78.32s | 83/83 | 100% | Baseline |
+
+**Test Environment**: Kubernetes + Microservices (3-layer architecture)
+
+**Key Metrics:**
+- ✅ Both protocols: **100% test pass rate** (83/83 tests)
+- ⚡ gRPC average speedup: **2.78x faster** than HTTP
+- 📊 Test throughput: gRPC processes **2.61-3.13x more tests/second**
+- ⏱️ Time saved per run: **~48-53 seconds** with gRPC
+
+**Reliability**: Both protocols are production-ready with identical reliability (100% pass rate)
+
+📖 **[View Detailed Protocol Comparison](docs/test-reports/benchmarks/K8S-HTTP-GRPC-FINAL-COMPARISON.md)**
+
 📖 **[View Detailed Performance Report](docs/testing/COMMUNICATION-LAYER-PERFORMANCE.md)**
 
 ---
