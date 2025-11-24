@@ -79,10 +79,10 @@ Enterprise-grade cloud platform with **gRPC-first architecture** (2.78x faster t
                                 │
                     ┌─────────-─┼──────────┐
                     │           │          │
-             ┌──────▼───┐  ┌──▼────┐  ┌──▼──────┐
-             │  MySQL   │  │ Redis │  │ Celery  │
-             │ Database │  │ Cache │  │ Workers │
-             └──────────┘  └───────┘  └─────────┘
+             ┌──────▼───┐  ┌────▼────┐  ┌──▼──────┐
+             │  MySQL   │  │  Redis  │  │ Celery  │
+             │ Database │  │  Cache  │  │ Workers │
+             └──────────┘  └─────────┘  └─────────┘
 ```
 
 ### **Key Features**
