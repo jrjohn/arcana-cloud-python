@@ -9,7 +9,7 @@ from typing import Optional
 
 from app.grpc_protos import repository_service_pb2, repository_service_pb2_grpc, common_pb2
 from app.di_container import get_user_repository
-from app.utils.Exceptions import APIException, NotFoundError, ConflictError, ValidationError
+from app.utils.exceptions import APIException, NotFoundError, ConflictError, ValidationError
 from app.models.user import UserRole, UserStatus
 
 

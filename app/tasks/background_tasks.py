@@ -3,8 +3,8 @@ Background Tasks
 """
 import logging
 from typing import Dict, Any
-from app.tasks.CeleryWorker import celery_app
-from app.tasks.TaskDecorators import retry_with_backoff
+from app.tasks.celery_worker import celery_app
+from app.tasks.task_decorators import retry_with_backoff
 
 logger = logging.getLogger(__name__)
 

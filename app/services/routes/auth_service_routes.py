@@ -6,7 +6,7 @@ from flask import Blueprint, request, jsonify
 from typing import Optional
 
 from app.di_container import get_auth_service as get_service_from_container
-from app.utils.Exceptions import APIException, NotFoundError, AuthenticationError
+from app.utils.exceptions import APIException, NotFoundError, AuthenticationError
 
 # Create blueprint for service layer internal API
 auth_service_bp = Blueprint('auth_service', __name__, url_prefix='/internal/auth')

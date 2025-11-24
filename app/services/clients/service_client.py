@@ -9,8 +9,8 @@ import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
-from app.services.clients.LoadBalancer import LoadBalancer
-from app.utils.Exceptions import (
+from app.services.clients.load_balancer import LoadBalancer
+from app.utils.exceptions import (
     ServiceUnavailableError, APIException, NotFoundError, ConflictError,
     ValidationError, AuthenticationError, AuthorizationError
 )

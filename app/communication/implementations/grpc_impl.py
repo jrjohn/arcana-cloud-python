@@ -19,7 +19,7 @@ from app.grpc_protos import (
     repository_service_pb2, repository_service_pb2_grpc,
     common_pb2
 )
-from app.utils.Exceptions import (
+from app.utils.exceptions import (
     APIException, NotFoundError, ConflictError,
     ValidationError, AuthenticationError, AuthorizationError
 )

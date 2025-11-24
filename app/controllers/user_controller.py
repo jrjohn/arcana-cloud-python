@@ -5,17 +5,17 @@ User management API controller with abstract communication layer
 from flask import request, g
 
 from app.controllers import user_bp
-from app.decorators.AuthDecorators import token_required, role_required
-from app.decorators.ValidationDecorators import validate_schema, validate_pagination
-from app.schemas.UserSchema import (
+from app.decorators.auth_decorators import token_required, role_required
+from app.decorators.validation_decorators import validate_schema, validate_pagination
+from app.schemas.user_schema import (
     UserSchema,
     UserCreateSchema,
     UserUpdateSchema,
     ChangePasswordSchema
 )
 from app.models.user import UserRole, UserStatus
-from app.utils.Response import success_response, error_response, paginated_response
-from app.utils.Exceptions import APIException
+from app.utils.response import success_response, error_response, paginated_response
+from app.utils.exceptions import APIException
 
 # Import DI container
 from app.di_container import get_service_communication

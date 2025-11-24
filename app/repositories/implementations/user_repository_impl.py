@@ -7,8 +7,8 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.models.user import User, UserRole, UserStatus
-from app.repositories.interfaces.UserRepository import UserRepository
-from app.utils.Exceptions import DatabaseError, NotFoundError
+from app.repositories.interfaces.user_repository import UserRepository
+from app.utils.exceptions import DatabaseError, NotFoundError
 
 
 class UserRepositoryImpl(UserRepository):

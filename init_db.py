@@ -11,7 +11,7 @@ os.environ['DEPLOYMENT_MODE'] = 'monolithic'
 os.environ['DEPLOYMENT_LAYER'] = 'monolithic'
 
 from app import create_app
-from app.Extensions import db
+from app.extensions import db
 from app.models.user import User, UserRole, UserStatus
 
 def init_database():

@@ -5,9 +5,9 @@ Create Flask application using Factory Pattern
 from flask import Flask
 from flask_cors import CORS
 
-from app.Config import get_config
-from app.Extensions import db, migrate, ma, limiter
-from app.Container import Container
+from app.config import get_config
+from app.extensions import db, migrate, ma, limiter
+from app.container import Container
 
 
 def create_app(config_name: str = 'development') -> Flask:
@@ -91,8 +91,8 @@ def register_blueprints(app: Flask) -> None:
 
 def register_error_handlers(app: Flask) -> None:
     """Register global error handlers"""
-    from app.utils.Exceptions import APIException
-    from app.utils.Response import error_response
+    from app.utils.exceptions import APIException
+    from app.utils.response import error_response
 
     @app.errorhandler(APIException)
     def handle_api_exception(error):

@@ -7,8 +7,8 @@ from typing import List, Optional, Callable
 from flask import request, g
 
 from app.models.user import User, UserRole
-from app.utils.Exceptions import AuthenticationError, AuthorizationError
-from app.utils.Response import error_response
+from app.utils.exceptions import AuthenticationError, AuthorizationError
+from app.utils.response import error_response
 
 
 def token_required(f: Callable) -> Callable:
@@ -51,10 +51,10 @@ def token_required(f: Callable) -> Callable:
 
         # Validate token（使用 AuthService）
         try:
-            from app.repositories.implementations.UserRepositoryImpl import UserRepositoryImpl
-            from app.repositories.implementations.OAuthTokenRepositoryImpl import OAuthTokenRepositoryImpl
-            from app.services.implementations.AuthServiceImpl import AuthServiceImpl
-            from app.Extensions import db
+            from app.repositories.implementations.user_repository_impl import UserRepositoryImpl
+            from app.repositories.implementations.oauth_token_repository_impl import OAuthTokenRepositoryImpl
+            from app.services.implementations.auth_service_impl import AuthServiceImpl
+            from app.extensions import db
 
             user_repo = UserRepositoryImpl(db.session)
             token_repo = OAuthTokenRepositoryImpl(db.session)
@@ -210,10 +210,10 @@ def optional_token(f: Callable) -> Callable:
             try:
                 token_type, token = auth_header.split(' ')
                 if token_type.lower() == 'bearer':
-                    from app.repositories.implementations.UserRepositoryImpl import UserRepositoryImpl
-                    from app.repositories.implementations.OAuthTokenRepositoryImpl import OAuthTokenRepositoryImpl
-                    from app.services.implementations.AuthServiceImpl import AuthServiceImpl
-                    from app.Extensions import db
+                    from app.repositories.implementations.user_repository_impl import UserRepositoryImpl
+                    from app.repositories.implementations.oauth_token_repository_impl import OAuthTokenRepositoryImpl
+                    from app.services.implementations.auth_service_impl import AuthServiceImpl
+                    from app.extensions import db
 
                     user_repo = UserRepositoryImpl(db.session)
                     token_repo = OAuthTokenRepositoryImpl(db.session)

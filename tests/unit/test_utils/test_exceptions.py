@@ -4,7 +4,7 @@ Tests for custom exception classes
 """
 import pytest
 
-from app.utils.Exceptions import (
+from app.utils.exceptions import (
     APIException,
     ValidationError,
     AuthenticationError,

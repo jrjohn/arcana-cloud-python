@@ -7,7 +7,7 @@ from typing import Optional
 from sqlalchemy import String, Integer, DateTime, Text, ForeignKey, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.Extensions import db
+from app.extensions import db
 
 
 class OAuthToken(db.Model):

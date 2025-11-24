@@ -8,8 +8,8 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from app.models.oauth_token import OAuthToken
-from app.repositories.interfaces.OAuthTokenRepository import OAuthTokenRepository
-from app.utils.Exceptions import DatabaseError, NotFoundError
+from app.repositories.interfaces.oauth_token_repository import OAuthTokenRepository
+from app.utils.exceptions import DatabaseError, NotFoundError
 
 
 class OAuthTokenRepositoryImpl(OAuthTokenRepository):

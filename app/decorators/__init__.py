@@ -1,10 +1,10 @@
 """Decorators package"""
-from app.decorators.AuthDecorators import (
+from app.decorators.auth_decorators import (
     token_required,
     permission_required,
     role_required
 )
-from app.decorators.ValidationDecorators import validate_schema
+from app.decorators.validation_decorators import validate_schema
 
 __all__ = [
     'token_required',

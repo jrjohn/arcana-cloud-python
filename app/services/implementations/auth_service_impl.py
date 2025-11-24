@@ -10,10 +10,10 @@ import jwt
 
 from app.models.user import User, UserStatus
 from app.models.oauth_token import OAuthToken
-from app.repositories.interfaces.UserRepository import UserRepository
-from app.repositories.interfaces.OAuthTokenRepository import OAuthTokenRepository
-from app.services.interfaces.AuthService import AuthService
-from app.utils.Exceptions import (
+from app.repositories.interfaces.user_repository import UserRepository
+from app.repositories.interfaces.oauth_token_repository import OAuthTokenRepository
+from app.services.interfaces.auth_service import AuthService
+from app.utils.exceptions import (
     AuthenticationError,
     ValidationError,
     NotFoundError,
@@ -252,7 +252,7 @@ class AuthServiceImpl(AuthService):
         """User registration"""
         # 使用 UserService 的邏輯Create user（需要注入 UserService）
         # 這裡簡化實現，直接Create user
-        from app.services.implementations.UserServiceImpl import UserServiceImpl
+        from app.services.implementations.user_service_impl import UserServiceImpl
 
         # Check user是否已存在
         if self.user_repository.existsByUsername(username):

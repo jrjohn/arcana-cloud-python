@@ -174,9 +174,9 @@ class CommunicationFactory:
             # Use direct communication (monolithic mode or service layer in layered mode)
             if service_instance is None:
                 # Legacy behavior: create dependencies internally
-                from app.services.implementations.UserServiceImpl import UserServiceImpl
-                from app.repositories.implementations.UserRepositoryImpl import UserRepositoryImpl
-                from app.Extensions import db
+                from app.services.implementations.user_service_impl import UserServiceImpl
+                from app.repositories.implementations.user_repository_impl import UserRepositoryImpl
+                from app.extensions import db
 
                 user_repo = UserRepositoryImpl(db.session)
                 service_instance = UserServiceImpl(user_repo)
@@ -244,8 +244,8 @@ class CommunicationFactory:
             # Use direct communication
             if repository_instance is None:
                 # Legacy behavior: create dependencies internally
-                from app.repositories.implementations.UserRepositoryImpl import UserRepositoryImpl
-                from app.Extensions import db
+                from app.repositories.implementations.user_repository_impl import UserRepositoryImpl
+                from app.extensions import db
 
                 repository_instance = UserRepositoryImpl(db.session)
 

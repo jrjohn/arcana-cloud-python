@@ -1,5 +1,5 @@
 """Utils package"""
-from app.utils.Exceptions import (
+from app.utils.exceptions import (
     APIException,
     ValidationError,
     AuthenticationError,
@@ -10,7 +10,7 @@ from app.utils.Exceptions import (
     ServiceUnavailableError,
     DatabaseError
 )
-from app.utils.Response import (
+from app.utils.response import (
     success_response,
     error_response,
     paginated_response

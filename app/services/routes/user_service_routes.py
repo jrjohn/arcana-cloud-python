@@ -7,7 +7,7 @@ from typing import Optional
 
 from app.di_container import get_user_service as get_service_from_container
 from app.models.user import UserRole, UserStatus
-from app.utils.Exceptions import APIException, NotFoundError
+from app.utils.exceptions import APIException, NotFoundError
 
 # Create blueprint for service layer internal API
 user_service_bp = Blueprint('user_service', __name__, url_prefix='/internal/users')

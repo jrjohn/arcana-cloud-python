@@ -8,7 +8,7 @@ from datetime import datetime
 
 from app.grpc_protos import user_service_pb2, user_service_pb2_grpc, common_pb2
 from app.di_container import get_user_service
-from app.utils.Exceptions import APIException, NotFoundError, ConflictError, ValidationError, AuthenticationError
+from app.utils.exceptions import APIException, NotFoundError, ConflictError, ValidationError, AuthenticationError
 from app.models.user import UserRole, UserStatus
 
 

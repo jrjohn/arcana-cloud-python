@@ -6,9 +6,9 @@ import re
 from typing import Optional, List, Dict, Any
 
 from app.models.user import User, UserRole, UserStatus
-from app.repositories.interfaces.UserRepository import UserRepository
-from app.services.interfaces.UserService import UserService
-from app.utils.Exceptions import (
+from app.repositories.interfaces.user_repository import UserRepository
+from app.services.interfaces.user_service import UserService
+from app.utils.exceptions import (
     ValidationError,
     NotFoundError,
     ConflictError,

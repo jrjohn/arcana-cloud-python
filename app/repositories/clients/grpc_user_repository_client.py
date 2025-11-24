@@ -4,7 +4,7 @@ Wraps GRPCRepositoryCommunication to provide repository interface
 """
 import os
 from typing import List, Tuple, Optional
-from app.repositories.interfaces.UserRepository import UserRepository
+from app.repositories.interfaces.user_repository import UserRepository
 from app.models.user import User, UserRole, UserStatus
 from app.communication import CommunicationFactory
 

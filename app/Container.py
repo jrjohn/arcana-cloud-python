@@ -4,7 +4,7 @@ Manages all services and repository dependencies using dependency-injector
 """
 from dependency_injector import containers, providers
 
-from app.Extensions import db
+from app.extensions import db
 
 
 class Container(containers.DeclarativeContainer):
@@ -19,8 +19,8 @@ class Container(containers.DeclarativeContainer):
     )
 
     # ==================== Repositories ====================
-    from app.repositories.implementations.UserRepositoryImpl import UserRepositoryImpl
-    from app.repositories.implementations.OAuthTokenRepositoryImpl import OAuthTokenRepositoryImpl
+    from app.repositories.implementations.user_repository_impl import UserRepositoryImpl
+    from app.repositories.implementations.oauth_token_repository_impl import OAuthTokenRepositoryImpl
 
     user_repository = providers.Factory(
         UserRepositoryImpl,
@@ -33,8 +33,8 @@ class Container(containers.DeclarativeContainer):
     )
 
     # ==================== Services ====================
-    from app.services.implementations.UserServiceImpl import UserServiceImpl
-    from app.services.implementations.AuthServiceImpl import AuthServiceImpl
+    from app.services.implementations.user_service_impl import UserServiceImpl
+    from app.services.implementations.auth_service_impl import AuthServiceImpl
 
     user_service = providers.Factory(
         UserServiceImpl,
@@ -48,7 +48,7 @@ class Container(containers.DeclarativeContainer):
     )
 
     # ==================== Service Clients (for distributed mode) ====================
-    from app.services.clients.ServiceClient import ServiceClient
+    from app.services.clients.service_client import ServiceClient
 
     user_service_client = providers.Factory(
         ServiceClient,

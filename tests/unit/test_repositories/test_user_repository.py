@@ -6,9 +6,9 @@ import pytest
 from unittest.mock import Mock, MagicMock, patch
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
-from app.repositories.implementations.UserRepositoryImpl import UserRepositoryImpl
+from app.repositories.implementations.user_repository_impl import UserRepositoryImpl
 from app.models.user import User, UserRole, UserStatus
-from app.utils.Exceptions import DatabaseError, NotFoundError
+from app.utils.exceptions import DatabaseError, NotFoundError
 
 
 class TestUserRepository:

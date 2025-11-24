@@ -5,11 +5,11 @@ Authentication API controller
 from flask import request, g
 
 from app.controllers import auth_bp
-from app.decorators.AuthDecorators import token_required
-from app.decorators.ValidationDecorators import validate_schema
-from app.schemas.AuthSchema import LoginSchema, RegisterSchema, RefreshTokenSchema
-from app.utils.Response import success_response, error_response
-from app.utils.Exceptions import APIException
+from app.decorators.auth_decorators import token_required
+from app.decorators.validation_decorators import validate_schema
+from app.schemas.auth_schema import LoginSchema, RegisterSchema, RefreshTokenSchema
+from app.utils.response import success_response, error_response
+from app.utils.exceptions import APIException
 
 # Import DI container
 from app.di_container import get_auth_service

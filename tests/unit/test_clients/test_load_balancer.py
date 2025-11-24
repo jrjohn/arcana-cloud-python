@@ -6,7 +6,7 @@ import pytest
 import threading
 from unittest.mock import Mock, patch
 
-from app.services.clients.LoadBalancer import LoadBalancer
+from app.services.clients.load_balancer import LoadBalancer
 
 
 class TestLoadBalancer:

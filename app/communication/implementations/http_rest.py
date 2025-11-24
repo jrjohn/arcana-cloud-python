@@ -15,7 +15,7 @@ from app.communication.interfaces import (
     CommunicationProtocol,
     DeploymentMode
 )
-from app.utils.Exceptions import (
+from app.utils.exceptions import (
     APIException, NotFoundError, ConflictError,
     ValidationError, AuthenticationError, AuthorizationError
 )

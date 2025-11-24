@@ -7,8 +7,8 @@ from typing import Callable, Type
 from flask import request
 from marshmallow import Schema, ValidationError as MarshmallowValidationError
 
-from app.utils.Exceptions import ValidationError
-from app.utils.Response import error_response
+from app.utils.exceptions import ValidationError
+from app.utils.response import error_response
 
 
 def validate_schema(schema_class: Type[Schema], location: str = 'json') -> Callable:

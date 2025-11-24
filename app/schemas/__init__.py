@@ -1,11 +1,11 @@
 """Schemas package"""
-from app.schemas.UserSchema import (
+from app.schemas.user_schema import (
     UserSchema,
     UserCreateSchema,
     UserUpdateSchema,
     ChangePasswordSchema
 )
-from app.schemas.AuthSchema import (
+from app.schemas.auth_schema import (
     LoginSchema,
     RegisterSchema,
     RefreshTokenSchema

@@ -8,7 +8,7 @@ from unittest.mock import Mock, patch
 from datetime import datetime
 from flask import Flask
 
-from app.utils.Response import (
+from app.utils.response import (
     success_response,
     error_response,
     paginated_response,

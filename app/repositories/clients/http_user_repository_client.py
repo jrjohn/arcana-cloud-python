@@ -9,9 +9,9 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from app.repositories.interfaces.UserRepository import UserRepository
+from app.repositories.interfaces.user_repository import UserRepository
 from app.models.user import User, UserRole, UserStatus
-from app.utils.Exceptions import DatabaseError, NotFoundError
+from app.utils.exceptions import DatabaseError, NotFoundError
 
 
 class HTTPUserRepositoryClient(UserRepository):

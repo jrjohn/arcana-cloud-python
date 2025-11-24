@@ -3,8 +3,8 @@ Scheduled Tasks
 """
 import logging
 from datetime import datetime
-from app.tasks.CeleryWorker import celery_app
-from app.tasks.TaskDecorators import single_instance_task
+from app.tasks.celery_worker import celery_app
+from app.tasks.task_decorators import single_instance_task
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +23,8 @@ def cleanup_expired_tokens(self):
         app = create_app()
 
         with app.app_context():
-            from app.repositories.implementations.OAuthTokenRepositoryImpl import OAuthTokenRepositoryImpl
-            from app.Extensions import db
+            from app.repositories.implementations.oauth_token_repository_impl import OAuthTokenRepositoryImpl
+            from app.extensions import db
 
             token_repo = OAuthTokenRepositoryImpl(db.session)
             deleted_count = token_repo.deleteExpired()
@@ -56,7 +56,7 @@ def health_check_task(self):
         app = create_app()
 
         with app.app_context():
-            from app.Extensions import db
+            from app.extensions import db
 
             # Check database connection
             db.session.execute('SELECT 1')
@@ -87,9 +87,9 @@ def generate_statistics(self):
         app = create_app()
 
         with app.app_context():
-            from app.repositories.implementations.UserRepositoryImpl import UserRepositoryImpl
-            from app.repositories.implementations.OAuthTokenRepositoryImpl import OAuthTokenRepositoryImpl
-            from app.Extensions import db
+            from app.repositories.implementations.user_repository_impl import UserRepositoryImpl
+            from app.repositories.implementations.oauth_token_repository_impl import OAuthTokenRepositoryImpl
+            from app.extensions import db
 
             user_repo = UserRepositoryImpl(db.session)
             token_repo = OAuthTokenRepositoryImpl(db.session)

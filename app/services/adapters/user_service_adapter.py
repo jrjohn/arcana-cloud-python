@@ -6,12 +6,12 @@ import os
 from typing import Optional, Dict, Any, List
 from abc import ABC, abstractmethod
 
-from app.services.clients.ServiceClient import ServiceClient
-from app.services.implementations.UserServiceImpl import UserServiceImpl
-from app.repositories.implementations.UserRepositoryImpl import UserRepositoryImpl
-from app.Extensions import db
+from app.services.clients.service_client import ServiceClient
+from app.services.implementations.user_service_impl import UserServiceImpl
+from app.repositories.implementations.user_repository_impl import UserRepositoryImpl
+from app.extensions import db
 from app.models.user import User, UserRole, UserStatus
-from app.utils.Exceptions import NotFoundError, APIException
+from app.utils.exceptions import NotFoundError, APIException
 
 
 class UserServiceInterface(ABC):

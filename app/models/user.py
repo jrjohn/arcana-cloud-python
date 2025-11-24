@@ -9,7 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 import enum
 
-from app.Extensions import db
+from app.extensions import db
 
 
 class UserRole(enum.Enum):

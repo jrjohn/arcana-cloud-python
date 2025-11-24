@@ -4,7 +4,7 @@ Manages dependency injection for the entire application
 """
 from typing import Dict, Any, Optional, Callable
 from flask import Flask
-from app.Extensions import db
+from app.extensions import db
 
 
 class DIContainer:
@@ -140,18 +140,18 @@ def initialize_dependencies(app: Flask):
             # In microservices mode (Service/Controller layer), use gRPC or HTTP client
             communication_protocol = os.getenv('COMMUNICATION_PROTOCOL', 'http').lower()
             if communication_protocol == 'grpc':
-                from app.repositories.clients.GRPCUserRepositoryClient import GRPCUserRepositoryClient
+                from app.repositories.clients.grpc_user_repository_client import GRPCUserRepositoryClient
                 return GRPCUserRepositoryClient()
             else:
-                from app.repositories.clients.HTTPUserRepositoryClient import HTTPUserRepositoryClient
+                from app.repositories.clients.http_user_repository_client import HTTPUserRepositoryClient
                 return HTTPUserRepositoryClient()
         else:
             # In monolithic/layered mode OR repository layer, use direct database access
-            from app.repositories.implementations.UserRepositoryImpl import UserRepositoryImpl
+            from app.repositories.implementations.user_repository_impl import UserRepositoryImpl
             return UserRepositoryImpl(container.get('db_session'))
 
     def create_oauth_token_repository():
-        from app.repositories.implementations.OAuthTokenRepositoryImpl import OAuthTokenRepositoryImpl
+        from app.repositories.implementations.oauth_token_repository_impl import OAuthTokenRepositoryImpl
         return OAuthTokenRepositoryImpl(container.get('db_session'))
 
     container.register_singleton('user_repository', create_user_repository)
@@ -159,14 +159,14 @@ def initialize_dependencies(app: Flask):
 
     # Register services
     def create_user_service():
-        from app.services.implementations.UserServiceImpl import UserServiceImpl
+        from app.services.implementations.user_service_impl import UserServiceImpl
         return UserServiceImpl(container.get('user_repository'))
 
     def create_auth_service():
         # Auth service is always local - uses direct implementation with repositories
         # In microservices mode, it uses gRPC repository clients
         # This keeps authentication centralized in the controller layer
-        from app.services.implementations.AuthServiceImpl import AuthServiceImpl
+        from app.services.implementations.auth_service_impl import AuthServiceImpl
         return AuthServiceImpl(
             container.get('user_repository'),
             container.get('oauth_token_repository')

@@ -6,10 +6,10 @@ Simplified REST API for user management without authentication
 from flask import Blueprint, request, jsonify
 from datetime import datetime
 
-from app.schemas.UserSchema import PublicUserCreateSchema, PublicUserUpdateSchema
-from app.decorators.ValidationDecorators import validate_schema, validate_pagination
+from app.schemas.user_schema import PublicUserCreateSchema, PublicUserUpdateSchema
+from app.decorators.validation_decorators import validate_schema, validate_pagination
 from app.models.user import User
-from app.utils.Exceptions import APIException, NotFoundError
+from app.utils.exceptions import APIException, NotFoundError
 
 # Import DI container
 from app.di_container import get_service_communication
