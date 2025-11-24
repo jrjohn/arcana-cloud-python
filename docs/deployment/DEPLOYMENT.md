@@ -135,7 +135,7 @@ The Arcana Cloud deployment system supports three distinct deployment architectu
 
 ### For Build Scripts
 
-- Python 3.9+
+- Python 3.14+
 - PyYAML (`pip install pyyaml`)
 - Git (for version tracking)
 

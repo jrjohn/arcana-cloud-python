@@ -1,7 +1,7 @@
 # Arcana Cloud Python - Enterprise Flask Microservices Platform
 
-[![Python](https://img.shields.io/badge/python-3.13-blue.svg?logo=python&logoColor=white)](https://www.python.org/downloads/)
-[![Flask](https://img.shields.io/badge/flask-3.1.0-green.svg?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![Python](https://img.shields.io/badge/python-3.14-blue.svg?logo=python&logoColor=white)](https://www.python.org/downloads/)
+[![Flask](https://img.shields.io/badge/flask-3.1.2-green.svg?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
 [![gRPC](https://img.shields.io/badge/gRPC-1.68-00ADD8.svg?logo=grpc&logoColor=white)](https://grpc.io/)
 [![Architecture](https://img.shields.io/badge/architecture-microservices-orange.svg)]()
 [![Tests](https://img.shields.io/badge/tests-83%2F83_passing-brightgreen.svg)]()
@@ -64,7 +64,7 @@ Enterprise-grade RESTful API cloud platform with **gRPC/HTTP dual-protocol suppo
                                  │
 ┌────────────────────────────────▼────────────────────────────────────────┐
 │                    Arcana Cloud Python Backend                          │
-│  Flask 3.1.0 | Python 3.13 | Dual-Protocol (HTTP REST + gRPC)          │
+│  Flask 3.1.2 | Python 3.14 | Dual-Protocol (HTTP REST + gRPC)          │
 │                                                                          │
 │  ┌──────────────┐      ┌──────────────┐      ┌──────────────┐          │
 │  │ Controller   │─────▶│   Service    │─────▶│  Repository  │          │
@@ -123,10 +123,10 @@ Enterprise-grade RESTful API cloud platform with **gRPC/HTTP dual-protocol suppo
 ## 📋 Technology Stack
 
 ### Core Framework
-- **Python**: 3.13 (Latest stable)
-- **Flask**: 3.1.0 with Application Factory pattern
-- **SQLAlchemy**: 2.0.35 (ORM with type hints)
-- **Marshmallow**: 3.22.0 (Schema validation)
+- **Python**: 3.14.0 (Latest stable)
+- **Flask**: 3.1.2 with Application Factory pattern
+- **SQLAlchemy**: 2.0.44 (ORM with type hints)
+- **Marshmallow**: 4.1.0 (Schema validation)
 
 ### Communication Layers
 - **HTTP REST**: Flask RESTful endpoints
@@ -162,7 +162,7 @@ Enterprise-grade RESTful API cloud platform with **gRPC/HTTP dual-protocol suppo
 
 ### Prerequisites
 
-- Python 3.13+
+- Python 3.14+
 - MySQL 8.0+ or PostgreSQL 16+
 - Redis 7.0+
 - Docker & Docker Compose (optional)
@@ -177,7 +177,7 @@ git clone https://github.com/jrjohn/arcana-cloud-python.git
 cd arcana-cloud-python
 
 # Create virtual environment
-python3.13 -m venv venv
+python3.14 -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 
 # Install dependencies
@@ -698,7 +698,7 @@ def get_users():
 
 ### Prerequisites
 
-- Python 3.13+
+- Python 3.14+
 - MySQL 8.0+
 - Redis 7.0+
 
@@ -710,7 +710,7 @@ git clone https://github.com/jrjohn/arcana-cloud-python.git
 cd arcana-cloud-python
 
 # Create virtual environment
-python3.13 -m venv venv
+python3.14 -m venv venv
 source venv/bin/activate
 
 # Install dependencies
@@ -829,6 +829,6 @@ copies or substantial portions of the Software.
 
 ---
 
-**Built with ❤️ using Flask 3.1.0, Python 3.13, gRPC, and modern cloud-native practices**
+**Built with ❤️ using Flask 3.1.2, Python 3.14, gRPC, and modern cloud-native practices**
 
 **Project Rank: A+ (92/100)** | **Tests: 83/83 Passing** | **Coverage: 100%** | **gRPC Performance: 2.78x Faster**

@@ -84,6 +84,8 @@ def sample_user(app, db) -> User:
             existing_user.setPassword('TestPass123')  # Use setPassword() method to properly hash
             existing_user.status = UserStatus.ACTIVE  # Ensure active
             existing_user.is_active = True
+            existing_user.first_name = 'Test'
+            existing_user.last_name = 'User'
             db.session.commit()
             db.session.refresh(existing_user)
             return existing_user
@@ -93,7 +95,9 @@ def sample_user(app, db) -> User:
             username='testuser',
             email='test@example.com',
             password='TestPass123',
-            role=UserRole.USER
+            role=UserRole.USER,
+            first_name='Test',
+            last_name='User'
         )
 
         db.session.add(user)
@@ -115,6 +119,8 @@ def admin_user(app, db) -> User:
             existing_user.setPassword('AdminPass123')  # Use setPassword() method to properly hash
             existing_user.status = UserStatus.ACTIVE  # Ensure active
             existing_user.is_active = True
+            existing_user.first_name = 'Admin'
+            existing_user.last_name = 'User'
             db.session.commit()
             db.session.refresh(existing_user)
             return existing_user
@@ -124,7 +130,9 @@ def admin_user(app, db) -> User:
             username='admin',
             email='admin@example.com',
             password='AdminPass123',
-            role=UserRole.ADMIN
+            role=UserRole.ADMIN,
+            first_name='Admin',
+            last_name='User'
         )
 
         db.session.add(user)

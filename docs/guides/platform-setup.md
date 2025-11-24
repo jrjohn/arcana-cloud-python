@@ -2,7 +2,7 @@
 
 ## 版本要求
 - **Python**: 3.14.0 (最新穩定版)
-- **Flask**: 3.1.0+ (最新版)
+- **Flask**: 3.1.2+ (最新版)
 - **SQLAlchemy**: 2.0.35+ (最新 2.0 系列)
 - **Celery**: 5.4.0+ (最新版)
 - **pytest**: 8.3.4+ (最新版)
@@ -16,7 +16,7 @@
 
 ### 1. 技術棧
 - **Python 版本**: Python 3.14.0 (最新版)
-- **框架**: Flask 3.1.0+ (最新版) + Flask-RESTful
+- **框架**: Flask 3.1.2+ (最新版) + Flask-RESTful
 - **認證**: OAuth2 + JWT Token (Annotation 驗證)
 - **資料庫**: 支援 MySQL、PostgreSQL 等關聯式資料庫
 - **ORM**: SQLAlchemy 2.0+ (最新版)
@@ -1997,7 +1997,7 @@ GET    /ready                       # 就緒檢查
 # Python 3.14.0 compatible packages (最新版)
 
 # Flask 框架與擴展
-Flask==3.1.0
+Flask==3.1.2
 Flask-RESTful==0.3.10
 Flask-SQLAlchemy==3.1.1
 Flask-Migrate==4.0.7
