@@ -1,6 +1,6 @@
 # Arcana Cloud Python - Enterprise Flask Microservices Platform
 
-[![Architecture Rating](https://img.shields.io/badge/Architecture%20Rating-⭐⭐⭐⭐⭐%209.4%2F10-gold.svg)](#architecture-evaluation)
+[![Architecture Rating](https://img.shields.io/badge/Architecture%20Rating-⭐⭐⭐⭐⭐%209.2%2F10-gold.svg)](#architecture-evaluation)
 [![Python](https://img.shields.io/badge/python-3.14-blue.svg?logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![Flask](https://img.shields.io/badge/flask-3.1.2-green.svg?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
 [![gRPC](https://img.shields.io/badge/gRPC-1.68-00ADD8.svg?logo=grpc&logoColor=white)](https://grpc.io/)
