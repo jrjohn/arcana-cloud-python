@@ -56,6 +56,10 @@ spec:
       port: 5001
       targetPort: 5001
       protocol: TCP
+    - name: grpc
+      port: 50051
+      targetPort: 50051
+      protocol: TCP
     - name: stats
       port: 9191
       targetPort: 9191
@@ -85,6 +89,10 @@ spec:
     - name: http
       port: 5002
       targetPort: 5002
+      protocol: TCP
+    - name: grpc
+      port: 50052
+      targetPort: 50052
       protocol: TCP
     - name: stats
       port: 9191

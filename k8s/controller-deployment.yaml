@@ -74,12 +74,26 @@ spec:
 
           env:
             # Deployment Configuration
+            - name: DEPLOYMENT_MODE
+              value: "microservices"
             - name: DEPLOYMENT_LAYER
               value: "controller"
+            - name: COMMUNICATION_PROTOCOL
+              value: "grpc"
             - name: SERVICE_NAME
               value: "arcana-cloud-controller"
             - name: SERVICE_PORT
               value: "5000"
+
+            # gRPC Service URLs
+            - name: SERVICE_URL
+              value: "service-layer:50051"
+            - name: REPOSITORY_URL
+              value: "repository-layer:50052"
+            - name: USER_SERVICE_URLS
+              value: "service-layer:50051"
+            - name: USER_REPO_URLS
+              value: "repository-layer:50052"
 
             # From ConfigMap
             - name: FLASK_ENV
@@ -97,16 +111,8 @@ spec:
                 configMapKeyRef:
                   name: arcana-cloud-config
                   key: LOG_FORMAT
-            - name: USER_SERVICE_URLS
-              valueFrom:
-                configMapKeyRef:
-                  name: arcana-cloud-config
-                  key: USER_SERVICE_URLS
             - name: AUTH_SERVICE_URLS
-              valueFrom:
-                configMapKeyRef:
-                  name: arcana-cloud-config
-                  key: AUTH_SERVICE_URLS
+              value: "service-layer:50051"
             - name: REDIS_HOST
               valueFrom:
                 configMapKeyRef:

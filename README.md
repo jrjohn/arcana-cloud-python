@@ -10,7 +10,7 @@
 [![PEP 8](https://img.shields.io/badge/code_style-PEP_8-blue.svg)](https://peps.python.org/pep-0008/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Enterprise-grade RESTful API cloud platform with **gRPC/HTTP dual-protocol support**, supporting three flexible deployment architectures (Monolithic, Layered, Microservices).
+Enterprise-grade cloud platform with **gRPC-first architecture** (2.78x faster than HTTP REST), supporting dual-protocol communication and three flexible deployment modes (Monolithic, Layered, Microservices).
 
 ---
 
@@ -64,7 +64,7 @@ Enterprise-grade RESTful API cloud platform with **gRPC/HTTP dual-protocol suppo
                                  │
 ┌────────────────────────────────▼────────────────────────────────────────┐
 │                    Arcana Cloud Python Backend                          │
-│  Flask 3.1.2 | Python 3.14 | Dual-Protocol (HTTP REST + gRPC)          │
+│  Flask 3.1.2 | Python 3.14 | gRPC-first + HTTP REST (dual-protocol)    │
 │                                                                          │
 │  ┌──────────────┐      ┌──────────────┐      ┌──────────────┐          │
 │  │ Controller   │─────▶│   Service    │─────▶│  Repository  │          │
@@ -87,7 +87,7 @@ Enterprise-grade RESTful API cloud platform with **gRPC/HTTP dual-protocol suppo
 ### **Key Features**
 
 - ✅ **3-Layer Clean Architecture** - Controller/Service/Repository with interface-driven design
-- ✅ **Dual-Protocol Support** - HTTP REST + gRPC (6.30x faster for point queries)
+- ✅ **gRPC-First Architecture** - gRPC default with HTTP REST support (6.30x faster for point queries)
 - ✅ **Flexible Deployment** - Monolithic, Layered, and Microservices modes
 - ✅ **Type Safety** - Full type hints with Python 3.13, mypy-compliant
 - ✅ **PEP 8 Compliant** - Professional Python code standards (snake_case modules)
@@ -113,7 +113,7 @@ Enterprise-grade RESTful API cloud platform with **gRPC/HTTP dual-protocol suppo
 - ✅ 100% Test Pass Rate (83/83 tests)
 - ✅ gRPC Performance: 2.78x average speedup, 6.30x for point queries
 - ✅ Full PEP 8 Compliance
-- ✅ Multi-Protocol Support (HTTP REST + gRPC)
+- ✅ gRPC-First Communication (2.78x faster, with HTTP REST fallback)
 - ✅ Flexible Deployment (3 modes)
 
 📖 **[View Detailed Assessment](docs/PROJECT-RANKING.md)**
@@ -129,9 +129,9 @@ Enterprise-grade RESTful API cloud platform with **gRPC/HTTP dual-protocol suppo
 - **Marshmallow**: 4.1.0 (Schema validation)
 
 ### Communication Layers
-- **HTTP REST**: Flask RESTful endpoints
-- **gRPC**: 1.68.0 with Protocol Buffers 5.28.2
-- **Performance**: gRPC 2.78x faster average, 6.30x for point queries
+- **gRPC (Default)**: 1.68.0 with Protocol Buffers 5.28.2 - 2.78x faster on average
+- **HTTP REST**: Flask RESTful endpoints for external clients
+- **Performance**: gRPC delivers 6.30x speedup for point queries
 
 ### Authentication & Security
 - **OAuth2 + JWT**: Token-based authentication (Access + Refresh tokens)
@@ -221,8 +221,8 @@ Key environment variables in `.env`:
 DEPLOYMENT_MODE=monolithic          # monolithic, layered, microservices
 DEPLOYMENT_LAYER=controller         # controller, service, repository
 
-# Communication Protocol
-COMMUNICATION_PROTOCOL=http         # http, grpc
+# Communication Protocol (gRPC is default for better performance)
+COMMUNICATION_PROTOCOL=grpc         # grpc (default), http
 
 # Database
 DATABASE_URL=mysql+pymysql://user:pass@localhost:3306/arcana_cloud
@@ -236,9 +236,9 @@ ACCESS_TOKEN_EXPIRES=3600
 REFRESH_TOKEN_EXPIRES=2592000
 
 # Service URLs (for layered/microservices)
-SERVICE_URL=http://localhost:5001          # or localhost:50051 for gRPC
-REPOSITORY_URL=http://localhost:5002       # or localhost:50052 for gRPC
-CONTROLLER_URL=http://localhost:5003
+SERVICE_URL=localhost:50051                # gRPC (default) or http://localhost:5001
+REPOSITORY_URL=localhost:50052             # gRPC (default) or http://localhost:5002
+CONTROLLER_URL=http://localhost:5003       # HTTP REST API Gateway
 ```
 
 ### Verify Installation
@@ -295,13 +295,15 @@ python wsgi.py
 # Terminal 2: Service Layer
 export DEPLOYMENT_MODE=layered
 export DEPLOYMENT_LAYER=service
-export REPOSITORY_URL=http://localhost:5002
+export COMMUNICATION_PROTOCOL=grpc
+export REPOSITORY_URL=localhost:50052
 python wsgi.py
 
 # Terminal 3: Controller Layer
 export DEPLOYMENT_MODE=layered
 export DEPLOYMENT_LAYER=controller
-export SERVICE_URL=http://localhost:5001
+export COMMUNICATION_PROTOCOL=grpc
+export SERVICE_URL=localhost:50051
 python wsgi.py
 ```
 
@@ -333,30 +335,12 @@ kubectl apply -f .
 
 ## Communication Protocols
 
-### HTTP REST (Default)
+### gRPC (Default - High Performance)
 
-Standard RESTful API with JSON payloads.
-
-```bash
-# Set environment
-export COMMUNICATION_PROTOCOL=http
-export SERVICE_URL=http://localhost:5001
-export REPOSITORY_URL=http://localhost:5002
-```
-
-**Use when:**
-- Standard web clients
-- Human-readable debugging
-- Browser compatibility required
-
----
-
-### gRPC (High Performance)
-
-Binary protocol using Protocol Buffers for efficient inter-service communication.
+Binary protocol using Protocol Buffers for efficient inter-service communication. **2.78x faster on average, 6.30x for point queries.**
 
 ```bash
-# Set environment
+# Set environment (default)
 export COMMUNICATION_PROTOCOL=grpc
 export SERVICE_URL=localhost:50051
 export REPOSITORY_URL=localhost:50052
@@ -364,12 +348,34 @@ export REPOSITORY_URL=localhost:50052
 # Start services
 ./scripts/start-grpc-layered.sh        # Layered mode
 ./scripts/start-grpc-microservices.sh  # Microservices mode
+
+# Kubernetes deployment uses gRPC by default
+kubectl apply -f k8s/
+```
+
+**Use when (Recommended):**
+- High performance required (most scenarios)
+- Inter-service communication
+- Streaming needed
+- Production deployments
+
+---
+
+### HTTP REST (Alternative)
+
+Standard RESTful API with JSON payloads. Available for external clients and debugging.
+
+```bash
+# Set environment (if needed)
+export COMMUNICATION_PROTOCOL=http
+export SERVICE_URL=http://localhost:5001
+export REPOSITORY_URL=http://localhost:5002
 ```
 
 **Use when:**
-- High performance required
-- Inter-service communication
-- Streaming needed
+- Human-readable debugging
+- Browser compatibility required
+- External client compatibility needs
 
 ---
 

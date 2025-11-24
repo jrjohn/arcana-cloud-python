@@ -19,6 +19,10 @@ data:
   LOG_FORMAT: "json"
   PYTHONUNBUFFERED: "1"
 
+  # Communication Protocol (gRPC is default for better performance)
+  COMMUNICATION_PROTOCOL: "grpc"
+  DEPLOYMENT_MODE: "microservices"
+
   # Database Configuration
   DB_NAME: "arcana_cloud"
   DB_USER: "arcana"
@@ -45,10 +49,12 @@ data:
   # JWT Configuration
   JWT_ALGORITHM: "HS256"
 
-  # Service Discovery (for layered mode)
-  USER_SERVICE_URLS: "http://service-layer:5001"
-  AUTH_SERVICE_URLS: "http://service-layer:5001"
-  USER_REPO_URLS: "http://repository-layer:5002"
+  # Service Discovery (gRPC endpoints - 2.78x faster than HTTP)
+  USER_SERVICE_URLS: "service-layer:50051"
+  AUTH_SERVICE_URLS: "service-layer:50051"
+  USER_REPO_URLS: "repository-layer:50052"
+  SERVICE_URL: "service-layer:50051"
+  REPOSITORY_URL: "repository-layer:50052"
 
   # Database Pool Configuration (for repository layer)
   SQLALCHEMY_POOL_SIZE: "20"

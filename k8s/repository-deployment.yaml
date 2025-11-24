@@ -68,18 +68,27 @@ spec:
             - name: http
               containerPort: 5002
               protocol: TCP
+            - name: grpc
+              containerPort: 50052
+              protocol: TCP
             - name: stats
               containerPort: 9191
               protocol: TCP
 
           env:
             # Deployment Configuration
+            - name: DEPLOYMENT_MODE
+              value: "microservices"
             - name: DEPLOYMENT_LAYER
               value: "repository"
+            - name: COMMUNICATION_PROTOCOL
+              value: "grpc"
             - name: SERVICE_NAME
               value: "arcana-cloud-repository"
             - name: SERVICE_PORT
               value: "5002"
+            - name: GRPC_PORT
+              value: "50052"
 
             # From ConfigMap
             - name: FLASK_ENV
