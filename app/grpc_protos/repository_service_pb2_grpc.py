@@ -3,6 +3,9 @@
 import grpc
 import warnings
 
+# Constant for unimplemented method message (SonarQube S1192)
+_METHOD_NOT_IMPLEMENTED = 'Method not implemented!'
+
 from app.grpc_protos import common_pb2 as common__pb2
 from app.grpc_protos import repository_service_pb2 as repository__service__pb2
 
@@ -103,78 +106,78 @@ class RepositoryServiceServicer(object):
         """Query users
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details(_METHOD_NOT_IMPLEMENTED)
+        raise NotImplementedError(_METHOD_NOT_IMPLEMENTED)
 
     def GetUserById(self, request, context):
         """Get user by ID
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details(_METHOD_NOT_IMPLEMENTED)
+        raise NotImplementedError(_METHOD_NOT_IMPLEMENTED)
 
     def GetUserByUsername(self, request, context):
         """Get user by username
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details(_METHOD_NOT_IMPLEMENTED)
+        raise NotImplementedError(_METHOD_NOT_IMPLEMENTED)
 
     def GetUserByEmail(self, request, context):
         """Get user by email
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details(_METHOD_NOT_IMPLEMENTED)
+        raise NotImplementedError(_METHOD_NOT_IMPLEMENTED)
 
     def CreateUser(self, request, context):
         """Create user
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details(_METHOD_NOT_IMPLEMENTED)
+        raise NotImplementedError(_METHOD_NOT_IMPLEMENTED)
 
     def UpdateUser(self, request, context):
         """Update user
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details(_METHOD_NOT_IMPLEMENTED)
+        raise NotImplementedError(_METHOD_NOT_IMPLEMENTED)
 
     def DeleteUser(self, request, context):
         """Delete user
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details(_METHOD_NOT_IMPLEMENTED)
+        raise NotImplementedError(_METHOD_NOT_IMPLEMENTED)
 
     def ExistsByUsername(self, request, context):
         """Check if username exists
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details(_METHOD_NOT_IMPLEMENTED)
+        raise NotImplementedError(_METHOD_NOT_IMPLEMENTED)
 
     def ExistsByEmail(self, request, context):
         """Check if email exists
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details(_METHOD_NOT_IMPLEMENTED)
+        raise NotImplementedError(_METHOD_NOT_IMPLEMENTED)
 
     def CountUsers(self, request, context):
         """Count users
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details(_METHOD_NOT_IMPLEMENTED)
+        raise NotImplementedError(_METHOD_NOT_IMPLEMENTED)
 
     def HealthCheck(self, request, context):
         """Health check
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details(_METHOD_NOT_IMPLEMENTED)
+        raise NotImplementedError(_METHOD_NOT_IMPLEMENTED)
 
 
 def add_RepositoryServiceServicer_to_server(servicer, server):

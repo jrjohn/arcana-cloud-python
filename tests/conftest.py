@@ -10,6 +10,14 @@ from app.extensions import db as _db
 from app.models.user import User, UserRole
 from app.models.oauth_token import OAuthToken
 
+# Test constants (SonarQube S1192 - avoid string literal duplication)
+LOGIN_ENDPOINT = LOGIN_ENDPOINT
+REGISTER_ENDPOINT = REGISTER_ENDPOINT
+AUTH_ME_ENDPOINT = AUTH_ME_ENDPOINT
+TEST_USER_EMAIL = TEST_USER_EMAIL
+ADMIN_USER_EMAIL = ADMIN_USER_EMAIL
+CONTENT_TYPE_JSON = CONTENT_TYPE_JSON
+
 
 @pytest.fixture(scope='session')
 def app() -> Flask:
@@ -85,7 +93,7 @@ def sample_user(app, db, client) -> User:
         # In microservices mode, try to log in first
         # If login fails, recreate the user via registration endpoint
         logging.info("[FIXTURE] sample_user: Attempting login in microservices mode")
-        login_response = client.post('/api/v1/auth/login', json={
+        login_response = client.post(LOGIN_ENDPOINT, json={
             'username_or_email': 'testuser',
             'password': 'TestPass123'
         })
@@ -95,9 +103,9 @@ def sample_user(app, db, client) -> User:
         # If login fails, recreate the user via registration
         if login_response.status_code != 200:
             logging.warning(f"[FIXTURE] Login failed, attempting to recreate user via registration")
-            register_response = client.post('/api/v1/auth/register', json={
+            register_response = client.post(REGISTER_ENDPOINT, json={
                 'username': 'testuser',
-                'email': 'test@example.com',
+                'email': TEST_USER_EMAIL,
                 'password': 'TestPass123',
                 'first_name': 'Test',
                 'last_name': 'User'
@@ -106,7 +114,7 @@ def sample_user(app, db, client) -> User:
 
             if register_response.status_code == 201:
                 logging.info("[FIXTURE] User recreated successfully, attempting login again")
-                login_response = client.post('/api/v1/auth/login', json={
+                login_response = client.post(LOGIN_ENDPOINT, json={
                     'username_or_email': 'testuser',
                     'password': 'TestPass123'
                 })
@@ -121,7 +129,7 @@ def sample_user(app, db, client) -> User:
 
             # Get current user to fetch the ID
             logging.info("[FIXTURE] Fetching current user via /api/v1/auth/me")
-            me_response = client.get('/api/v1/auth/me', headers={
+            me_response = client.get(AUTH_ME_ENDPOINT, headers={
                 'Authorization': f'Bearer {access_token}'
             })
 
@@ -138,7 +146,7 @@ def sample_user(app, db, client) -> User:
                     def __init__(self, user_id):
                         self.id = user_id
                         self.username = 'testuser'
-                        self.email = 'test@example.com'
+                        self.email = TEST_USER_EMAIL
                         self.password = 'TestPass123'
                         self.role = UserRole.USER
                         self.first_name = 'Test'
@@ -156,7 +164,7 @@ def sample_user(app, db, client) -> User:
             def __init__(self):
                 self.id = None
                 self.username = 'testuser'
-                self.email = 'test@example.com'
+                self.email = TEST_USER_EMAIL
                 self.password = 'TestPass123'
                 self.role = UserRole.USER
                 self.first_name = 'Test'
@@ -182,7 +190,7 @@ def sample_user(app, db, client) -> User:
         # Create new user if doesn't exist
         user = User(
             username='testuser',
-            email='test@example.com',
+            email=TEST_USER_EMAIL,
             password='TestPass123',
             role=UserRole.USER,
             first_name='Test',
@@ -204,7 +212,7 @@ def admin_user(app, db, client) -> User:
     if deployment_mode == 'microservices':
         # In microservices mode, admin user already exists from fixture population
         # Get user ID by logging in and fetching current user info
-        login_response = client.post('/api/v1/auth/login', json={
+        login_response = client.post(LOGIN_ENDPOINT, json={
             'username_or_email': 'admin',
             'password': 'AdminPass123'
         })
@@ -213,7 +221,7 @@ def admin_user(app, db, client) -> User:
             access_token = login_response.json['data']['access_token']
 
             # Get current user to fetch the ID
-            me_response = client.get('/api/v1/auth/me', headers={
+            me_response = client.get(AUTH_ME_ENDPOINT, headers={
                 'Authorization': f'Bearer {access_token}'
             })
 
@@ -225,7 +233,7 @@ def admin_user(app, db, client) -> User:
                     def __init__(self, user_id):
                         self.id = user_id
                         self.username = 'admin'
-                        self.email = 'admin@example.com'
+                        self.email = ADMIN_USER_EMAIL
                         self.password = 'AdminPass123'
                         self.role = UserRole.ADMIN
                         self.first_name = 'Admin'
@@ -238,7 +246,7 @@ def admin_user(app, db, client) -> User:
             def __init__(self):
                 self.id = None
                 self.username = 'admin'
-                self.email = 'admin@example.com'
+                self.email = ADMIN_USER_EMAIL
                 self.password = 'AdminPass123'
                 self.role = UserRole.ADMIN
                 self.first_name = 'Admin'
@@ -264,7 +272,7 @@ def admin_user(app, db, client) -> User:
         # Create new user if doesn't exist
         user = User(
             username='admin',
-            email='admin@example.com',
+            email=ADMIN_USER_EMAIL,
             password='AdminPass123',
             role=UserRole.ADMIN,
             first_name='Admin',
@@ -286,7 +294,7 @@ def sample_token(db, sample_user, client) -> OAuthToken:
     if deployment_mode in ['layered', 'microservices']:
         # In layered/microservices mode, use API endpoint to login
         logging.info("[FIXTURE] sample_token: Attempting login in layered/microservices mode")
-        response = client.post('/api/v1/auth/login', json={
+        response = client.post(LOGIN_ENDPOINT, json={
             'username_or_email': 'testuser',
             'password': 'TestPass123'
         })
@@ -335,13 +343,13 @@ def auth_headers(sample_token) -> dict:
     if sample_token is None:
         logging.error("[FIXTURE] auth_headers: sample_token is None!")
         return {
-            'Content-Type': 'application/json'
+            'Content-Type': CONTENT_TYPE_JSON
         }
 
     logging.info(f"[FIXTURE] auth_headers: Creating headers with token: {sample_token.access_token[:50]}...")
     headers = {
         'Authorization': f'Bearer {sample_token.access_token}',
-        'Content-Type': 'application/json'
+        'Content-Type': CONTENT_TYPE_JSON
     }
     logging.info(f"[FIXTURE] auth_headers: Headers created successfully")
     return headers
@@ -356,7 +364,7 @@ def admin_auth_headers(db, admin_user, client) -> dict:
     if deployment_mode in ['layered', 'microservices']:
         # In layered/microservices mode, use API endpoint to login
         logging.info("[FIXTURE] admin_auth_headers: Attempting admin login in layered/microservices mode")
-        response = client.post('/api/v1/auth/login', json={
+        response = client.post(LOGIN_ENDPOINT, json={
             'username_or_email': 'admin',
             'password': 'AdminPass123'
         })
@@ -368,14 +376,14 @@ def admin_auth_headers(db, admin_user, client) -> dict:
             logging.info(f"[FIXTURE] admin_auth_headers: Got admin access token: {access_token[:50]}...")
             headers = {
                 'Authorization': f'Bearer {access_token}',
-                'Content-Type': 'application/json'
+                'Content-Type': CONTENT_TYPE_JSON
             }
             logging.info(f"[FIXTURE] admin_auth_headers: Headers created successfully")
             return headers
         else:
             logging.error(f"[FIXTURE] admin_auth_headers: Login failed with status {response.status_code}: {response.json}")
             return {
-                'Content-Type': 'application/json'
+                'Content-Type': CONTENT_TYPE_JSON
             }
 
     # Monolithic mode: use direct service access
@@ -394,5 +402,5 @@ def admin_auth_headers(db, admin_user, client) -> dict:
 
     return {
         'Authorization': f'Bearer {result["access_token"]}',
-        'Content-Type': 'application/json'
+        'Content-Type': CONTENT_TYPE_JSON
     }

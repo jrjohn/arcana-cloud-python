@@ -4,6 +4,10 @@ User management API controller with abstract communication layer
 """
 from flask import request, g
 
+# String constants to avoid duplication (SonarQube S1192)
+MSG_PERMISSION_DENIED = 'Permission denied'
+ERR_PERMISSION_DENIED = 'PERMISSION_DENIED'
+
 from app.controllers import user_bp
 from app.decorators.auth_decorators import token_required, role_required
 from app.decorators.validation_decorators import validate_schema, validate_pagination
@@ -111,9 +115,9 @@ def get_user(user_id: int):
         # Can only view own information or admin can view everyone
         if current_user.id != user_id and current_user.role != UserRole.ADMIN:
             return error_response(
-                message='Permission denied',
+                message=MSG_PERMISSION_DENIED,
                 status_code=403,
-                error_code='PERMISSION_DENIED'
+                error_code=ERR_PERMISSION_DENIED
             )
 
         service_comm = get_service_communication()
@@ -210,9 +214,9 @@ def update_user(user_id: int):
         # Can only update own information or admin can update everyone
         if current_user.id != user_id and current_user.role != UserRole.ADMIN:
             return error_response(
-                message='Permission denied',
+                message=MSG_PERMISSION_DENIED,
                 status_code=403,
-                error_code='PERMISSION_DENIED'
+                error_code=ERR_PERMISSION_DENIED
             )
 
         data = request.validated_data
@@ -298,9 +302,9 @@ def change_password(user_id: int):
         # Can only change own password
         if current_user.id != user_id:
             return error_response(
-                message='Permission denied',
+                message=MSG_PERMISSION_DENIED,
                 status_code=403,
-                error_code='PERMISSION_DENIED'
+                error_code=ERR_PERMISSION_DENIED
             )
 
         data = request.validated_data

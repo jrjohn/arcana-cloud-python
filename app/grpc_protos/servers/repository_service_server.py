@@ -195,45 +195,36 @@ class RepositoryServiceServicer(repository_service_pb2_grpc.RepositoryServiceSer
             context.set_details(str(e))
             return common_pb2.User()
 
+    @staticmethod
+    def _apply_update_fields(user, request) -> None:
+        """Apply non-empty request fields onto the user object (S3776 helper)."""
+        string_fields = ['username', 'email', 'password_hash', 'first_name',
+                         'last_name', 'phone', 'avatar_url']
+        for field in string_fields:
+            value = getattr(request, field, None)
+            if value:
+                setattr(user, field, value)
+        if request.role:
+            user.role = UserRole[request.role.upper()]
+        if request.status:
+            user.status = UserStatus[request.status.upper()]
+        # Boolean fields always carry a value in protobuf3
+        user.is_verified = request.is_verified
+        user.is_active = request.is_active
+
     def UpdateUser(self, request, context):
         """Update user"""
         try:
             with self.app.app_context():
                 repository = self._get_user_repository()
-
-                # Get existing user
                 user = repository.getById(request.user_id)
                 if not user:
                     context.set_code(grpc.StatusCode.NOT_FOUND)
                     context.set_details(f"User with ID {request.user_id} not found")
                     return common_pb2.User()
 
-                # Update fields
-                if request.username:
-                    user.username = request.username
-                if request.email:
-                    user.email = request.email
-                if request.password_hash:
-                    user.password_hash = request.password_hash
-                if request.first_name:
-                    user.first_name = request.first_name
-                if request.last_name:
-                    user.last_name = request.last_name
-                if request.role:
-                    user.role = UserRole[request.role.upper()]
-                if request.status:
-                    user.status = UserStatus[request.status.upper()]
-                # Boolean fields always have a value in protobuf3, so just set them
-                user.is_verified = request.is_verified
-                user.is_active = request.is_active
-                if request.phone:
-                    user.phone = request.phone
-                if request.avatar_url:
-                    user.avatar_url = request.avatar_url
-
-                # Save changes
+                self._apply_update_fields(user, request)
                 updated_user = repository.update(user)
-
                 return self._user_to_proto(updated_user)
 
         except NotFoundError as e:

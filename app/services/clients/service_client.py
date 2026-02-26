@@ -74,6 +74,48 @@ class ServiceClient:
 
         logger.info(f"ServiceClient initialized for {service_name} with URLs: {service_urls}")
 
+    def _parse_response(self, response) -> Dict[str, Any]:
+        """Parse HTTP response body to dict (S3776 helper)."""
+        try:
+            return response.json()
+        except ValueError:
+            return {'data': response.text}
+
+    def _handle_http_error(self, e, base_url: str) -> None:
+        """Map HTTP error response to domain exception (S3776 helper)."""
+        status_code = e.response.status_code
+        if status_code >= 500:
+            self.load_balancer.mark_unhealthy(base_url)
+
+        default_msg = f"Service {self.service_name} returned error: {status_code}"
+        error_msg, error_code = self._extract_error_body(e, default_msg)
+
+        exception_map = {
+            400: lambda: ValidationError(error_msg),
+            401: lambda: AuthenticationError(error_msg),
+            403: lambda: AuthorizationError(error_msg),
+            404: lambda: NotFoundError(error_msg),
+            409: lambda: ConflictError(error_msg),
+        }
+        if status_code in exception_map:
+            raise exception_map[status_code]()
+        if status_code >= 500:
+            raise ServiceUnavailableError(error_msg)
+        raise APIException(error_msg, error_code=error_code, status_code=status_code)
+
+    def _extract_error_body(self, e, default_msg: str):
+        """Extract error message and code from HTTP error response body."""
+        error_msg = default_msg
+        error_code = "HTTP_ERROR"
+        try:
+            error_data = e.response.json()
+            if isinstance(error_data, dict):
+                error_msg = error_data.get('error', error_msg)
+                error_code = error_data.get('error_code', error_code)
+        except Exception:  # noqa: BLE001 - best-effort JSON parse
+            pass
+        return error_msg, error_code
+
     def call(
         self,
         endpoint: str,
@@ -111,87 +153,31 @@ class ServiceClient:
 
         try:
             logger.debug(f"Calling {method} {url}")
-
-            # Send request
             response = self.session.request(
-                method=method,
-                url=url,
-                json=data,
-                headers=headers,
-                params=params,
-                timeout=self.timeout
+                method=method, url=url, json=data,
+                headers=headers, params=params, timeout=self.timeout
             )
-
-            # Check response status
             response.raise_for_status()
-
-            # Mark service as healthy
             self.load_balancer.mark_healthy(base_url)
-
-            # Parse response
-            try:
-                return response.json()
-            except ValueError:
-                return {'data': response.text}
+            return self._parse_response(response)
 
         except requests.exceptions.HTTPError as e:
             logger.error(f"HTTP error calling {url}: {e}")
-
-            # 如果是 5xx 錯誤，Mark service as unhealthy
-            if e.response.status_code >= 500:
-                self.load_balancer.mark_unhealthy(base_url)
-
-            # Try to parse error response from service
-            error_msg = f"Service {self.service_name} returned error: {e.response.status_code}"
-            error_code = "HTTP_ERROR"
-
-            try:
-                error_data = e.response.json()
-                if isinstance(error_data, dict):
-                    error_msg = error_data.get('error', error_msg)
-                    error_code = error_data.get('error_code', error_code)
-            except:
-                pass
-
-            # Map HTTP status codes to appropriate exception types
-            status_code = e.response.status_code
-            if status_code == 400:
-                raise ValidationError(error_msg)
-            elif status_code == 401:
-                raise AuthenticationError(error_msg)
-            elif status_code == 403:
-                raise AuthorizationError(error_msg)
-            elif status_code == 404:
-                raise NotFoundError(error_msg)
-            elif status_code == 409:
-                raise ConflictError(error_msg)
-            elif status_code >= 500:
-                raise ServiceUnavailableError(error_msg)
-            else:
-                raise APIException(error_msg, error_code=error_code, status_code=status_code)
+            self._handle_http_error(e, base_url)
 
         except requests.exceptions.ConnectionError as e:
             logger.error(f"Connection error calling {url}: {e}")
             self.load_balancer.mark_unhealthy(base_url)
-
-            raise ServiceUnavailableError(
-                f"Cannot connect to service {self.service_name}"
-            )
+            raise ServiceUnavailableError(f"Cannot connect to service {self.service_name}")
 
         except requests.exceptions.Timeout as e:
             logger.error(f"Timeout calling {url}: {e}")
             self.load_balancer.mark_unhealthy(base_url)
-
-            raise ServiceUnavailableError(
-                f"Service {self.service_name} request timeout"
-            )
+            raise ServiceUnavailableError(f"Service {self.service_name} request timeout")
 
         except Exception as e:
             logger.error(f"Unexpected error calling {url}: {e}")
-
-            raise ServiceUnavailableError(
-                f"Service {self.service_name} unavailable: {str(e)}"
-            )
+            raise ServiceUnavailableError(f"Service {self.service_name} unavailable: {str(e)}")
 
     def get(self, endpoint: str, **kwargs) -> Dict[str, Any]:
         """GET request"""

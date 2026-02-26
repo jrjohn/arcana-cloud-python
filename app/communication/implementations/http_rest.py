@@ -97,7 +97,7 @@ class HTTPServiceCommunication(ServiceCommunicationInterface):
                 if isinstance(error_data, dict):
                     error_msg = error_data.get('error', error_msg)
                     error_code = error_data.get('error_code', error_code)
-            except:
+            except Exception:  # noqa: BLE001 - best-effort JSON parse
                 pass
 
             # Map HTTP status codes to appropriate exception types
@@ -139,7 +139,7 @@ class HTTPServiceCommunication(ServiceCommunicationInterface):
             base_url = self.service_urls[0]
             response = self.session.get(f"{base_url}/health", timeout=5)
             return response.status_code == 200
-        except:
+        except Exception:
             return False
 
     def get_users(self, page: int = 1, per_page: int = 20, **filters) -> Dict[str, Any]:
@@ -271,7 +271,7 @@ class HTTPRepositoryCommunication(RepositoryCommunicationInterface):
             base_url = self.repository_urls[0]
             response = self.session.get(f"{base_url}/ready", timeout=5)
             return response.status_code == 200
-        except:
+        except Exception:
             return False
 
     def query(self, entity: str, filters: Dict[str, Any],

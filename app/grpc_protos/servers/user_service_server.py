@@ -26,45 +26,50 @@ class UserServiceServicer(user_service_pb2_grpc.UserServiceServicer):
         return self.user_service
 
     def _user_to_proto(self, user) -> common_pb2.User:
-        """Convert User model or dict to protobuf User message"""
-        # Handle both User objects and dictionaries
+        """Convert User model or dict to protobuf User message (S3776: delegates to helpers)."""
         if isinstance(user, dict):
-            return common_pb2.User(
-                id=user.get('id', 0) or 0,
-                username=user.get('username', '') or "",
-                email=user.get('email', '') or "",
-                password_hash=user.get('password_hash', '') or "",
-                first_name=user.get('first_name', '') or "",
-                last_name=user.get('last_name', '') or "",
-                role=user.get('role', 'USER') or "USER",
-                status=user.get('status', 'ACTIVE') or "ACTIVE",
-                is_verified=user.get('is_verified', False),
-                is_active=user.get('is_active', True),
-                phone=user.get('phone', '') or "",
-                avatar_url=user.get('avatar_url', '') or "",
-                created_at=user.get('created_at', '') or "",
-                updated_at=user.get('updated_at', '') or "",
-                last_login_at=user.get('last_login_at', '') or ""
-            )
-        else:
-            # User object
-            return common_pb2.User(
-                id=user.id or 0,
-                username=user.username or "",
-                email=user.email or "",
-                password_hash=user.password_hash or "",
-                first_name=user.first_name or "",
-                last_name=user.last_name or "",
-                role=user.role.name if user.role else "USER",
-                status=user.status.name if user.status else "ACTIVE",
-                is_verified=user.is_verified if hasattr(user, 'is_verified') else False,
-                is_active=user.is_active if hasattr(user, 'is_active') else True,
-                phone=user.phone or "",
-                avatar_url=user.avatar_url or "",
-                created_at=user.created_at.isoformat() if user.created_at else "",
-                updated_at=user.updated_at.isoformat() if user.updated_at else "",
-                last_login_at=user.last_login_at.isoformat() if user.last_login_at else ""
-            )
+            return self._dict_to_proto(user)
+        return self._obj_to_proto(user)
+
+    def _dict_to_proto(self, data: dict) -> common_pb2.User:
+        """Convert dict to protobuf User message."""
+        return common_pb2.User(
+            id=data.get('id', 0) or 0,
+            username=data.get('username', '') or "",
+            email=data.get('email', '') or "",
+            password_hash=data.get('password_hash', '') or "",
+            first_name=data.get('first_name', '') or "",
+            last_name=data.get('last_name', '') or "",
+            role=data.get('role', 'USER') or "USER",
+            status=data.get('status', 'ACTIVE') or "ACTIVE",
+            is_verified=data.get('is_verified', False),
+            is_active=data.get('is_active', True),
+            phone=data.get('phone', '') or "",
+            avatar_url=data.get('avatar_url', '') or "",
+            created_at=data.get('created_at', '') or "",
+            updated_at=data.get('updated_at', '') or "",
+            last_login_at=data.get('last_login_at', '') or ""
+        )
+
+    def _obj_to_proto(self, user) -> common_pb2.User:
+        """Convert User ORM object to protobuf User message."""
+        return common_pb2.User(
+            id=user.id or 0,
+            username=user.username or "",
+            email=user.email or "",
+            password_hash=user.password_hash or "",
+            first_name=user.first_name or "",
+            last_name=user.last_name or "",
+            role=user.role.name if user.role else "USER",
+            status=user.status.name if user.status else "ACTIVE",
+            is_verified=getattr(user, 'is_verified', False),
+            is_active=getattr(user, 'is_active', True),
+            phone=user.phone or "",
+            avatar_url=user.avatar_url or "",
+            created_at=user.created_at.isoformat() if user.created_at else "",
+            updated_at=user.updated_at.isoformat() if user.updated_at else "",
+            last_login_at=user.last_login_at.isoformat() if user.last_login_at else ""
+        )
 
     def GetUsers(self, request, context):
         """Get users list"""
@@ -147,29 +152,23 @@ class UserServiceServicer(user_service_pb2_grpc.UserServiceServicer):
             context.set_details(str(e))
             return common_pb2.User()
 
+    @staticmethod
+    def _build_update_data(request) -> dict:
+        """Extract non-empty fields from update request (S3776 helper)."""
+        string_fields = ['username', 'email', 'first_name', 'last_name', 'phone', 'avatar_url']
+        user_data = {f: getattr(request, f) for f in string_fields if getattr(request, f)}
+        if request.role:
+            user_data['role'] = UserRole[request.role.upper()]
+        if request.status:
+            user_data['status'] = UserStatus[request.status.upper()]
+        return user_data
+
     def UpdateUser(self, request, context):
         """Update user"""
         try:
             with self.app.app_context():
                 service = self._get_user_service()
-                user_data = {}
-                if request.username:
-                    user_data['username'] = request.username
-                if request.email:
-                    user_data['email'] = request.email
-                if request.first_name:
-                    user_data['first_name'] = request.first_name
-                if request.last_name:
-                    user_data['last_name'] = request.last_name
-                if request.phone:
-                    user_data['phone'] = request.phone
-                if request.avatar_url:
-                    user_data['avatar_url'] = request.avatar_url
-                if request.role:
-                    user_data['role'] = UserRole[request.role.upper()]
-                if request.status:
-                    user_data['status'] = UserStatus[request.status.upper()]
-
+                user_data = self._build_update_data(request)
                 user = service.updateUser(request.user_id, **user_data)
                 return self._user_to_proto(user)
         except NotFoundError as e:

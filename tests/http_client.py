@@ -6,6 +6,9 @@ import os
 import requests
 from typing import Optional, Dict, Any
 
+# Constants (SonarQube S1192)
+CONTENT_TYPE_JSON = CONTENT_TYPE_JSON
+
 
 class HTTPTestClient:
     """
@@ -43,7 +46,7 @@ class HTTPTestClient:
             if headers is None:
                 headers = {}
             if 'Content-Type' not in headers:
-                headers['Content-Type'] = 'application/json'
+                headers['Content-Type'] = CONTENT_TYPE_JSON
             response = self.session.post(url, data=data, headers=headers, **filtered_kwargs)
         else:
             response = self.session.post(url, json=json, headers=headers, **filtered_kwargs)
@@ -60,7 +63,7 @@ class HTTPTestClient:
             if headers is None:
                 headers = {}
             if 'Content-Type' not in headers:
-                headers['Content-Type'] = 'application/json'
+                headers['Content-Type'] = CONTENT_TYPE_JSON
             response = self.session.put(url, data=data, headers=headers, **filtered_kwargs)
         else:
             response = self.session.put(url, json=json, headers=headers, **filtered_kwargs)
@@ -77,7 +80,7 @@ class HTTPTestClient:
             if headers is None:
                 headers = {}
             if 'Content-Type' not in headers:
-                headers['Content-Type'] = 'application/json'
+                headers['Content-Type'] = CONTENT_TYPE_JSON
             response = self.session.patch(url, data=data, headers=headers, **filtered_kwargs)
         else:
             response = self.session.patch(url, json=json, headers=headers, **filtered_kwargs)

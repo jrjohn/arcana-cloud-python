@@ -6,11 +6,14 @@ import os
 from celery import Celery
 from celery.schedules import crontab
 
+# Default Redis URL constant (SonarQube S1192)
+DEFAULT_REDIS_URL = 'redis://localhost:6379/0'
+
 # Create Celery application
 celery_app = Celery(
     'arcana_cloud',
-    broker=os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0'),
-    backend=os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
+    broker=os.getenv('CELERY_BROKER_URL', DEFAULT_REDIS_URL),
+    backend=os.getenv('CELERY_RESULT_BACKEND', DEFAULT_REDIS_URL)
 )
 
 # Celery configuration
@@ -40,7 +43,7 @@ celery_app.conf.update(
 
     # Beat scheduler configuration (using RedBeat)
     beat_scheduler='redbeat.RedBeatScheduler',
-    redbeat_redis_url=os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0'),
+    redbeat_redis_url=os.getenv('CELERY_BROKER_URL', DEFAULT_REDIS_URL),
     redbeat_key_prefix='celery:beat:',
 
     # Task routing

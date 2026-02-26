@@ -48,7 +48,7 @@ class Config:
     # Distributed service configuration
     DEPLOYMENT_LAYER = os.getenv('DEPLOYMENT_LAYER', 'monolithic')  # monolithic, controller, service, repository
     SERVICE_NAME = os.getenv('SERVICE_NAME', 'arcana-cloud')
-    SERVICE_PORT = int(os.getenv('SERVICE_PORT', 5000))
+    SERVICE_PORT = int(os.getenv('SERVICE_PORT', '5000'))
 
     # Service discovery configuration
     USER_SERVICE_URLS = os.getenv('USER_SERVICE_URLS', 'http://localhost:5001').split(',')
@@ -68,7 +68,7 @@ class Config:
 
     # File upload configuration
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
-    UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER', '/tmp/uploads')
+    UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER', '/var/uploads')  # nosec B108
 
 
 class DevelopmentConfig(Config):

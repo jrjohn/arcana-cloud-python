@@ -140,7 +140,7 @@ class GRPCServiceCommunication(ServiceCommunicationInterface):
             stub = self._get_next_stub()
             response = stub.HealthCheck(common_pb2.Empty(), timeout=5)
             return response.status == "healthy"
-        except:
+        except Exception:
             return False
 
     def get_users(self, page: int = 1, per_page: int = 20, **filters) -> Dict[str, Any]:
@@ -290,7 +290,7 @@ class GRPCServiceCommunication(ServiceCommunicationInterface):
         for channel in self.channels.values():
             try:
                 channel.close()
-            except:
+            except Exception:  # noqa: BLE001
                 pass
 
 
@@ -403,7 +403,7 @@ class GRPCRepositoryCommunication(RepositoryCommunicationInterface):
             stub = self._get_next_stub()
             response = stub.HealthCheck(common_pb2.Empty(), timeout=5)
             return response.status == "healthy"
-        except:
+        except Exception:
             return False
 
     def query_users(self, page: int = 1, per_page: int = 20, role: Optional[str] = None,
@@ -620,5 +620,5 @@ class GRPCRepositoryCommunication(RepositoryCommunicationInterface):
         for channel in self.channels.values():
             try:
                 channel.close()
-            except:
+            except Exception:  # noqa: BLE001
                 pass
