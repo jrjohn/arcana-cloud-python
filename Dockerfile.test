@@ -1,0 +1,14 @@
+FROM python:3.14-slim
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc pkg-config default-libmysqlclient-dev \
+    && rm -rf /var/lib/apt/lists/*
+COPY requirements.txt requirements-dev.txt ./
+RUN pip install --no-cache-dir -r requirements.txt -r requirements-dev.txt
+COPY . .
+# Fix case-sensitivity: macOS imports use lowercase but files are uppercase
+RUN for f in $(find app -name "*.py" | grep "[A-Z]"); do \
+      dir=$(dirname "$f"); base=$(basename "$f"); \
+      lower=$(echo "$base" | tr "A-Z" "a-z"); \
+      if [ "$base" \!= "$lower" ]; then mv "$f" "$dir/$lower"; fi; \
+    done
