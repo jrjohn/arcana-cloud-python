@@ -10,8 +10,8 @@ import jwt
 
 from app.models.user import User, UserStatus
 from app.models.oauth_token import OAuthToken
-from app.repositories.interfaces.user_repository import UserRepository
-from app.repositories.interfaces.oauth_token_repository import OAuthTokenRepository
+from app.dao.user_dao import UserDao
+from app.dao.oauth_token_dao import OAuthTokenDao
 from app.services.interfaces.auth_service import AuthService
 from app.utils.exceptions import (
     AuthenticationError,
@@ -26,18 +26,18 @@ class AuthServiceImpl(AuthService):
 
     def __init__(
         self,
-        user_repository: UserRepository,
-        token_repository: OAuthTokenRepository
+        user_dao: UserDao,
+        token_dao: OAuthTokenDao,
     ):
         """
         Initialize
 
         Args:
-            user_repository: 用戶 Repository
-            token_repository: Token Repository
+            user_dao: UserDao abstraction (decouples Service from Repository)
+            token_dao: OAuthTokenDao abstraction (decouples Service from Repository)
         """
-        self.user_repository = user_repository
-        self.token_repository = token_repository
+        self.user_dao = user_dao
+        self.token_dao = token_dao
         self.secret_key = os.getenv('SECRET_KEY', 'dev-secret-key')
         self.access_token_expires = int(os.getenv('ACCESS_TOKEN_EXPIRES', '3600'))
         self.refresh_token_expires = int(os.getenv('REFRESH_TOKEN_EXPIRES', '2592000'))
@@ -101,9 +101,9 @@ class AuthServiceImpl(AuthService):
         # 查找用戶（支持Username或Email）
         user = None
         if '@' in username_or_email:
-            user = self.user_repository.getByEmail(username_or_email)
+            user = self.user_dao.find_by_email(username_or_email)
         else:
-            user = self.user_repository.getByUsername(username_or_email)
+            user = self.user_dao.find_by_username(username_or_email)
 
         if not user:
             raise AuthenticationError("Invalid username/email or password")
@@ -135,11 +135,11 @@ class AuthServiceImpl(AuthService):
             ip_address=ip_address,
             user_agent=user_agent
         )
-        self.token_repository.create(oauth_token)
+        self.token_dao.save(oauth_token)
 
         # Update last login time
         user.updateLastLogin()
-        self.user_repository.update(user)
+        self.user_dao.save(user)
 
         return {
             'access_token': access_token,
@@ -151,12 +151,12 @@ class AuthServiceImpl(AuthService):
 
     def logout(self, access_token: str) -> bool:
         """User logout"""
-        token = self.token_repository.getByAccessToken(access_token)
+        token = self.token_dao.find_by_access_token(access_token)
         if not token:
             raise NotFoundError("Token not found", "OAuthToken")
 
         token.revoke()
-        self.token_repository.update(token)
+        self.token_dao.save(token)
         return True
 
     def refreshToken(self, refresh_token: str) -> Dict[str, Any]:
@@ -167,7 +167,7 @@ class AuthServiceImpl(AuthService):
             raise AuthenticationError("Invalid token type")
 
         # 查找Database中的 token 記錄
-        token = self.token_repository.getByRefreshToken(refresh_token)
+        token = self.token_dao.find_by_refresh_token(refresh_token)
         if not token:
             raise NotFoundError("Refresh token not found", "OAuthToken")
 
@@ -179,7 +179,7 @@ class AuthServiceImpl(AuthService):
             raise AuthenticationError("Refresh token has expired")
 
         # Get user
-        user = self.user_repository.getById(token.user_id)
+        user = self.user_dao.find_by_id(token.user_id)
         if not user:
             raise NotFoundError("User not found", "User")
 
@@ -189,7 +189,7 @@ class AuthServiceImpl(AuthService):
         # 更新Database中的 token
         token.access_token = new_access_token
         token.expires_at = datetime.utcnow() + timedelta(seconds=self.access_token_expires)
-        self.token_repository.update(token)
+        self.token_dao.save(token)
 
         return {
             'access_token': new_access_token,
@@ -205,7 +205,7 @@ class AuthServiceImpl(AuthService):
             raise AuthenticationError("Invalid token type")
 
         # 查找Database中的 token 記錄
-        token = self.token_repository.getByAccessToken(access_token)
+        token = self.token_dao.find_by_access_token(access_token)
         if not token:
             raise NotFoundError("Token not found", "OAuthToken")
 
@@ -214,7 +214,7 @@ class AuthServiceImpl(AuthService):
             raise AuthenticationError("Token is invalid or expired")
 
         # Get user
-        user = self.user_repository.getById(token.user_id)
+        user = self.user_dao.find_by_id(token.user_id)
         if not user:
             raise NotFoundError("User not found", "User")
 
@@ -224,17 +224,17 @@ class AuthServiceImpl(AuthService):
 
         # Update token last used time
         token.updateLastUsed()
-        self.token_repository.update(token)
+        self.token_dao.save(token)
 
         return user
 
     def revokeAllTokens(self, user_id: int) -> int:
         """撤銷用戶的所有 token"""
-        return self.token_repository.revokeAllByUserId(user_id)
+        return self.token_dao.revoke_all_by_user_id(user_id)
 
     def getUserTokens(self, user_id: int) -> list[OAuthToken]:
         """Get user的所有有效 token"""
-        return self.token_repository.getByUserId(user_id, include_revoked=False)
+        return self.token_dao.find_all_by_user_id(user_id, include_revoked=False)
 
     def register(
         self,
@@ -244,20 +244,16 @@ class AuthServiceImpl(AuthService):
         **kwargs
     ) -> Dict[str, Any]:
         """User registration"""
-        # 使用 UserService 的邏輯Create user（需要注入 UserService）
-        # 這裡簡化實現，直接Create user
-        from app.services.implementations.user_service_impl import UserServiceImpl
-
-        # Check user是否已存在
-        if self.user_repository.existsByUsername(username):
+        # Check if user already exists
+        if self.user_dao.exists_by_username(username):
             raise ConflictError(f"Username '{username}' already exists")
 
-        if self.user_repository.existsByEmail(email):
+        if self.user_dao.exists_by_email(email):
             raise ConflictError(f"Email '{email}' already exists")
 
         # Create user
         user = User(username=username, email=email, password=password, **kwargs)
-        user = self.user_repository.create(user)
+        user = self.user_dao.save(user)
 
         # 自動登入並返回 token
         return self.login(username, password)

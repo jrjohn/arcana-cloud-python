@@ -6,7 +6,7 @@ import re
 from typing import Optional, List, Dict, Any
 
 from app.models.user import User, UserRole, UserStatus
-from app.repositories.interfaces.user_repository import UserRepository
+from app.dao.user_dao import UserDao
 from app.services.interfaces.user_service import UserService
 from app.utils.exceptions import (
     ValidationError,
@@ -19,14 +19,14 @@ from app.utils.exceptions import (
 class UserServiceImpl(UserService):
     """User Service implementation"""
 
-    def __init__(self, user_repository: UserRepository):
+    def __init__(self, user_dao: UserDao):
         """
         Initialize
 
         Args:
-            user_repository: 用戶 Repository
+            user_dao: UserDao abstraction (decouples Service from Repository)
         """
-        self.user_repository = user_repository
+        self.user_dao = user_dao
 
     def _validate_email(self, email: str) -> None:
         """驗證Email格式"""
@@ -65,34 +65,34 @@ class UserServiceImpl(UserService):
         self._validate_email(email)
         self._validate_password(password)
 
-        # Check user名和Email是否已存在
-        if self.user_repository.existsByUsername(username):
+        # Check if username and email already exist
+        if self.user_dao.exists_by_username(username):
             raise ConflictError(f"Username '{username}' already exists")
 
-        if self.user_repository.existsByEmail(email):
+        if self.user_dao.exists_by_email(email):
             raise ConflictError(f"Email '{email}' already exists")
 
         # Create user
         user = User(username=username, email=email, password=password, **kwargs)
-        return self.user_repository.create(user)
+        return self.user_dao.save(user)
 
     def getUserById(self, user_id: int) -> User:
         """根據 ID Get user"""
-        user = self.user_repository.getById(user_id)
+        user = self.user_dao.find_by_id(user_id)
         if not user:
             raise NotFoundError(f"User with ID {user_id} not found", "User")
         return user
 
     def getUserByUsername(self, username: str) -> User:
         """根據UsernameGet user"""
-        user = self.user_repository.getByUsername(username)
+        user = self.user_dao.find_by_username(username)
         if not user:
             raise NotFoundError(f"User with username '{username}' not found", "User")
         return user
 
     def getUserByEmail(self, email: str) -> User:
         """根據EmailGet user"""
-        user = self.user_repository.getByEmail(email)
+        user = self.user_dao.find_by_email(email)
         if not user:
             raise NotFoundError(f"User with email '{email}' not found", "User")
         return user
@@ -101,15 +101,15 @@ class UserServiceImpl(UserService):
         """Update user信息"""
         user = self.getUserById(user_id)
 
-        # 驗證Fields to update
+        # Validate fields to update
         if 'email' in kwargs:
             self._validate_email(kwargs['email'])
-            if kwargs['email'] != user.email and self.user_repository.existsByEmail(kwargs['email']):
+            if kwargs['email'] != user.email and self.user_dao.exists_by_email(kwargs['email']):
                 raise ConflictError(f"Email '{kwargs['email']}' already exists")
 
         if 'username' in kwargs:
             self._validate_username(kwargs['username'])
-            if kwargs['username'] != user.username and self.user_repository.existsByUsername(kwargs['username']):
+            if kwargs['username'] != user.username and self.user_dao.exists_by_username(kwargs['username']):
                 raise ConflictError(f"Username '{kwargs['username']}' already exists")
 
         # 不允許直接更新Password
@@ -121,13 +121,13 @@ class UserServiceImpl(UserService):
             if hasattr(user, key):
                 setattr(user, key, value)
 
-        return self.user_repository.update(user)
+        return self.user_dao.save(user)
 
     def deleteUser(self, user_id: int) -> bool:
         """Delete user"""
         # Check if user exists first - this will raise NotFoundError if not
         self.getUserById(user_id)
-        return self.user_repository.delete(user_id)
+        return self.user_dao.delete_by_id(user_id)
 
     def changePassword(self, user_id: int, old_password: str, new_password: str) -> bool:
         """修改Password"""
@@ -142,20 +142,21 @@ class UserServiceImpl(UserService):
 
         # 更新Password
         user.setPassword(new_password)
-        self.user_repository.update(user)
+        self.user_dao.save(user)
         return True
 
     def verifyUser(self, user_id: int) -> User:
         """Verify user"""
         user = self.getUserById(user_id)
         user.is_verified = True
-        return self.user_repository.update(user)
+        return self.user_dao.save(user)
 
     def updateUserStatus(self, user_id: int, status: UserStatus) -> User:
         """Update user狀態"""
-        user = self.getUserById(user_id)
-        user.status = status
-        return self.user_repository.update(user)
+        updated = self.user_dao.update_status(user_id, status)
+        if not updated:
+            raise NotFoundError(f"User with ID {user_id} not found", "User")
+        return updated
 
     def getUsers(
         self,
@@ -165,11 +166,11 @@ class UserServiceImpl(UserService):
         status: Optional[UserStatus] = None
     ) -> Dict[str, Any]:
         """Get user列表（分頁）"""
-        users, total = self.user_repository.getAll(
+        users, total = self.user_dao.find_all_paginated(
             page=page,
             per_page=per_page,
             role=role,
-            status=status
+            status=status,
         )
 
         return {
