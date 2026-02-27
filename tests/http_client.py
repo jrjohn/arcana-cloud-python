@@ -7,7 +7,7 @@ import requests
 from typing import Optional, Dict, Any
 
 # Constants (SonarQube S1192)
-CONTENT_TYPE_JSON = CONTENT_TYPE_JSON
+CONTENT_TYPE_JSON = "application/json"
 
 
 class HTTPTestClient:

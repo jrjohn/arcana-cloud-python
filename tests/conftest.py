@@ -11,12 +11,12 @@ from app.models.user import User, UserRole
 from app.models.oauth_token import OAuthToken
 
 # Test constants (SonarQube S1192 - avoid string literal duplication)
-LOGIN_ENDPOINT = LOGIN_ENDPOINT
-REGISTER_ENDPOINT = REGISTER_ENDPOINT
-AUTH_ME_ENDPOINT = AUTH_ME_ENDPOINT
-TEST_USER_EMAIL = TEST_USER_EMAIL
-ADMIN_USER_EMAIL = ADMIN_USER_EMAIL
-CONTENT_TYPE_JSON = CONTENT_TYPE_JSON
+LOGIN_ENDPOINT = "/api/auth/login"
+REGISTER_ENDPOINT = "/api/auth/register"
+AUTH_ME_ENDPOINT = "/api/auth/me"
+TEST_USER_EMAIL = "test@example.com"
+ADMIN_USER_EMAIL = "admin@example.com"
+CONTENT_TYPE_JSON = "application/json"
 
 
 @pytest.fixture(scope='session')
