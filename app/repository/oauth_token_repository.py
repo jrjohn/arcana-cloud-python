@@ -1,22 +1,22 @@
 """
-OAuthToken DAO Interface
-Extends BaseDao with OAuth-token-specific query and revocation methods,
-following the arcana-cloud-springboot OAuthTokenDao pattern.
+OAuthToken Repository Interface
+Extends BaseRepository with OAuth-token-specific query and revocation methods,
+following the arcana-cloud-springboot OAuthTokenRepository pattern.
 """
 from abc import abstractmethod
 from typing import Optional, List
 from datetime import datetime
 
-from app.dao.base_dao import BaseDao
+from app.repository.base_repository import BaseRepository
 from app.models.oauth_token import OAuthToken
 
 
-class OAuthTokenDao(BaseDao[OAuthToken, int]):
+class OAuthTokenRepository(BaseRepository[OAuthToken, int]):
     """
-    OAuth Token DAO interface.
+    OAuth Token Repository interface.
 
-    Extends BaseDao with token-specific lookup and lifecycle operations.
-    Implementations delegate to the underlying OAuthTokenRepository.
+    Extends BaseRepository with token-specific lookup and lifecycle operations.
+    Implementations delegate to the underlying OAuthTokenDAO.
     """
 
     @abstractmethod

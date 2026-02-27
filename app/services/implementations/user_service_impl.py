@@ -6,7 +6,7 @@ import re
 from typing import Optional, List, Dict, Any
 
 from app.models.user import User, UserRole, UserStatus
-from app.dao.user_dao import UserDao
+from app.repository.user_repository import UserRepository
 from app.services.interfaces.user_service import UserService
 from app.utils.exceptions import (
     ValidationError,
@@ -19,14 +19,14 @@ from app.utils.exceptions import (
 class UserServiceImpl(UserService):
     """User Service implementation"""
 
-    def __init__(self, user_dao: UserDao):
+    def __init__(self, user_repository: UserRepository):
         """
         Initialize
 
         Args:
-            user_dao: UserDao abstraction (decouples Service from Repository)
+            user_repository: UserRepository abstraction (decouples Service from DAO)
         """
-        self.user_dao = user_dao
+        self.user_dao = user_repository
 
     def _validate_email(self, email: str) -> None:
         """驗證Email格式"""

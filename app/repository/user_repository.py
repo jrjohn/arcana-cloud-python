@@ -1,21 +1,21 @@
 """
-User DAO Interface
-Extends BaseDao with User-specific query methods,
-following the arcana-cloud-springboot UserDao pattern.
+User Repository Interface
+Extends BaseRepository with User-specific query methods,
+following the arcana-cloud-springboot UserRepository pattern.
 """
 from abc import abstractmethod
 from typing import Optional, List, Tuple
 
-from app.dao.base_dao import BaseDao
+from app.repository.base_repository import BaseRepository
 from app.models.user import User, UserRole, UserStatus
 
 
-class UserDao(BaseDao[User, int]):
+class UserRepository(BaseRepository[User, int]):
     """
-    User DAO interface.
+    User Repository interface.
 
-    Extends BaseDao with user-specific lookup and query operations.
-    Implementations delegate to the underlying UserRepository.
+    Extends BaseRepository with user-specific lookup and query operations.
+    Implementations delegate to the underlying UserDAO.
     """
 
     @abstractmethod

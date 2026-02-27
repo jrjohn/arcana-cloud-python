@@ -1,6 +1,6 @@
 """
-Base DAO Interface
-Generic CRUD interface following the arcana-cloud-springboot BaseDao<T,K> pattern.
+Base Repository Interface
+Generic CRUD interface following the arcana-cloud-springboot BaseRepository<T,K> pattern.
 """
 from abc import ABC, abstractmethod
 from typing import Generic, TypeVar, Optional, List
@@ -9,9 +9,9 @@ T = TypeVar('T')
 K = TypeVar('K')
 
 
-class BaseDao(ABC, Generic[T, K]):
+class BaseRepository(ABC, Generic[T, K]):
     """
-    Generic base DAO interface providing standard CRUD operations.
+    Generic base Repository interface providing standard CRUD operations.
 
     Type Parameters:
         T: Entity type

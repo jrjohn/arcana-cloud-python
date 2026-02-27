@@ -10,8 +10,8 @@ import jwt
 
 from app.models.user import User, UserStatus
 from app.models.oauth_token import OAuthToken
-from app.dao.user_dao import UserDao
-from app.dao.oauth_token_dao import OAuthTokenDao
+from app.repository.user_repository import UserRepository
+from app.repository.oauth_token_repository import OAuthTokenRepository
 from app.services.interfaces.auth_service import AuthService
 from app.utils.exceptions import (
     AuthenticationError,
@@ -26,18 +26,18 @@ class AuthServiceImpl(AuthService):
 
     def __init__(
         self,
-        user_dao: UserDao,
-        token_dao: OAuthTokenDao,
+        user_repository: UserRepository,
+        token_repository: OAuthTokenRepository,
     ):
         """
         Initialize
 
         Args:
-            user_dao: UserDao abstraction (decouples Service from Repository)
-            token_dao: OAuthTokenDao abstraction (decouples Service from Repository)
+            user_repository: UserRepository abstraction (decouples Service from DAO)
+            token_repository: OAuthTokenRepository abstraction (decouples Service from DAO)
         """
-        self.user_dao = user_dao
-        self.token_dao = token_dao
+        self.user_dao = user_repository
+        self.token_dao = token_repository
         self.secret_key = os.getenv('SECRET_KEY', 'dev-secret-key')
         self.access_token_expires = int(os.getenv('ACCESS_TOKEN_EXPIRES', '3600'))
         self.refresh_token_expires = int(os.getenv('REFRESH_TOKEN_EXPIRES', '2592000'))

@@ -132,8 +132,8 @@ def initialize_dependencies(_app: Flask):
     # Check deployment mode
     deployment_mode = os.getenv('DEPLOYMENT_MODE', 'monolithic').lower()
 
-    # Register repositories
-    def create_user_repository():
+    # Register DAOs (true data-access layer backed by SQLAlchemy)
+    def create_user_dao():
         deployment_layer = os.getenv('DEPLOYMENT_LAYER', 'monolithic').lower()
 
         if deployment_mode == 'microservices' and deployment_layer != 'repository':
@@ -147,41 +147,41 @@ def initialize_dependencies(_app: Flask):
                 return HTTPUserRepositoryClient()
         else:
             # In monolithic/layered mode OR repository layer, use direct database access
-            from app.repositories.implementations.user_repository_impl import UserRepositoryImpl
-            return UserRepositoryImpl(container.get('db_session'))
-
-    def create_oauth_token_repository():
-        from app.repositories.implementations.oauth_token_repository_impl import OAuthTokenRepositoryImpl
-        return OAuthTokenRepositoryImpl(container.get('db_session'))
-
-    container.register_singleton('user_repository', create_user_repository)
-    container.register_singleton('oauth_token_repository', create_oauth_token_repository)
-
-    # Register DAO layer (wraps repositories; Services depend on DAOs, not Repositories directly)
-    def create_user_dao():
-        from app.dao.impl.user_dao_impl import UserDaoImpl
-        return UserDaoImpl(container.get('user_repository'))
+            from app.repositories.implementations.user_repository_impl import UserRepositoryImpl as UserDAOImpl
+            return UserDAOImpl(container.get('db_session'))
 
     def create_oauth_token_dao():
-        from app.dao.impl.oauth_token_dao_impl import OAuthTokenDaoImpl
-        return OAuthTokenDaoImpl(container.get('oauth_token_repository'))
+        from app.repositories.implementations.oauth_token_repository_impl import OAuthTokenRepositoryImpl as OAuthTokenDAOImpl
+        return OAuthTokenDAOImpl(container.get('db_session'))
 
     container.register_singleton('user_dao', create_user_dao)
     container.register_singleton('oauth_token_dao', create_oauth_token_dao)
 
+    # Register Repository layer (wraps DAOs; Services depend on Repositories, not DAOs directly)
+    def create_user_repository():
+        from app.repository.impl.user_repository_impl import UserRepositoryImpl
+        return UserRepositoryImpl(container.get('user_dao'))
+
+    def create_oauth_token_repository():
+        from app.repository.impl.oauth_token_repository_impl import OAuthTokenRepositoryImpl
+        return OAuthTokenRepositoryImpl(container.get('oauth_token_dao'))
+
+    container.register_singleton('user_repository', create_user_repository)
+    container.register_singleton('oauth_token_repository', create_oauth_token_repository)
+
     # Register services
     def create_user_service():
         from app.services.implementations.user_service_impl import UserServiceImpl
-        return UserServiceImpl(container.get('user_dao'))
+        return UserServiceImpl(container.get('user_repository'))
 
     def create_auth_service():
-        # Auth service is always local - uses direct implementation with DAOs
-        # In microservices mode, it uses gRPC repository clients (via DAO layer)
+        # Auth service is always local - uses direct implementation with Repositories
+        # In microservices mode, it uses gRPC DAO clients (via Repository layer)
         # This keeps authentication centralized in the controller layer
         from app.services.implementations.auth_service_impl import AuthServiceImpl
         return AuthServiceImpl(
-            container.get('user_dao'),
-            container.get('oauth_token_dao'),
+            container.get('user_repository'),
+            container.get('oauth_token_repository'),
         )
 
     container.register_singleton('user_service', create_user_service)
@@ -270,29 +270,19 @@ def get_auth_service():
 
 def get_user_repository():
     """
-    Get user repository from DI container
+    Get user repository from DI container.
 
     Returns:
-        UserRepositoryImpl instance
+        UserRepositoryImpl instance (implements UserRepository)
     """
     return get_container().get('user_repository')
 
 
-def get_user_dao():
+def get_oauth_token_repository():
     """
-    Get user DAO from DI container.
+    Get OAuth token repository from DI container.
 
     Returns:
-        UserDaoImpl instance (implements UserDao)
+        OAuthTokenRepositoryImpl instance (implements OAuthTokenRepository)
     """
-    return get_container().get('user_dao')
-
-
-def get_oauth_token_dao():
-    """
-    Get OAuth token DAO from DI container.
-
-    Returns:
-        OAuthTokenDaoImpl instance (implements OAuthTokenDao)
-    """
-    return get_container().get('oauth_token_dao')
+    return get_container().get('oauth_token_repository')
