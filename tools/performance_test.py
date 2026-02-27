@@ -38,7 +38,7 @@ class PerformanceTest:
         # HTTP Login
         response = self.http_session.post(
             f'{self.http_url}/api/v1/auth/login',
-            json={'username_or_email': 'admin', 'password': 'AdminPass123'}
+            json={'username_or_email': 'admin', 'password': os.environ.get('ADMIN_INIT_PASSWORD', '')}
         )
 
         if response.status_code == 200:
@@ -97,7 +97,7 @@ class PerformanceTest:
             json={
                 'username': username,
                 'email': f'{username}@example.com',
-                'password': 'Test123!@#'
+                'password': os.environ.get('TEST_USER_PASSWORD', '')
             },
             headers=headers
         )
@@ -129,7 +129,7 @@ class PerformanceTest:
         request = user_service_pb2.CreateUserRequest(
             username=username,
             email=f'{username}@example.com',
-            password='Test123!@#'
+            password=os.environ.get('TEST_USER_PASSWORD', '')
         )
         try:
             self.grpc_stub.CreateUser(request)

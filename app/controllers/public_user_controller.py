@@ -3,6 +3,7 @@ Public User Controller
 Public user API controller (no authentication required)
 Simplified REST API for user management without authentication
 """
+import os
 from flask import Blueprint, request, jsonify
 from datetime import datetime
 
@@ -186,7 +187,7 @@ def create_user():
         user_data = service_comm.create_user(user_data={
             'username': username,
             'email': data['email'],
-            'password': 'DefaultPass123',  # Default password for public API
+            'password': os.environ.get('DEFAULT_USER_PASSWORD', ''),  # Set via DEFAULT_USER_PASSWORD env var
             'first_name': data['first_name'],
             'last_name': data['last_name'],
             'avatar_url': data.get('avatar')

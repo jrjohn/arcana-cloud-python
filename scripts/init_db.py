@@ -39,7 +39,7 @@ def init_database():
                 admin = User(
                     username='admin',
                     email='admin@arcana.com',
-                    password='admin123',
+                    password=os.environ.get('ADMIN_INIT_PASSWORD', ''),
                     first_name='System',
                     last_name='Administrator',
                     role=UserRole.ADMIN,
@@ -49,7 +49,7 @@ def init_database():
                 )
                 db.session.add(admin)
                 db.session.commit()
-                print(f"   ✓ Admin user created (username: admin, password: admin123)")
+                print(f"   ✓ Admin user created (username: admin)")
             else:
                 print(f"   ! Admin user already exists")
         except Exception as e:
@@ -63,7 +63,7 @@ def init_database():
                 {
                     'username': 'testuser1',
                     'email': 'testuser1@example.com',
-                    'password': 'Test123456',
+                    'password': os.environ.get('TEST_USER_PASSWORD', ''),
                     'first_name': 'John',
                     'last_name': 'Doe',
                     'role': UserRole.USER
@@ -71,7 +71,7 @@ def init_database():
                 {
                     'username': 'testuser2',
                     'email': 'testuser2@example.com',
-                    'password': 'Test123456',
+                    'password': os.environ.get('TEST_USER_PASSWORD', ''),
                     'first_name': 'Jane',
                     'last_name': 'Smith',
                     'role': UserRole.USER

@@ -32,7 +32,7 @@ def init_database():
             testuser = User(
                 username='testuser',
                 email='test@example.com',
-                password='TestPass123'
+                password=os.environ.get('TEST_USER_PASSWORD', '')
             )
             testuser.first_name = 'Test'
             testuser.last_name = 'User'
@@ -43,7 +43,7 @@ def init_database():
             print("✅ Created test user: testuser")
         else:
             # Reset password in case it was changed
-            testuser.setPassword('TestPass123')
+            testuser.setPassword(os.environ.get('TEST_USER_PASSWORD', ''))
             testuser.status = UserStatus.ACTIVE
             testuser.is_active = True
             print("✅ Updated test user: testuser")
@@ -53,7 +53,7 @@ def init_database():
             admin_user = User(
                 username='admin',
                 email='admin@example.com',
-                password='AdminPass123'
+                password=os.environ.get('ADMIN_INIT_PASSWORD', '')
             )
             admin_user.first_name = 'Admin'
             admin_user.last_name = 'User'
@@ -64,7 +64,7 @@ def init_database():
             print("✅ Created admin user: admin")
         else:
             # Reset password in case it was changed
-            admin_user.setPassword('AdminPass123')
+            admin_user.setPassword(os.environ.get('ADMIN_INIT_PASSWORD', ''))
             admin_user.status = UserStatus.ACTIVE
             admin_user.is_active = True
             print("✅ Updated admin user: admin")

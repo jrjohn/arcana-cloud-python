@@ -12,6 +12,7 @@ Usage:
 """
 import argparse
 import subprocess
+import os
 import sys
 from datetime import datetime
 from werkzeug.security import generate_password_hash
@@ -22,7 +23,7 @@ FIXTURE_USERS = [
     {
         'username': 'testuser',
         'email': 'test@example.com',
-        'password': 'TestPass123',
+        'password': os.environ.get('TEST_USER_PASSWORD', ''),
         'role': 'user',
         'first_name': 'Test',
         'last_name': 'User',
@@ -33,7 +34,7 @@ FIXTURE_USERS = [
     {
         'username': 'admin',
         'email': 'admin@example.com',
-        'password': 'AdminPass123',
+        'password': os.environ.get('ADMIN_INIT_PASSWORD', ''),
         'role': 'admin',
         'first_name': 'Admin',
         'last_name': 'User',
@@ -114,7 +115,7 @@ def execute_sql_in_k8s(sql, namespace='arcana-cloud', database='arcana_cloud'):
     """
     # MySQL connection parameters
     mysql_user = 'arcana'
-    mysql_password = 'arcana_pass'
+    mysql_password = os.environ.get('MYSQL_PASSWORD', '')
 
     # Build the kubectl exec command
     kubectl_cmd = [
