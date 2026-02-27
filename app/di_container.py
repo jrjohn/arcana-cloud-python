@@ -113,7 +113,7 @@ def get_container() -> DIContainer:
     return _container
 
 
-def initialize_dependencies(app: Flask):
+def initialize_dependencies(_app: Flask):
     """
     Initialize application dependencies
 

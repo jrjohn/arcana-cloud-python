@@ -42,7 +42,7 @@ class UserServiceImpl(UserService):
             raise ValidationError("Password must contain at least one uppercase letter")
         if not re.search(r'[a-z]', password):
             raise ValidationError("Password must contain at least one lowercase letter")
-        if not re.search(r'[0-9]', password):
+        if not re.search(r'\d', password):
             raise ValidationError("Password must contain at least one digit")
 
     def _validate_username(self, username: str) -> None:

@@ -19,7 +19,7 @@ def get_user_repository() -> UserRepositoryImpl:
     return UserRepositoryImpl(db.session)
 
 
-def serialize_user(user: User) -> dict:
+def serialize_user(user: User) -> "dict | None":
     """Serialize User object to dict"""
     if user is None:
         return None

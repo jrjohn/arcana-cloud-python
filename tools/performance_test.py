@@ -107,17 +107,20 @@ class PerformanceTest:
     def grpc_get_users(self):
         """gRPC: Get users list"""
         request = user_service_pb2.GetUsersRequest(page=1, per_page=20)
-        response = self.grpc_stub.GetUsers(request)
-        return True
+        try:
+            self.grpc_stub.GetUsers(request)
+            return True
+        except Exception:  # pylint: disable=broad-except
+            return False
 
     def grpc_get_user_by_id(self):
         """gRPC: Get user by ID"""
         request = user_service_pb2.GetUserByIdRequest(user_id=1)
         try:
-            response = self.grpc_stub.GetUserById(request)
+            self.grpc_stub.GetUserById(request)
             return True
-        except grpc.RpcError:
-            return True  # 404 is acceptable
+        except grpc.RpcError as e:
+            return e.code() == grpc.StatusCode.NOT_FOUND  # 404 is acceptable
 
     def grpc_create_user(self):
         """gRPC: Create user"""
@@ -129,10 +132,10 @@ class PerformanceTest:
             password='Test123!@#'
         )
         try:
-            response = self.grpc_stub.CreateUser(request)
+            self.grpc_stub.CreateUser(request)
             return True
-        except grpc.RpcError:
-            return True  # Conflict is acceptable
+        except grpc.RpcError as e:
+            return e.code() == grpc.StatusCode.ALREADY_EXISTS  # Conflict is acceptable
 
     def run_comparison(self):
         """Run full performance comparison"""

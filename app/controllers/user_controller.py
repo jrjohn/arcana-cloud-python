@@ -311,7 +311,7 @@ def change_password(user_id: int):
         service_comm = get_service_communication()
 
         # Call specific method via communication layer
-        result = service_comm.change_password(
+        service_comm.change_password(
             user_id=user_id,
             old_password=data['old_password'],
             new_password=data['new_password']

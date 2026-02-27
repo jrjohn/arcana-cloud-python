@@ -5,7 +5,7 @@
 # Direct communication with database and caching layers
 # ============================================================================
 
-FROM arcanacloud/arcana-cloud-base:latest as repository
+FROM arcanacloud/arcana-cloud-base:latest AS repository
 
 # Set deployment layer
 ENV DEPLOYMENT_LAYER=repository \

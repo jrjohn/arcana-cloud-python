@@ -162,12 +162,9 @@ class AuthServiceImpl(AuthService):
     def refreshToken(self, refresh_token: str) -> Dict[str, Any]:
         """Refresh token"""
         # 驗證 refresh token
-        try:
-            payload = self._verify_jwt_token(refresh_token)
-            if payload.get('token_type') != 'refresh':
-                raise AuthenticationError("Invalid token type")
-        except AuthenticationError:
-            raise
+        payload = self._verify_jwt_token(refresh_token)
+        if payload.get('token_type') != 'refresh':
+            raise AuthenticationError("Invalid token type")
 
         # 查找Database中的 token 記錄
         token = self.token_repository.getByRefreshToken(refresh_token)
@@ -203,12 +200,9 @@ class AuthServiceImpl(AuthService):
     def validateToken(self, access_token: str) -> User:
         """Validate token"""
         # 驗證 JWT
-        try:
-            payload = self._verify_jwt_token(access_token)
-            if payload.get('token_type') != 'access':
-                raise AuthenticationError("Invalid token type")
-        except AuthenticationError:
-            raise
+        payload = self._verify_jwt_token(access_token)
+        if payload.get('token_type') != 'access':
+            raise AuthenticationError("Invalid token type")
 
         # 查找Database中的 token 記錄
         token = self.token_repository.getByAccessToken(access_token)

@@ -5,7 +5,7 @@
 # Communicates with Service layer for business logic
 # ============================================================================
 
-FROM arcanacloud/arcana-cloud-base:latest as controller
+FROM arcanacloud/arcana-cloud-base:latest AS controller
 
 # Set deployment layer
 ENV DEPLOYMENT_LAYER=controller \

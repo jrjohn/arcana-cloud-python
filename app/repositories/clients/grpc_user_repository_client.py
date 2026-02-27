@@ -112,7 +112,7 @@ class GRPCUserRepositoryClient(UserRepository):
         """Count total users"""
         return self.comm.count_users()
 
-    def _dict_to_user(self, data: dict) -> User:
+    def _dict_to_user(self, data: dict) -> "User | None":
         """Convert dictionary to User object"""
         if not data:
             return None

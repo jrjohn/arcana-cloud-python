@@ -95,16 +95,8 @@ def update_file_imports(file_path: str, replacements: List[tuple]) -> bool:
         return False
 
 
-def refactor_files():
-    """Execute the refactoring"""
-    print("="*80)
-    print("PEP 8 Refactoring: Renaming files to snake_case")
-    print("="*80)
-    print()
-
-    # Step 1: Rename files
-    print("STEP 1: Renaming files...")
-    print("-"*80)
+def _rename_source_files() -> int:
+    """Rename PascalCase files to snake_case; return count of renamed files."""
     renamed_count = 0
     for old_path, new_path in FILE_RENAMES.items():
         if os.path.exists(old_path):
@@ -113,43 +105,56 @@ def refactor_files():
             renamed_count += 1
         else:
             print(f"  [SKIP] {old_path} (not found)")
+    return renamed_count
 
-    print(f"\nRenamed {renamed_count} files")
-    print()
 
-    # Step 2: Update imports
-    print("STEP 2: Updating import statements...")
-    print("-"*80)
+def _collect_python_files() -> List[str]:
+    """Collect all Python files under app/, tests/, and the root directory."""
+    python_files: List[str] = []
+    skip_dirs = {'__pycache__', '.pytest_cache', 'htmlcov'}
 
-    replacements = create_import_replacements()
+    for base in ('app', 'tests'):
+        for root, dirs, files in os.walk(base):
+            dirs[:] = [d for d in dirs if d not in skip_dirs]
+            for file in files:
+                if file.endswith('.py'):
+                    python_files.append(os.path.join(root, file))
 
-    # Find all Python files
-    python_files = []
-    for root, dirs, files in os.walk('app'):
-        # Skip __pycache__ and other generated directories
-        dirs[:] = [d for d in dirs if d not in ['__pycache__', '.pytest_cache', 'htmlcov']]
-        for file in files:
-            if file.endswith('.py'):
-                python_files.append(os.path.join(root, file))
-
-    # Also check test files
-    for root, dirs, files in os.walk('tests'):
-        dirs[:] = [d for d in dirs if d not in ['__pycache__', '.pytest_cache']]
-        for file in files:
-            if file.endswith('.py'):
-                python_files.append(os.path.join(root, file))
-
-    # Also check root level files
     for file in os.listdir('.'):
         if file.endswith('.py') and os.path.isfile(file):
             python_files.append(file)
 
+    return python_files
+
+
+def _update_all_imports(python_files: List[str]) -> int:
+    """Update imports in the given files; return count of updated files."""
+    replacements = create_import_replacements()
     updated_count = 0
     for file_path in python_files:
         if update_file_imports(file_path, replacements):
             print(f"  Updated: {file_path}")
             updated_count += 1
+    return updated_count
 
+
+def refactor_files():
+    """Execute the refactoring"""
+    print("="*80)
+    print("PEP 8 Refactoring: Renaming files to snake_case")
+    print("="*80)
+    print()
+
+    print("STEP 1: Renaming files...")
+    print("-"*80)
+    renamed_count = _rename_source_files()
+    print(f"\nRenamed {renamed_count} files")
+    print()
+
+    print("STEP 2: Updating import statements...")
+    print("-"*80)
+    python_files = _collect_python_files()
+    updated_count = _update_all_imports(python_files)
     print(f"\nUpdated {updated_count} files")
     print()
 

@@ -88,12 +88,9 @@ def generate_statistics(self):
 
         with app.app_context():
             from app.repositories.implementations.user_repository_impl import UserRepositoryImpl
-            from app.repositories.implementations.oauth_token_repository_impl import OAuthTokenRepositoryImpl
             from app.extensions import db
 
             user_repo = UserRepositoryImpl(db.session)
-            token_repo = OAuthTokenRepositoryImpl(db.session)
-
             # Count users
             total_users = user_repo.count()
 

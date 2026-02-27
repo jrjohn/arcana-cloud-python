@@ -164,7 +164,6 @@ class CommunicationFactory:
             → GRPCServiceCommunication
         """
         deployment_mode = cls._get_deployment_mode()
-        deployment_layer = cls._get_deployment_layer()
         protocol_override = cls._get_communication_protocol()
 
         # Check if remote communication is needed
@@ -233,7 +232,6 @@ class CommunicationFactory:
             → GRPCRepositoryCommunication
         """
         deployment_mode = cls._get_deployment_mode()
-        deployment_layer = cls._get_deployment_layer()
         protocol_override = cls._get_communication_protocol()
 
         # In layered mode, service layer uses direct repository access
@@ -272,7 +270,6 @@ class CommunicationFactory:
             Dict with communication configuration details
         """
         deployment_mode = cls._get_deployment_mode()
-        deployment_layer = cls._get_deployment_layer()
         protocol_override = cls._get_communication_protocol()
 
         service_remote = cls._should_use_remote_communication(deployment_mode, deployment_layer)
