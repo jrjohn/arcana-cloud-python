@@ -39,37 +39,44 @@ def resolve_path(filename: str, source_root: str) -> int:
     return 0
 
 
+def _is_line_invalid(line_elem, max_lines: int) -> bool:
+    """Return True if the line element has an invalid or out-of-range number."""
+    try:
+        n = int(line_elem.get("number", "0"))
+    except ValueError:
+        return True
+    return n <= 0 or (max_lines > 0 and n > max_lines)
+
+
+def _collect_invalid_lines(lines_elem, max_lines: int) -> list:
+    """Return line elements that should be removed from a <lines> block."""
+    return [line for line in lines_elem.findall("line")
+            if _is_line_invalid(line, max_lines)]
+
+
+def _process_class(cls, source_root: str) -> int:
+    """Remove invalid line entries from a <class> element; return count removed."""
+    filename = cls.get("filename", "")
+    if not filename:
+        return 0
+    lines_elem = cls.find("lines")
+    if lines_elem is None:
+        return 0
+    max_lines = resolve_path(filename, source_root)
+    to_remove = _collect_invalid_lines(lines_elem, max_lines)
+    for line in to_remove:
+        lines_elem.remove(line)
+    return len(to_remove)
+
+
 def fix_coverage_xml(xml_path: str, source_root: str) -> None:
     tree = ET.parse(xml_path)
     root = tree.getroot()
 
-    total_removed = 0
-
-    for cls in root.findall(".//class"):
-        filename = cls.get("filename", "")
-        if not filename:
-            continue
-
-        max_lines = resolve_path(filename, source_root)
-
-        lines_elem = cls.find("lines")
-        if lines_elem is None:
-            continue
-
-        to_remove = []
-        for line in lines_elem.findall("line"):
-            try:
-                n = int(line.get("number", "0"))
-            except ValueError:
-                to_remove.append(line)
-                continue
-            # Remove line 0 or (when we know the file size) out-of-range lines
-            if n <= 0 or (max_lines > 0 and n > max_lines):
-                to_remove.append(line)
-
-        for line in to_remove:
-            lines_elem.remove(line)
-            total_removed += 1
+    total_removed = sum(
+        _process_class(cls, source_root)
+        for cls in root.findall(".//class")
+    )
 
     if total_removed:
         print(f"fix_coverage.py: removed {total_removed} invalid line entries", flush=True)
