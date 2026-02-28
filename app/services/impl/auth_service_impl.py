@@ -12,7 +12,7 @@ from app.models.user import User, UserStatus
 from app.models.oauth_token import OAuthToken
 from app.repository.user_repository import UserRepository
 from app.repository.oauth_token_repository import OAuthTokenRepository
-from app.services.interfaces.auth_service import AuthService
+from app.services.auth_service import AuthService
 from app.utils.exceptions import (
     AuthenticationError,
     ValidationError,

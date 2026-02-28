@@ -9,7 +9,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from app.repositories.interfaces.user_repository import UserRepository
+from app.repositories.user_repository import UserRepository
 from app.models.user import User, UserRole, UserStatus
 from app.utils.exceptions import DatabaseError, NotFoundError
 

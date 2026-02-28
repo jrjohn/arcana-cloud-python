@@ -7,7 +7,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.models.user import User, UserRole, UserStatus
-from app.repositories.interfaces.user_repository import UserRepository
+from app.repositories.user_repository import UserRepository
 from app.utils.exceptions import DatabaseError, NotFoundError
 
 

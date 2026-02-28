@@ -9,7 +9,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from app.services.interfaces.auth_service import AuthService
+from app.services.auth_service import AuthService
 from app.models.user import User, UserRole, UserStatus
 from app.models.oauth_token import OAuthToken
 from app.utils.exceptions import APIException, AuthenticationError, NotFoundError

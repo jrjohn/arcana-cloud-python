@@ -9,7 +9,7 @@ from datetime import datetime
 from app.repository.oauth_token_repository import OAuthTokenRepository
 from app.models.oauth_token import OAuthToken
 # Import the underlying SQLAlchemy-based DAO (true DAO layer)
-from app.repositories.interfaces.oauth_token_repository import OAuthTokenRepository as OAuthTokenDAO
+from app.repositories.oauth_token_repository import OAuthTokenRepository as OAuthTokenDAO
 
 
 class OAuthTokenRepositoryImpl(OAuthTokenRepository):

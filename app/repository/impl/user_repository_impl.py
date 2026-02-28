@@ -8,7 +8,7 @@ from typing import Optional, List, Tuple
 from app.repository.user_repository import UserRepository
 from app.models.user import User, UserRole, UserStatus
 # Import the underlying SQLAlchemy-based DAO (true DAO layer)
-from app.repositories.interfaces.user_repository import UserRepository as UserDAO
+from app.repositories.user_repository import UserRepository as UserDAO
 
 
 class UserRepositoryImpl(UserRepository):
