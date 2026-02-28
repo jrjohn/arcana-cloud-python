@@ -12,15 +12,15 @@ from app.communication.interfaces import (
     DeploymentMode,
     CommunicationProtocol
 )
-from app.communication.implementations.direct import (
+from app.communication.impl.direct import (
     DirectServiceCommunication,
     DirectRepositoryCommunication
 )
-from app.communication.implementations.http_rest import (
+from app.communication.impl.http_rest import (
     HTTPServiceCommunication,
     HTTPRepositoryCommunication
 )
-from app.communication.implementations.grpc_impl import (
+from app.communication.impl.grpc_impl import (
     GRPCServiceCommunication,
     GRPCRepositoryCommunication
 )
