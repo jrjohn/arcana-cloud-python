@@ -7,7 +7,7 @@ from unittest.mock import Mock, MagicMock
 from datetime import datetime, timedelta
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.repositories.implementations.oauth_token_repository_impl import OAuthTokenRepositoryImpl
+from app.repositories.impl.oauth_token_repository_impl import OAuthTokenRepositoryImpl
 from app.models.oauth_token import OAuthToken
 from app.utils.exceptions import DatabaseError, NotFoundError
 

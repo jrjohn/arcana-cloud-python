@@ -5,7 +5,7 @@ Exposes UserRepository data access as HTTP/REST endpoints for Service Layer (mic
 from flask import Blueprint, request, jsonify
 from typing import Optional
 
-from app.repositories.implementations.user_repository_impl import UserRepositoryImpl
+from app.repositories.impl.user_repository_impl import UserRepositoryImpl
 from app.extensions import db
 from app.models.user import User, UserRole, UserStatus
 from app.utils.exceptions import APIException, NotFoundError, DatabaseError

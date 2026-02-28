@@ -147,11 +147,11 @@ def initialize_dependencies(_app: Flask):
                 return HTTPUserRepositoryClient()
         else:
             # In monolithic/layered mode OR repository layer, use direct database access
-            from app.repositories.implementations.user_repository_impl import UserRepositoryImpl as UserDAOImpl
+            from app.repositories.impl.user_repository_impl import UserRepositoryImpl as UserDAOImpl
             return UserDAOImpl(container.get('db_session'))
 
     def create_oauth_token_dao():
-        from app.repositories.implementations.oauth_token_repository_impl import OAuthTokenRepositoryImpl as OAuthTokenDAOImpl
+        from app.repositories.impl.oauth_token_repository_impl import OAuthTokenRepositoryImpl as OAuthTokenDAOImpl
         return OAuthTokenDAOImpl(container.get('db_session'))
 
     container.register_singleton('user_dao', create_user_dao)
@@ -171,14 +171,14 @@ def initialize_dependencies(_app: Flask):
 
     # Register services
     def create_user_service():
-        from app.services.implementations.user_service_impl import UserServiceImpl
+        from app.services.impl.user_service_impl import UserServiceImpl
         return UserServiceImpl(container.get('user_repository'))
 
     def create_auth_service():
         # Auth service is always local - uses direct implementation with Repositories
         # In microservices mode, it uses gRPC DAO clients (via Repository layer)
         # This keeps authentication centralized in the controller layer
-        from app.services.implementations.auth_service_impl import AuthServiceImpl
+        from app.services.impl.auth_service_impl import AuthServiceImpl
         return AuthServiceImpl(
             container.get('user_repository'),
             container.get('oauth_token_repository'),

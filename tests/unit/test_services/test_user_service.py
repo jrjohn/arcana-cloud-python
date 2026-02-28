@@ -5,7 +5,7 @@ User service unit tests
 import pytest
 from unittest.mock import Mock, MagicMock
 
-from app.services.implementations.user_service_impl import UserServiceImpl
+from app.services.impl.user_service_impl import UserServiceImpl
 from app.models.user import User, UserRole, UserStatus
 from app.utils.exceptions import ValidationError, ConflictError, NotFoundError, AuthenticationError
 

@@ -7,8 +7,8 @@ from typing import Optional, Dict, Any, List
 from abc import ABC, abstractmethod
 
 from app.services.clients.service_client import ServiceClient
-from app.services.implementations.user_service_impl import UserServiceImpl
-from app.repositories.implementations.user_repository_impl import UserRepositoryImpl
+from app.services.impl.user_service_impl import UserServiceImpl
+from app.repositories.impl.user_repository_impl import UserRepositoryImpl
 from app.extensions import db
 from app.models.user import User, UserRole, UserStatus
 from app.utils.exceptions import NotFoundError, APIException

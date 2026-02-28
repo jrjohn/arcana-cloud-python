@@ -19,8 +19,8 @@ class Container(containers.DeclarativeContainer):
     )
 
     # ==================== Repositories ====================
-    from app.repositories.implementations.user_repository_impl import UserRepositoryImpl
-    from app.repositories.implementations.oauth_token_repository_impl import OAuthTokenRepositoryImpl
+    from app.repositories.impl.user_repository_impl import UserRepositoryImpl
+    from app.repositories.impl.oauth_token_repository_impl import OAuthTokenRepositoryImpl
 
     user_repository = providers.Factory(
         UserRepositoryImpl,
@@ -33,8 +33,8 @@ class Container(containers.DeclarativeContainer):
     )
 
     # ==================== Services ====================
-    from app.services.implementations.user_service_impl import UserServiceImpl
-    from app.services.implementations.auth_service_impl import AuthServiceImpl
+    from app.services.impl.user_service_impl import UserServiceImpl
+    from app.services.impl.auth_service_impl import AuthServiceImpl
 
     user_service = providers.Factory(
         UserServiceImpl,

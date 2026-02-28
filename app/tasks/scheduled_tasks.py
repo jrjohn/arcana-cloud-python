@@ -23,7 +23,7 @@ def cleanup_expired_tokens(self):
         app = create_app()
 
         with app.app_context():
-            from app.repositories.implementations.oauth_token_repository_impl import OAuthTokenRepositoryImpl
+            from app.repositories.impl.oauth_token_repository_impl import OAuthTokenRepositoryImpl
             from app.extensions import db
 
             token_repo = OAuthTokenRepositoryImpl(db.session)
@@ -87,7 +87,7 @@ def generate_statistics(self):
         app = create_app()
 
         with app.app_context():
-            from app.repositories.implementations.user_repository_impl import UserRepositoryImpl
+            from app.repositories.impl.user_repository_impl import UserRepositoryImpl
             from app.extensions import db
 
             user_repo = UserRepositoryImpl(db.session)

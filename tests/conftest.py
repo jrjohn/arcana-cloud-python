@@ -319,9 +319,9 @@ def sample_token(db, sample_user, client) -> OAuthToken:
             return None
 
     # Monolithic mode: use direct service access
-    from app.services.implementations.auth_service_impl import AuthServiceImpl
-    from app.repositories.implementations.user_repository_impl import UserRepositoryImpl
-    from app.repositories.implementations.oauth_token_repository_impl import OAuthTokenRepositoryImpl
+    from app.services.impl.auth_service_impl import AuthServiceImpl
+    from app.repositories.impl.user_repository_impl import UserRepositoryImpl
+    from app.repositories.impl.oauth_token_repository_impl import OAuthTokenRepositoryImpl
 
     user_repo = UserRepositoryImpl(db.session)
     token_repo = OAuthTokenRepositoryImpl(db.session)
@@ -387,9 +387,9 @@ def admin_auth_headers(db, admin_user, client) -> dict:
             }
 
     # Monolithic mode: use direct service access
-    from app.services.implementations.auth_service_impl import AuthServiceImpl
-    from app.repositories.implementations.user_repository_impl import UserRepositoryImpl
-    from app.repositories.implementations.oauth_token_repository_impl import OAuthTokenRepositoryImpl
+    from app.services.impl.auth_service_impl import AuthServiceImpl
+    from app.repositories.impl.user_repository_impl import UserRepositoryImpl
+    from app.repositories.impl.oauth_token_repository_impl import OAuthTokenRepositoryImpl
 
     user_repo = UserRepositoryImpl(db.session)
     token_repo = OAuthTokenRepositoryImpl(db.session)

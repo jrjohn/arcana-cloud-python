@@ -7,7 +7,7 @@ import jwt
 from unittest.mock import Mock, MagicMock, patch
 from datetime import datetime, timedelta
 
-from app.services.implementations.auth_service_impl import AuthServiceImpl
+from app.services.impl.auth_service_impl import AuthServiceImpl
 from app.models.user import User, UserRole, UserStatus
 from app.models.oauth_token import OAuthToken
 from app.utils.exceptions import (

@@ -44,8 +44,8 @@ FILE_RENAMES = {
     # Services
     'app/services/interfaces/AuthService.py': 'app/services/interfaces/auth_service.py',
     'app/services/interfaces/UserService.py': 'app/services/interfaces/user_service.py',
-    'app/services/implementations/AuthServiceImpl.py': 'app/services/implementations/auth_service_impl.py',
-    'app/services/implementations/UserServiceImpl.py': 'app/services/implementations/user_service_impl.py',
+    'app/services/impl/AuthServiceImpl.py': 'app/services/impl/auth_service_impl.py',
+    'app/services/impl/UserServiceImpl.py': 'app/services/impl/user_service_impl.py',
     'app/services/clients/HTTPAuthServiceClient.py': 'app/services/clients/http_auth_service_client.py',
     'app/services/clients/LoadBalancer.py': 'app/services/clients/load_balancer.py',
     'app/services/clients/ServiceClient.py': 'app/services/clients/service_client.py',
@@ -56,8 +56,8 @@ FILE_RENAMES = {
     # Repositories
     'app/repositories/interfaces/UserRepository.py': 'app/repositories/interfaces/user_repository.py',
     'app/repositories/interfaces/OAuthTokenRepository.py': 'app/repositories/interfaces/oauth_token_repository.py',
-    'app/repositories/implementations/UserRepositoryImpl.py': 'app/repositories/implementations/user_repository_impl.py',
-    'app/repositories/implementations/OAuthTokenRepositoryImpl.py': 'app/repositories/implementations/oauth_token_repository_impl.py',
+    'app/repositories/impl/UserRepositoryImpl.py': 'app/repositories/impl/user_repository_impl.py',
+    'app/repositories/impl/OAuthTokenRepositoryImpl.py': 'app/repositories/impl/oauth_token_repository_impl.py',
     'app/repositories/clients/GRPCUserRepositoryClient.py': 'app/repositories/clients/grpc_user_repository_client.py',
     'app/repositories/clients/HTTPUserRepositoryClient.py': 'app/repositories/clients/http_user_repository_client.py',
     'app/repositories/routes/UserRepositoryRoutes.py': 'app/repositories/routes/user_repository_routes.py',
