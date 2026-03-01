@@ -7,6 +7,23 @@ import json
 from unittest.mock import MagicMock, patch
 from flask import g
 
+# ── urllib3 v2 compatibility shim ─────────────────────────────────────────────
+# service_client.py uses Retry(method_whitelist=...) which was renamed to
+# allowed_methods in urllib3 >= 2.0. Patch it here so create_app() doesn't fail.
+try:
+    from urllib3.util.retry import Retry as _Retry
+    _orig_retry_init = _Retry.__init__
+
+    def _patched_retry_init(self, *args, **kwargs):
+        if 'method_whitelist' in kwargs:
+            kwargs.setdefault('allowed_methods', kwargs.pop('method_whitelist'))
+        _orig_retry_init(self, *args, **kwargs)
+
+    _Retry.__init__ = _patched_retry_init
+except Exception:
+    pass  # Best-effort patch
+# ─────────────────────────────────────────────────────────────────────────────
+
 from app.models.user import User, UserRole
 
 
