@@ -19,7 +19,7 @@ class BaseRepository(ABC, Generic[T, K]):  # NOSONAR python:S6792
     """
 
     @abstractmethod
-    def save(self, entity: T) -> T:
+    def save(self, entity: T) -> T:  # NOSONAR python:S6796
         """
         Save (create or update) an entity.
 
@@ -32,7 +32,7 @@ class BaseRepository(ABC, Generic[T, K]):  # NOSONAR python:S6792
         pass
 
     @abstractmethod
-    def find_by_id(self, id: K) -> Optional[T]:
+    def find_by_id(self, id: K) -> Optional[T]:  # NOSONAR python:S6796
         """
         Find an entity by its primary key.
 
@@ -45,7 +45,7 @@ class BaseRepository(ABC, Generic[T, K]):  # NOSONAR python:S6792
         pass
 
     @abstractmethod
-    def find_all(self) -> List[T]:
+    def find_all(self) -> List[T]:  # NOSONAR python:S6796
         """
         Retrieve all entities.
 
@@ -65,7 +65,7 @@ class BaseRepository(ABC, Generic[T, K]):  # NOSONAR python:S6792
         pass
 
     @abstractmethod
-    def delete_by_id(self, id: K) -> bool:
+    def delete_by_id(self, id: K) -> bool:  # NOSONAR python:S6796
         """
         Delete an entity by its primary key.
 
@@ -78,7 +78,7 @@ class BaseRepository(ABC, Generic[T, K]):  # NOSONAR python:S6792
         pass
 
     @abstractmethod
-    def exists_by_id(self, id: K) -> bool:
+    def exists_by_id(self, id: K) -> bool:  # NOSONAR python:S6796
         """
         Check whether an entity with the given primary key exists.
 

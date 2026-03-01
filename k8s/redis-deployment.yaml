@@ -99,6 +99,7 @@ spec:
         app: redis-dev
         tier: cache
     spec:
+      automountServiceAccountToken: false
       containers:
         - name: redis
           image: redis:7.0-alpine
@@ -130,6 +131,7 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
+              ephemeral-storage: "512Mi"
       volumes:
         - name: redis-data
           emptyDir: {}

@@ -44,7 +44,7 @@ class CommunicationInterface(ABC, Generic[T]):  # NOSONAR python:S6792
     """
 
     @abstractmethod
-    def call(self, method: str, **kwargs) -> T:
+    def call(self, method: str, **kwargs) -> T:  # NOSONAR python:S6796
         """
         Call a remote or local method
 
