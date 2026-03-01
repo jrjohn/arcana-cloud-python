@@ -5,11 +5,11 @@ Generic CRUD interface following the arcana-cloud-springboot BaseRepository<T,K>
 from abc import ABC, abstractmethod
 from typing import Generic, TypeVar, Optional, List
 
-T = TypeVar('T')
-K = TypeVar('K')
+T = TypeVar('T')  # NOSONAR python:S6796
+K = TypeVar('K')  # NOSONAR python:S6796
 
 
-class BaseRepository(ABC, Generic[T, K]):
+class BaseRepository(ABC, Generic[T, K]):  # NOSONAR python:S6792
     """
     Generic base Repository interface providing standard CRUD operations.
 

@@ -62,7 +62,7 @@ spec:
 
       containers:
         - name: controller
-          image: arcanacloud/arcana-cloud-controller-uwsgi:latest
+          image: arcanacloud/arcana-cloud-controller-uwsgi:1.0.0
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -145,9 +145,11 @@ spec:
             requests:
               cpu: 250m
               memory: 256Mi
+              ephemeral-storage: 256Mi
             limits:
               cpu: 500m
               memory: 512Mi
+              ephemeral-storage: 512Mi
 
           # Liveness probe
           livenessProbe:

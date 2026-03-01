@@ -4,7 +4,7 @@ Authentication Service implementation
 """
 import os
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, Optional
 import jwt
 
@@ -61,8 +61,8 @@ class AuthServiceImpl(AuthService):
             'role': user.role.value,
             'token_type': token_type,
             'jti': str(uuid.uuid4()),  # Unique identifier for each token
-            'exp': datetime.utcnow() + timedelta(seconds=expires_in),
-            'iat': datetime.utcnow()
+            'exp': datetime.now(timezone.utc) + timedelta(seconds=expires_in),
+            'iat': datetime.now(timezone.utc)
         }
 
         return jwt.encode(payload, self.secret_key, algorithm='HS256')
@@ -188,7 +188,7 @@ class AuthServiceImpl(AuthService):
 
         # 更新Database中的 token
         token.access_token = new_access_token
-        token.expires_at = datetime.utcnow() + timedelta(seconds=self.access_token_expires)
+        token.expires_at = datetime.now(timezone.utc) + timedelta(seconds=self.access_token_expires)
         self.token_dao.save(token)
 
         return {

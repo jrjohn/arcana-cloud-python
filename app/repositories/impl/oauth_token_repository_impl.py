@@ -3,7 +3,7 @@ OAuth Token Repository Implementation
 OAuth Token Repository implementation
 """
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
@@ -114,7 +114,7 @@ class OAuthTokenRepositoryImpl(OAuthTokenRepository):
         """Delete expired tokens"""
         try:
             if before_date is None:
-                before_date = datetime.utcnow()
+                before_date = datetime.now(timezone.utc)
 
             tokens = self.session.query(OAuthToken).filter(
                 OAuthToken.expires_at < before_date

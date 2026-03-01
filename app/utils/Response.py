@@ -2,7 +2,7 @@
 Standardized API Response Format
 Unifies the response format for all API endpoints
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Optional, Dict
 from uuid import uuid4
 from flask import jsonify, Response, g
@@ -28,7 +28,7 @@ def success_response(
         'success': True,
         'data': data,
         'message': message,
-        'timestamp': datetime.utcnow().isoformat() + 'Z',
+        'timestamp': datetime.now(timezone.utc).isoformat() + 'Z',
         'request_id': get_request_id()
     }
 
@@ -60,7 +60,7 @@ def error_response(
             'message': message,
             'details': details or {}
         },
-        'timestamp': datetime.utcnow().isoformat() + 'Z',
+        'timestamp': datetime.now(timezone.utc).isoformat() + 'Z',
         'request_id': get_request_id()
     }
 
@@ -99,7 +99,7 @@ def paginated_response(
             }
         },
         'message': message,
-        'timestamp': datetime.utcnow().isoformat() + 'Z',
+        'timestamp': datetime.now(timezone.utc).isoformat() + 'Z',
         'request_id': get_request_id()
     }
 

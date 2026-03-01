@@ -62,7 +62,7 @@ spec:
 
       containers:
         - name: repository
-          image: arcanacloud/arcana-cloud-repository-uwsgi:latest
+          image: arcanacloud/arcana-cloud-repository-uwsgi:1.0.0
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -170,9 +170,11 @@ spec:
             requests:
               cpu: 400m
               memory: 512Mi
+              ephemeral-storage: 512Mi
             limits:
               cpu: 1000m
               memory: 1Gi
+              ephemeral-storage: 1Gi
 
           # Liveness probe
           livenessProbe:

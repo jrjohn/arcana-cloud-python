@@ -48,7 +48,7 @@ class ServiceClient:
             # If multiple URLs not configured, use default single URL
             default_url = os.getenv(
                 f"{service_name.upper().replace('-', '_')}_URL",
-                f"http://localhost:5000"
+                "http://localhost:5000"
             )
             service_urls = [default_url]
         else:

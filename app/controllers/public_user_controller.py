@@ -5,7 +5,7 @@ Simplified REST API for user management without authentication
 """
 import os
 from flask import Blueprint, request, jsonify
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.schemas.user_schema import PublicUserCreateSchema, PublicUserUpdateSchema
 from app.decorators.validation_decorators import validate_schema, validate_pagination
@@ -207,7 +207,7 @@ def create_user():
 
         return public_api_response(
             data=public_data,
-            createdAt=datetime.utcnow().isoformat() + 'Z',
+            createdAt=datetime.now(timezone.utc).isoformat() + 'Z',
             status_code=201
         )
 
@@ -272,7 +272,7 @@ def update_user(user_id: int):
 
         return public_api_response(
             data=public_data,
-            updatedAt=datetime.utcnow().isoformat() + 'Z'
+            updatedAt=datetime.now(timezone.utc).isoformat() + 'Z'
         )
 
     except NotFoundError:

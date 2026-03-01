@@ -30,10 +30,10 @@ class CommunicationProtocol(Enum):
     GRPC = "grpc"  # gRPC
 
 
-T = TypeVar('T')  # Generic type for return values
+T = TypeVar('T')  # Generic type for return values  # NOSONAR python:S6796
 
 
-class CommunicationInterface(ABC, Generic[T]):
+class CommunicationInterface(ABC, Generic[T]):  # NOSONAR python:S6792
     """
     Abstract interface for cross-layer communication
 

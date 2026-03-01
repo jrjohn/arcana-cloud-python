@@ -25,6 +25,7 @@ spec:
         app: mysql
         tier: database
     spec:
+      automountServiceAccountToken: false
       containers:
         - name: mysql
           image: mysql:8.0
@@ -79,9 +80,11 @@ spec:
             requests:
               memory: "512Mi"
               cpu: "500m"
+              ephemeral-storage: "512Mi"
             limits:
               memory: "2Gi"
               cpu: "2000m"
+              ephemeral-storage: "2Gi"
   volumeClaimTemplates:
     - metadata:
         name: mysql-data

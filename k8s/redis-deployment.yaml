@@ -24,6 +24,7 @@ spec:
         app: redis
         tier: cache
     spec:
+      automountServiceAccountToken: false
       containers:
         - name: redis
           image: redis:7.0-alpine
@@ -66,9 +67,11 @@ spec:
             requests:
               memory: "256Mi"
               cpu: "250m"
+              ephemeral-storage: "256Mi"
             limits:
               memory: "1Gi"
               cpu: "1000m"
+              ephemeral-storage: "1Gi"
       volumes:
         - name: redis-data
           persistentVolumeClaim:
@@ -123,6 +126,7 @@ spec:
             requests:
               memory: "128Mi"
               cpu: "100m"
+              ephemeral-storage: "128Mi"
             limits:
               memory: "512Mi"
               cpu: "500m"

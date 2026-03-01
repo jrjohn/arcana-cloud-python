@@ -8,6 +8,7 @@ from flask_marshmallow import Marshmallow
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from redis import Redis
+from typing import Optional
 
 # Database ORM
 db = SQLAlchemy()
@@ -25,7 +26,7 @@ limiter = Limiter(
 )
 
 # Redis client (lazy initialization)
-redis_client: Redis = None
+redis_client: Optional[Redis] = None
 
 
 def init_redis(app) -> Redis:

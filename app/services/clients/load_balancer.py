@@ -25,7 +25,7 @@ class LoadBalancer:
         self.service_urls = service_urls
         self.current_index = 0
         self.lock = threading.Lock()
-        self.health_status = {url: True for url in service_urls}
+        self.health_status = dict.fromkeys(service_urls, True)
 
         logger.info(f"LoadBalancer initialized with {len(service_urls)} services: {service_urls}")
 

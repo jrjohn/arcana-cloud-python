@@ -2,7 +2,7 @@
 OAuth Token Model
 OAuth token model
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from sqlalchemy import String, Integer, DateTime, Text, ForeignKey, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -51,7 +51,7 @@ class OAuthToken(db.Model):
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
         nullable=False
     )
     last_used_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
@@ -91,9 +91,9 @@ class OAuthToken(db.Model):
             self.is_revoked = False
 
         # Set expiration times
-        self.expires_at = datetime.utcnow() + timedelta(seconds=expires_in)
+        self.expires_at = datetime.now(timezone.utc) + timedelta(seconds=expires_in)
         if refresh_token and refresh_expires_in:
-            self.refresh_expires_at = datetime.utcnow() + timedelta(seconds=refresh_expires_in)
+            self.refresh_expires_at = datetime.now(timezone.utc) + timedelta(seconds=refresh_expires_in)
 
         for key, value in kwargs.items():
             if hasattr(self, key):
@@ -106,7 +106,7 @@ class OAuthToken(db.Model):
         Returns:
             Whether expired
         """
-        return datetime.utcnow() >= self.expires_at
+        return datetime.now(timezone.utc) >= self.expires_at
 
     def isRefreshExpired(self) -> bool:
         """
@@ -117,7 +117,7 @@ class OAuthToken(db.Model):
         """
         if not self.refresh_expires_at:
             return True
-        return datetime.utcnow() >= self.refresh_expires_at
+        return datetime.now(timezone.utc) >= self.refresh_expires_at
 
     def isValid(self) -> bool:
         """
@@ -131,11 +131,11 @@ class OAuthToken(db.Model):
     def revoke(self) -> None:
         """Revoke token"""
         self.is_revoked = True
-        self.revoked_at = datetime.utcnow()
+        self.revoked_at = datetime.now(timezone.utc)
 
     def updateLastUsed(self) -> None:
         """Update last used time"""
-        self.last_used_at = datetime.utcnow()
+        self.last_used_at = datetime.now(timezone.utc)
 
     def toDict(self, include_tokens: bool = False) -> dict:
         """

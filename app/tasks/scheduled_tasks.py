@@ -2,7 +2,7 @@
 Scheduled Tasks
 """
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from app.tasks.celery_worker import celery_app
 from app.tasks.task_decorators import single_instance_task
 
@@ -34,7 +34,7 @@ def cleanup_expired_tokens(self):
             return {
                 'status': 'success',
                 'deleted_count': deleted_count,
-                'timestamp': datetime.utcnow().isoformat()
+                'timestamp': datetime.now(timezone.utc).isoformat()
             }
 
     except Exception as e:
@@ -65,7 +65,7 @@ def health_check_task(self):
 
             return {
                 'status': 'healthy',
-                'timestamp': datetime.utcnow().isoformat()
+                'timestamp': datetime.now(timezone.utc).isoformat()
             }
 
     except Exception as e:
@@ -105,7 +105,7 @@ def generate_statistics(self):
                     'total_users': total_users,
                     # 'active_tokens': active_tokens
                 },
-                'timestamp': datetime.utcnow().isoformat()
+                'timestamp': datetime.now(timezone.utc).isoformat()
             }
 
     except Exception as e:
@@ -134,7 +134,7 @@ def send_daily_report(self):
 
         return {
             'status': 'success',
-            'timestamp': datetime.utcnow().isoformat()
+            'timestamp': datetime.now(timezone.utc).isoformat()
         }
 
     except Exception as e:

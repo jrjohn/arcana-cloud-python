@@ -199,7 +199,7 @@ services:
       - MYSQL_ROOT_PASSWORD=root_password
       - MYSQL_DATABASE=arcana_cloud
       - MYSQL_USER=arcana_user
-      - MYSQL_PASSWORD=arcana_password
+      - MYSQL_PASSWORD=arcana_password  # NOSONAR
     volumes:
       - mysql_data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro

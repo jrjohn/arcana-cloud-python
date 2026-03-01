@@ -7,7 +7,7 @@
 # - Repositories (Data access)
 # ============================================================================
 
-FROM arcanacloud/arcana-cloud-base:latest AS monolithic
+FROM arcanacloud/arcana-cloud-base:1.0.0 AS monolithic
 
 # Set deployment layer
 ENV DEPLOYMENT_LAYER=monolithic \

@@ -2,7 +2,7 @@
 User Model
 User data model
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 from sqlalchemy import String, Boolean, DateTime, Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -65,13 +65,13 @@ class User(db.Model):
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
         nullable=False
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
         nullable=False
     )
     last_login_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
@@ -134,7 +134,7 @@ class User(db.Model):
 
     def updateLastLogin(self) -> None:
         """Update last login time"""
-        self.last_login_at = datetime.utcnow()
+        self.last_login_at = datetime.now(timezone.utc)
 
     def toDict(self, include_sensitive: bool = False) -> dict:
         """
