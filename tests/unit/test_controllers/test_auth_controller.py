@@ -194,6 +194,16 @@ class TestGetUserTokens:
         res = client.get(f'{AUTH_URL}/tokens', headers=AUTH_HDR)
         assert res.status_code == 500
 
+    def test_tokens_with_oauth_token_objects_serializes(self, client, auth_svc, monkeypatch):
+        # Line 234: else branch → tokens are OAuthToken objects, not dicts
+        # Create mock token objects with toDict() method
+        mock_token = MagicMock()
+        mock_token.toDict.return_value = {'id': 1, 'token': 'tok', 'created_at': '2026-01-01'}
+        auth_svc.getUserTokens.return_value = [mock_token]
+        monkeypatch.setattr('app.controllers.auth_controller.get_auth_service', lambda: auth_svc)
+        res = client.get(f'{AUTH_URL}/tokens', headers=AUTH_HDR)
+        assert res.status_code == 200
+
 
 # ── POST /api/auth/tokens/revoke-all ─────────────────────────────────────────
 
