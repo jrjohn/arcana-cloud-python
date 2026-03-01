@@ -49,45 +49,75 @@ def make_regular_user(user_id=2):
 
 AUTH_HEADER = {'Authorization': 'Bearer test-token-valid', 'Content-Type': 'application/json'}
 
+# ── Auth bypass strategy ───────────────────────────────────────────────────────
+# auth_decorators.py uses LAZY imports inside the decorator function body:
+#   from app.repositories.impl.user_repository_impl import UserRepositoryImpl
+# This means patch('app.decorators.auth_decorators.UserRepositoryImpl') won't work.
+# Instead we patch the lazy-imported modules at their source locations,
+# AND patch token_required itself to inject g.current_user without DB access.
+# ─────────────────────────────────────────────────────────────────────────────
 
-def make_client(app, mock_user):
-    """Create a test client that bypasses auth by patching validateToken."""
-    client = app.test_client()
+_ADMIN_USER = make_admin_user()
 
-    # We need to patch all auth internals per request via a fixture
-    # Return both client and the mock user so tests can configure expectations
-    return client
+
+def _make_bypass_decorator(mock_user):
+    """
+    Returns a token_required-compatible decorator that skips DB auth
+    and injects mock_user into Flask's g.current_user.
+    """
+    from functools import wraps
+
+    def bypass_token_required(roles=None, allow_self=False):
+        def decorator(f):
+            @wraps(f)
+            def decorated(*args, **kwargs):
+                g.current_user = mock_user
+                return f(*args, **kwargs)
+            return decorated
+        return decorator
+
+    return bypass_token_required
 
 
 @pytest.fixture(scope='module')
-def app_with_mocked_auth():
+def flask_app():
     """
-    Flask app fixture that patches token_required to inject a mock user.
-    Uses module scope for performance (app created once per test module).
+    Flask app fixture with auth fully bypassed.
+    Patches token_required at the source so all controllers skip DB auth.
+    Uses module scope for performance.
     """
-    with patch('app.decorators.auth_decorators.UserRepositoryImpl') as MockUserRepo, \
-         patch('app.decorators.auth_decorators.OAuthTokenRepositoryImpl') as MockTokenRepo, \
-         patch('app.decorators.auth_decorators.AuthServiceImpl') as MockAuthService, \
-         patch('app.decorators.auth_decorators.db') as mock_db:
+    mock_user = make_admin_user()
+    bypass = _make_bypass_decorator(mock_user)
 
-        admin_user = make_admin_user()
-        MockAuthService.return_value.validateToken.return_value = admin_user
-        MockUserRepo.return_value = MagicMock()
-        MockTokenRepo.return_value = MagicMock()
-        mock_db.session = MagicMock()
+    # Patch token_required BEFORE create_app so blueprints register with bypass
+    with patch('app.decorators.auth_decorators.token_required', bypass), \
+         patch('app.repositories.impl.user_repository_impl.UserRepositoryImpl'), \
+         patch('app.repositories.impl.oauth_token_repository_impl.OAuthTokenRepositoryImpl'), \
+         patch('app.services.impl.auth_service_impl.AuthServiceImpl'), \
+         patch('app.extensions.db'):
 
         from app import create_app
-        flask_app = create_app('testing')
-        flask_app.config['TESTING'] = True
-
-        yield flask_app, admin_user, MockAuthService
+        app = create_app('testing')
+        app.config['TESTING'] = True
+        yield app, mock_user
 
 
 @pytest.fixture
-def admin_client(app_with_mocked_auth):
+def admin_client(flask_app):
     """Test client authenticated as admin."""
-    flask_app, admin_user, _ = app_with_mocked_auth
-    return flask_app.test_client(), admin_user
+    app, admin_user = flask_app
+    return app.test_client(), admin_user
+
+
+@pytest.fixture
+def regular_client(flask_app):
+    """Test client authenticated as regular user."""
+    app, _ = flask_app
+    mock_user = make_regular_user()
+
+    # Temporarily swap g.current_user for this test
+    # (tests needing a different user should use monkeypatch on token_required)
+    return app.test_client(), mock_user
 
 
 @pytest.fixture

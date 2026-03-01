@@ -33,10 +33,10 @@ def api_patch(monkeypatch, service_mock):
 
 @pytest.fixture(scope='module')
 def app():
-    with patch('app.decorators.auth_decorators.UserRepositoryImpl'), \
-         patch('app.decorators.auth_decorators.OAuthTokenRepositoryImpl'), \
-         patch('app.decorators.auth_decorators.db'), \
-         patch('app.decorators.auth_decorators.AuthServiceImpl') as MockAuth:
+    with patch('app.repositories.impl.user_repository_impl.UserRepositoryImpl'), \
+         patch('app.repositories.impl.oauth_token_repository_impl.OAuthTokenRepositoryImpl'), \
+         patch('app.extensions.db'), \
+         patch('app.services.impl.auth_service_impl.AuthServiceImpl') as MockAuth:
         from app.models.user import User
         admin = MagicMock(spec=User)
         admin.id = 1
