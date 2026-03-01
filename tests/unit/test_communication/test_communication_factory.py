@@ -9,6 +9,7 @@ import os
 from app.communication.factory import CommunicationFactory
 from app.communication.interfaces import DeploymentMode, CommunicationProtocol
 from app.communication.impl.direct import DirectServiceCommunication, DirectRepositoryCommunication
+from app.communication.impl.http_rest import HTTPRepositoryCommunication, HTTPServiceCommunication
 
 
 class TestCommunicationFactoryInternals:
@@ -185,3 +186,47 @@ class TestGetCommunicationInfo:
         with patch.dict(os.environ, {'DEPLOYMENT_MODE': 'monolithic', 'DEPLOYMENT_LAYER': 'monolithic'}):
             info = CommunicationFactory.get_communication_info()
         assert info['deployment_mode'] == 'monolithic'
+
+class TestCreateRepositoryCommunicationExtended:
+    """Additional tests for create_repository_communication() to boost coverage"""
+
+    def test_monolithic_without_repo_instance_uses_legacy(self):
+        """Lines 245-248: no repository_instance → creates UserRepositoryImpl internally"""
+        with patch('app.communication.factory.UserRepositoryImpl') as MockRepo, \
+             patch('app.communication.factory.db') as mock_db:
+            with patch.dict(os.environ, {'DEPLOYMENT_MODE': 'monolithic'}):
+                comm = CommunicationFactory.create_repository_communication()
+        assert isinstance(comm, DirectRepositoryCommunication)
+        MockRepo.assert_called_once()
+
+    def test_microservices_http_returns_http_repository_communication(self):
+        """Lines 253-262: microservices mode → HTTPRepositoryCommunication"""
+        with patch.dict(os.environ, {
+            'DEPLOYMENT_MODE': 'microservices',
+            'USER_REPO_URLS': 'http://repo-service:5002'
+        }):
+            comm = CommunicationFactory.create_repository_communication()
+        assert isinstance(comm, HTTPRepositoryCommunication)
+
+    def test_microservices_grpc_returns_grpc_repository_communication(self):
+        """Lines 259-260: microservices + grpc → GRPCRepositoryCommunication (check by type name)"""
+        with patch.dict(os.environ, {
+            'DEPLOYMENT_MODE': 'microservices',
+            'COMMUNICATION_PROTOCOL': 'grpc',
+            'USER_REPO_URLS': 'repo-service:50052'
+        }):
+            comm = CommunicationFactory.create_repository_communication()
+        assert type(comm).__name__ == 'GRPCRepositoryCommunication'
+
+
+class TestShouldUseRemoteCommunicationExtended:
+    """Line 108: non-layered, non-microservices → return False"""
+
+    def test_unknown_mode_returns_false(self):
+        from app.communication.factory import CommunicationFactory
+        from app.communication.interfaces import DeploymentMode
+        # Use MONOLITHIC which is neither LAYERED nor MICROSERVICES in the check
+        result = CommunicationFactory._should_use_remote_communication(
+            DeploymentMode.MONOLITHIC, 'controller'
+        )
+        assert result is False

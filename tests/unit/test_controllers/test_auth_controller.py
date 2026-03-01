@@ -161,17 +161,16 @@ class TestGetCurrentUser:
         res = client.get(f'{AUTH_URL}/me', headers=AUTH_HDR)
         assert res.status_code == 200
 
-    def test_me_api_exception(self, client, auth_svc, monkeypatch):
-        auth_svc.getUserProfile.side_effect = APIException('Not found', 404, 'NOT_FOUND')
-        monkeypatch.setattr('app.controllers.auth_controller.get_auth_service', lambda: auth_svc)
-        res = client.get(f'{AUTH_URL}/me', headers=AUTH_HDR)
-        assert res.status_code == 404
+    def test_me_no_auth_returns_401(self, client):
+        # /me uses g.current_user (set by token_required), not get_auth_service/getUserProfile
+        # Test that missing Authorization header → 401 from token_required
+        res = client.get(f'{AUTH_URL}/me')
+        assert res.status_code == 401
 
-    def test_me_generic_exception_returns_500(self, client, auth_svc, monkeypatch):
-        auth_svc.getUserProfile.side_effect = RuntimeError('fail')
-        monkeypatch.setattr('app.controllers.auth_controller.get_auth_service', lambda: auth_svc)
-        res = client.get(f'{AUTH_URL}/me', headers=AUTH_HDR)
-        assert res.status_code == 500
+    def test_me_invalid_token_format_returns_401(self, client):
+        # Invalid bearer format → 401 from token_required format check
+        res = client.get(f'{AUTH_URL}/me', headers={'Authorization': 'NotBearer token'})
+        assert res.status_code == 401
 
 
 # ── GET /api/auth/tokens ──────────────────────────────────────────────────────

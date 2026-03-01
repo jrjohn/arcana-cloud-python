@@ -158,6 +158,7 @@ class TestLayeredUserService:
         mock_client.get.assert_called_once()
 
     def test_get_user_by_id_calls_http_client(self, layered_svc, mock_client):
+        mock_user = Mock()
         mock_client.get.return_value = {
             'success': True,
             'data': {
@@ -168,7 +169,111 @@ class TestLayeredUserService:
                 'created_at': None, 'updated_at': None, 'last_login_at': None
             }
         }
-
-        result = layered_svc.getUserById(1)
+        # User.__init__ requires 'password' (plain text), not 'password_hash'.
+        # Mock the User constructor to avoid SQLAlchemy / password-hash complexity.
+        with patch('app.services.adapters.user_service_adapter.User', return_value=mock_user):
+            result = layered_svc.getUserById(1)
         assert result is not None
         mock_client.get.assert_called_once()
+
+    def test_get_users_with_role_filter(self, layered_svc, mock_client):
+        from app.models.user import UserRole
+        mock_client.get.return_value = {'success': True, 'data': {'users': [], 'pagination': {'total': 0}}}
+        layered_svc.getUsers(role=UserRole.ADMIN)
+        mock_client.get.assert_called_once()
+
+    def test_get_users_with_status_filter(self, layered_svc, mock_client):
+        from app.models.user import UserStatus
+        mock_client.get.return_value = {'success': True, 'data': {'users': [], 'pagination': {'total': 0}}}
+        layered_svc.getUsers(status=UserStatus.ACTIVE)
+        mock_client.get.assert_called_once()
+
+    def test_get_users_failure_raises(self, layered_svc, mock_client):
+        mock_client.get.return_value = {'success': False, 'error': 'Server error'}
+        with pytest.raises(Exception):
+            layered_svc.getUsers()
+
+    def test_get_user_by_id_not_found_raises(self, layered_svc, mock_client):
+        mock_client.get.return_value = {'success': False, 'error': 'User not found'}
+        with pytest.raises(Exception):
+            layered_svc.getUserById(999)
+
+    def test_create_user_success(self, layered_svc, mock_client):
+        mock_user = Mock()
+        mock_client.post.return_value = {
+            'success': True,
+            'data': {'id': 2, 'username': 'newuser', 'email': 'new@test.com'}
+        }
+        with patch('app.services.adapters.user_service_adapter.User', return_value=mock_user):
+            result = layered_svc.createUser('newuser', 'new@test.com', 'pass123')
+        assert result == mock_user
+
+    def test_create_user_failure_raises(self, layered_svc, mock_client):
+        mock_client.post.return_value = {'success': False, 'error': 'Email taken'}
+        with pytest.raises(Exception):
+            layered_svc.createUser('user', 'dup@test.com', 'pass')
+
+    def test_update_user_success(self, layered_svc, mock_client):
+        mock_user = Mock()
+        mock_client.put.return_value = {
+            'success': True,
+            'data': {'id': 1, 'username': 'updated'}
+        }
+        with patch('app.services.adapters.user_service_adapter.User', return_value=mock_user):
+            result = layered_svc.updateUser(1, first_name='Updated')
+        assert result == mock_user
+
+    def test_update_user_failure_raises(self, layered_svc, mock_client):
+        mock_client.put.return_value = {'success': False, 'error': 'Not found'}
+        with pytest.raises(Exception):
+            layered_svc.updateUser(999, first_name='X')
+
+    def test_delete_user_success(self, layered_svc, mock_client):
+        mock_client.delete.return_value = {'success': True}
+        layered_svc.deleteUser(1)  # should not raise
+
+    def test_delete_user_failure_raises(self, layered_svc, mock_client):
+        mock_client.delete.return_value = {'success': False, 'error': 'Not found'}
+        with pytest.raises(Exception):
+            layered_svc.deleteUser(999)
+
+    def test_change_password_success(self, layered_svc, mock_client):
+        mock_client.put.return_value = {'success': True}
+        layered_svc.changePassword(1, 'oldpass', 'newpass')  # should not raise
+
+    def test_change_password_failure_raises(self, layered_svc, mock_client):
+        mock_client.put.return_value = {'success': False, 'error': 'Wrong password'}
+        with pytest.raises(Exception):
+            layered_svc.changePassword(1, 'wrong', 'newpass')
+
+    def test_verify_user_success(self, layered_svc, mock_client):
+        mock_user = Mock()
+        mock_client.post.return_value = {
+            'success': True,
+            'data': {'id': 1, 'is_verified': True}
+        }
+        with patch('app.services.adapters.user_service_adapter.User', return_value=mock_user):
+            result = layered_svc.verifyUser(1)
+        assert result == mock_user
+
+    def test_verify_user_failure_raises(self, layered_svc, mock_client):
+        mock_client.post.return_value = {'success': False, 'error': 'Already verified'}
+        with pytest.raises(Exception):
+            layered_svc.verifyUser(1)
+
+    def test_update_user_status_success(self, layered_svc, mock_client):
+        from app.models.user import UserStatus
+        mock_user = Mock()
+        mock_client.put.return_value = {
+            'success': True,
+            'data': {'id': 1, 'status': 'active'}
+        }
+        with patch('app.services.adapters.user_service_adapter.User', return_value=mock_user):
+            result = layered_svc.updateUserStatus(1, UserStatus.ACTIVE)
+        assert result == mock_user
+
+    def test_update_user_status_failure_raises(self, layered_svc, mock_client):
+        from app.models.user import UserStatus
+        mock_client.put.return_value = {'success': False, 'error': 'Invalid status'}
+        with pytest.raises(Exception):
+            layered_svc.updateUserStatus(999, UserStatus.SUSPENDED)

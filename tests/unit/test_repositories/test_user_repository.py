@@ -412,3 +412,29 @@ class TestUserRepository:
             user_repository.count()
 
         assert "Failed to count users" in str(exc_info.value)
+
+    # ── Exception paths not yet covered ───────────────────────────────────────
+
+    def test_getByUsername_database_error(self, user_repository, mock_session):
+        """Line 48-49: getByUsername DB failure → DatabaseError"""
+        mock_session.query.side_effect = Exception("DB connection lost")
+        with pytest.raises(DatabaseError):
+            user_repository.getByUsername('testuser')
+
+    def test_getByEmail_database_error(self, user_repository, mock_session):
+        """Line 55-56: getByEmail DB failure → DatabaseError"""
+        mock_session.query.side_effect = Exception("DB connection lost")
+        with pytest.raises(DatabaseError):
+            user_repository.getByEmail('test@example.com')
+
+    def test_existsByUsername_database_error(self, user_repository, mock_session):
+        """Line 90-91: existsByUsername DB failure → DatabaseError"""
+        mock_session.query.side_effect = Exception("DB down")
+        with pytest.raises(DatabaseError):
+            user_repository.existsByUsername('testuser')
+
+    def test_existsByEmail_database_error(self, user_repository, mock_session):
+        """Line 99-100: existsByEmail DB failure → DatabaseError"""
+        mock_session.query.side_effect = Exception("DB down")
+        with pytest.raises(DatabaseError):
+            user_repository.existsByEmail('test@example.com')

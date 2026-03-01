@@ -188,3 +188,173 @@ class TestRoleRequired:
                 g.current_user.role = UserRole.USER
                 response = multi_role()
                 assert response == ('ok', 200)
+
+
+# ── require_permission decorator ──────────────────────────────────────────────
+
+class TestRequirePermission:
+
+    def test_no_current_user_returns_401(self):
+        from app.decorators.auth_decorators import require_permission
+        app = _make_app()
+
+        @require_permission(['read:users'])
+        def protected():
+            return ('ok', 200)
+
+        with app.test_request_context('/'):
+            with app.app_context():
+                # g.current_user not set
+                response = protected()
+                assert response[1] == 401
+
+    def test_admin_bypasses_permission_check(self):
+        from app.decorators.auth_decorators import require_permission
+        app = _make_app()
+
+        @require_permission(['read:users', 'write:users'])
+        def protected():
+            return ('admin ok', 200)
+
+        with app.test_request_context('/'):
+            with app.app_context():
+                g.current_user = Mock(spec=User)
+                g.current_user.role = UserRole.ADMIN
+                response = protected()
+                assert response == ('admin ok', 200)
+
+    def test_user_with_all_permissions_passes(self):
+        from app.decorators.auth_decorators import require_permission
+        app = _make_app()
+
+        @require_permission(['read:users'])
+        def protected():
+            return ('ok', 200)
+
+        with app.test_request_context('/'):
+            with app.app_context():
+                g.current_user = Mock(spec=User)
+                g.current_user.role = UserRole.USER
+                g.current_user.permissions = ['read:users', 'write:users']
+                response = protected()
+                assert response == ('ok', 200)
+
+    def test_user_missing_permissions_returns_403(self):
+        from app.decorators.auth_decorators import require_permission
+        app = _make_app()
+
+        @require_permission(['read:users', 'delete:users'])
+        def protected():
+            return ('ok', 200)
+
+        with app.test_request_context('/'):
+            with app.app_context():
+                g.current_user = Mock(spec=User)
+                g.current_user.role = UserRole.USER
+                g.current_user.permissions = ['read:users']  # missing delete:users
+                response = protected()
+                assert response[1] == 403
+
+    def test_user_no_permissions_attr_returns_403(self):
+        from app.decorators.auth_decorators import require_permission
+        app = _make_app()
+
+        @require_permission(['read:users'])
+        def protected():
+            return ('ok', 200)
+
+        with app.test_request_context('/'):
+            with app.app_context():
+                g.current_user = Mock(spec=User)
+                g.current_user.role = UserRole.USER
+                # Mock has no 'permissions' attr → getattr returns []
+                del g.current_user.permissions
+                response = protected()
+                assert response[1] == 403
+
+    def test_empty_permission_list_passes(self):
+        from app.decorators.auth_decorators import require_permission
+        app = _make_app()
+
+        @require_permission([])
+        def protected():
+            return ('ok', 200)
+
+        with app.test_request_context('/'):
+            with app.app_context():
+                g.current_user = Mock(spec=User)
+                g.current_user.role = UserRole.USER
+                g.current_user.permissions = []
+                response = protected()
+                assert response == ('ok', 200)
+
+
+# ── optional_token decorator ──────────────────────────────────────────────────
+
+class TestOptionalToken:
+
+    def test_no_auth_header_runs_handler_without_current_user(self):
+        from app.decorators.auth_decorators import optional_token
+        app = _make_app()
+
+        @optional_token
+        def public():
+            return ('ok', 200)
+
+        with app.test_request_context('/'):
+            with app.app_context():
+                response = public()
+                assert response == ('ok', 200)
+                assert not hasattr(g, 'current_user')
+
+    def test_invalid_token_format_runs_handler_without_current_user(self):
+        from app.decorators.auth_decorators import optional_token
+        app = _make_app()
+
+        @optional_token
+        def public():
+            return ('ok', 200)
+
+        with app.test_request_context('/', headers={'Authorization': 'BadFormat'}):
+            with app.app_context():
+                response = public()
+                assert response == ('ok', 200)
+
+    def test_valid_bearer_token_sets_current_user(self):
+        from app.decorators.auth_decorators import optional_token
+        app = _make_app()
+
+        mock_user = Mock(spec=User)
+
+        @optional_token
+        def public():
+            return ('ok', 200)
+
+        with patch('app.repositories.impl.user_repository_impl.UserRepositoryImpl'), \
+             patch('app.repositories.impl.oauth_token_repository_impl.OAuthTokenRepositoryImpl'), \
+             patch('app.services.impl.auth_service_impl.AuthServiceImpl') as MockAuth, \
+             patch('app.extensions.db'):
+            MockAuth.return_value.validateToken.return_value = mock_user
+            with app.test_request_context('/', headers={'Authorization': 'Bearer valid-token'}):
+                with app.app_context():
+                    response = public()
+                    assert response == ('ok', 200)
+                    assert g.current_user == mock_user
+
+    def test_validateToken_exception_continues_without_current_user(self):
+        from app.decorators.auth_decorators import optional_token
+        app = _make_app()
+
+        @optional_token
+        def public():
+            return ('ok', 200)
+
+        with patch('app.repositories.impl.user_repository_impl.UserRepositoryImpl'), \
+             patch('app.repositories.impl.oauth_token_repository_impl.OAuthTokenRepositoryImpl'), \
+             patch('app.services.impl.auth_service_impl.AuthServiceImpl') as MockAuth, \
+             patch('app.extensions.db'):
+            MockAuth.return_value.validateToken.side_effect = Exception('Invalid token')
+            with app.test_request_context('/', headers={'Authorization': 'Bearer bad-token'}):
+                with app.app_context():
+                    response = public()
+                    assert response == ('ok', 200)
