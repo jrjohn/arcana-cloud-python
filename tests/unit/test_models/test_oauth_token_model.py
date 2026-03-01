@@ -3,7 +3,7 @@ OAuth Token Model Unit Tests
 Comprehensive tests for OAuthToken model
 """
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app.models.oauth_token import OAuthToken
 
@@ -78,7 +78,7 @@ class TestOAuthTokenModel:
     def test_token_expiration_calculation(self):
         """Test that expiration time is calculated correctly"""
         # Arrange
-        before = datetime.utcnow()
+        before = datetime.now(timezone.utc)
 
         # Act
         token = OAuthToken(
@@ -88,7 +88,7 @@ class TestOAuthTokenModel:
         )
 
         # Assert
-        after = datetime.utcnow()
+        after = datetime.now(timezone.utc)
         expected_expiry = before + timedelta(seconds=3600)
 
         # Allow 1 second tolerance for test execution time
@@ -97,7 +97,7 @@ class TestOAuthTokenModel:
     def test_refresh_token_expiration_calculation(self):
         """Test that refresh token expiration is calculated correctly"""
         # Arrange
-        before = datetime.utcnow()
+        before = datetime.now(timezone.utc)
 
         # Act
         token = OAuthToken(
@@ -109,7 +109,7 @@ class TestOAuthTokenModel:
         )
 
         # Assert
-        after = datetime.utcnow()
+        after = datetime.now(timezone.utc)
         expected_expiry = before + timedelta(seconds=2592000)
 
         # Allow 1 second tolerance
@@ -269,9 +269,9 @@ class TestOAuthTokenModel:
         assert token.revoked_at is None
 
         # Act
-        before_revoke = datetime.utcnow()
+        before_revoke = datetime.now(timezone.utc)
         token.revoke()
-        after_revoke = datetime.utcnow()
+        after_revoke = datetime.now(timezone.utc)
 
         # Assert
         assert token.is_revoked is True
@@ -289,9 +289,9 @@ class TestOAuthTokenModel:
         assert token.last_used_at is None
 
         # Act
-        before_update = datetime.utcnow()
+        before_update = datetime.now(timezone.utc)
         token.updateLastUsed()
-        after_update = datetime.utcnow()
+        after_update = datetime.now(timezone.utc)
 
         # Assert
         assert token.last_used_at is not None
@@ -353,7 +353,7 @@ class TestOAuthTokenModel:
             expires_in=3600
         )
         token.id = 1
-        token.created_at = datetime.utcnow()
+        token.created_at = datetime.now(timezone.utc)
         token.updateLastUsed()
 
         # Act

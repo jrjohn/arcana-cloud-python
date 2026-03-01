@@ -133,19 +133,19 @@ class TestRefreshToken:
     PAYLOAD = {'refresh_token': 'valid-refresh-token'}
 
     def test_refresh_returns_200(self, client, auth_svc, monkeypatch):
-        auth_svc.refresh_token.return_value = {'access_token': 'new-tok'}
+        auth_svc.refreshToken.return_value = {'access_token': 'new-tok'}
         monkeypatch.setattr('app.controllers.auth_controller.get_auth_service', lambda: auth_svc)
         res = client.post(f'{AUTH_URL}/refresh', data=json.dumps(self.PAYLOAD), headers=JSON_CT)
         assert res.status_code == 200
 
     def test_refresh_api_exception(self, client, auth_svc, monkeypatch):
-        auth_svc.refresh_token.side_effect = APIException('Token expired', 401, 'TOKEN_EXPIRED')
+        auth_svc.refreshToken.side_effect = APIException('Token expired', 401, 'TOKEN_EXPIRED')
         monkeypatch.setattr('app.controllers.auth_controller.get_auth_service', lambda: auth_svc)
         res = client.post(f'{AUTH_URL}/refresh', data=json.dumps(self.PAYLOAD), headers=JSON_CT)
         assert res.status_code == 401
 
     def test_refresh_generic_exception_returns_500(self, client, auth_svc, monkeypatch):
-        auth_svc.refresh_token.side_effect = RuntimeError('fail')
+        auth_svc.refreshToken.side_effect = RuntimeError('fail')
         monkeypatch.setattr('app.controllers.auth_controller.get_auth_service', lambda: auth_svc)
         res = client.post(f'{AUTH_URL}/refresh', data=json.dumps(self.PAYLOAD), headers=JSON_CT)
         assert res.status_code == 500
@@ -155,19 +155,19 @@ class TestRefreshToken:
 
 class TestGetCurrentUser:
     def test_me_returns_200(self, client, auth_svc, monkeypatch):
-        auth_svc.get_user_profile.return_value = {'id': 1, 'email': 'admin@test.com'}
+        auth_svc.getUserProfile.return_value = {'id': 1, 'email': 'admin@test.com'}
         monkeypatch.setattr('app.controllers.auth_controller.get_auth_service', lambda: auth_svc)
         res = client.get(f'{AUTH_URL}/me', headers=AUTH_HDR)
         assert res.status_code == 200
 
     def test_me_api_exception(self, client, auth_svc, monkeypatch):
-        auth_svc.get_user_profile.side_effect = APIException('Not found', 404, 'NOT_FOUND')
+        auth_svc.getUserProfile.side_effect = APIException('Not found', 404, 'NOT_FOUND')
         monkeypatch.setattr('app.controllers.auth_controller.get_auth_service', lambda: auth_svc)
         res = client.get(f'{AUTH_URL}/me', headers=AUTH_HDR)
         assert res.status_code == 404
 
     def test_me_generic_exception_returns_500(self, client, auth_svc, monkeypatch):
-        auth_svc.get_user_profile.side_effect = RuntimeError('fail')
+        auth_svc.getUserProfile.side_effect = RuntimeError('fail')
         monkeypatch.setattr('app.controllers.auth_controller.get_auth_service', lambda: auth_svc)
         res = client.get(f'{AUTH_URL}/me', headers=AUTH_HDR)
         assert res.status_code == 500
@@ -177,19 +177,19 @@ class TestGetCurrentUser:
 
 class TestGetUserTokens:
     def test_tokens_returns_200(self, client, auth_svc, monkeypatch):
-        auth_svc.get_user_tokens.return_value = [{'id': 1, 'token': 'tok'}]
+        auth_svc.getUserTokens.return_value = [{'id': 1, 'token': 'tok'}]
         monkeypatch.setattr('app.controllers.auth_controller.get_auth_service', lambda: auth_svc)
         res = client.get(f'{AUTH_URL}/tokens', headers=AUTH_HDR)
         assert res.status_code == 200
 
     def test_tokens_api_exception(self, client, auth_svc, monkeypatch):
-        auth_svc.get_user_tokens.side_effect = APIException('Error', 500, 'ERR')
+        auth_svc.getUserTokens.side_effect = APIException('Error', 500, 'ERR')
         monkeypatch.setattr('app.controllers.auth_controller.get_auth_service', lambda: auth_svc)
         res = client.get(f'{AUTH_URL}/tokens', headers=AUTH_HDR)
         assert res.status_code == 500
 
     def test_tokens_generic_exception_returns_500(self, client, auth_svc, monkeypatch):
-        auth_svc.get_user_tokens.side_effect = RuntimeError('fail')
+        auth_svc.getUserTokens.side_effect = RuntimeError('fail')
         monkeypatch.setattr('app.controllers.auth_controller.get_auth_service', lambda: auth_svc)
         res = client.get(f'{AUTH_URL}/tokens', headers=AUTH_HDR)
         assert res.status_code == 500
@@ -199,19 +199,19 @@ class TestGetUserTokens:
 
 class TestRevokeAllTokens:
     def test_revoke_all_returns_200(self, client, auth_svc, monkeypatch):
-        auth_svc.revoke_all_tokens.return_value = {'revoked': 3}
+        auth_svc.revokeAllTokens.return_value = {'revoked': 3}
         monkeypatch.setattr('app.controllers.auth_controller.get_auth_service', lambda: auth_svc)
         res = client.post(f'{AUTH_URL}/tokens/revoke-all', headers=AUTH_HDR)
         assert res.status_code == 200
 
     def test_revoke_all_api_exception(self, client, auth_svc, monkeypatch):
-        auth_svc.revoke_all_tokens.side_effect = APIException('Error', 500, 'ERR')
+        auth_svc.revokeAllTokens.side_effect = APIException('Error', 500, 'ERR')
         monkeypatch.setattr('app.controllers.auth_controller.get_auth_service', lambda: auth_svc)
         res = client.post(f'{AUTH_URL}/tokens/revoke-all', headers=AUTH_HDR)
         assert res.status_code == 500
 
     def test_revoke_all_generic_exception_returns_500(self, client, auth_svc, monkeypatch):
-        auth_svc.revoke_all_tokens.side_effect = RuntimeError('fail')
+        auth_svc.revokeAllTokens.side_effect = RuntimeError('fail')
         monkeypatch.setattr('app.controllers.auth_controller.get_auth_service', lambda: auth_svc)
         res = client.post(f'{AUTH_URL}/tokens/revoke-all', headers=AUTH_HDR)
         assert res.status_code == 500

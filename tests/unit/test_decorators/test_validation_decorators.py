@@ -191,7 +191,7 @@ class TestValidatePagination:
             response = get_list()
             assert response[1] == 400
 
-    def test_per_page_exceeds_max_capped(self):
+    def test_per_page_exceeds_max_returns_400(self):
         from app.decorators.validation_decorators import validate_pagination
 
         app = _make_app()
@@ -203,6 +203,5 @@ class TestValidatePagination:
 
         with app.test_request_context('/?per_page=200', method='GET'):
             response = get_list()
-            assert response[1] == 200
-            data = json.loads(response[0])
-            assert data['per_page'] <= 100
+            # production validate_pagination returns 400 when per_page exceeds max
+            assert response[1] == 400

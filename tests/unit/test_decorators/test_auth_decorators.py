@@ -58,9 +58,9 @@ class TestTokenRequired:
             response = protected()
             assert response[1] == 401
 
-    @patch('app.decorators.auth_decorators.AuthServiceImpl')
-    @patch('app.decorators.auth_decorators.OAuthTokenRepositoryImpl')
-    @patch('app.decorators.auth_decorators.UserRepositoryImpl')
+    @patch('app.services.impl.auth_service_impl.AuthServiceImpl')
+    @patch('app.repositories.impl.oauth_token_repository_impl.OAuthTokenRepositoryImpl')
+    @patch('app.repositories.impl.user_repository_impl.UserRepositoryImpl')
     def test_valid_token_calls_protected_route(self, MockUserRepo, MockTokenRepo, MockAuthService):
         from app.decorators.auth_decorators import token_required
         from app.extensions import db
@@ -77,15 +77,15 @@ class TestTokenRequired:
 
         with app.test_request_context('/', headers={'Authorization': 'Bearer valid-token'}):
             with app.app_context():
-                with patch('app.decorators.auth_decorators.db') as mock_db:
+                with patch('app.extensions.db') as mock_db:
                     mock_db.session = Mock()
                     response = protected()
             # If validateToken returns a user, decorated function should run
             # Response may be ('ok', 200) or error depending on DB setup
 
-    @patch('app.decorators.auth_decorators.AuthServiceImpl')
-    @patch('app.decorators.auth_decorators.OAuthTokenRepositoryImpl')
-    @patch('app.decorators.auth_decorators.UserRepositoryImpl')
+    @patch('app.services.impl.auth_service_impl.AuthServiceImpl')
+    @patch('app.repositories.impl.oauth_token_repository_impl.OAuthTokenRepositoryImpl')
+    @patch('app.repositories.impl.user_repository_impl.UserRepositoryImpl')
     def test_invalid_token_returns_401(self, MockUserRepo, MockTokenRepo, MockAuthService):
         from app.decorators.auth_decorators import token_required
         from app.utils.exceptions import AuthenticationError
@@ -98,14 +98,14 @@ class TestTokenRequired:
             return ('ok', 200)
 
         with app.test_request_context('/', headers={'Authorization': 'Bearer bad-token'}):
-            with patch('app.decorators.auth_decorators.db') as mock_db:
+            with patch('app.extensions.db') as mock_db:
                 mock_db.session = Mock()
                 response = protected()
                 assert response[1] == 401
 
-    @patch('app.decorators.auth_decorators.AuthServiceImpl')
-    @patch('app.decorators.auth_decorators.OAuthTokenRepositoryImpl')
-    @patch('app.decorators.auth_decorators.UserRepositoryImpl')
+    @patch('app.services.impl.auth_service_impl.AuthServiceImpl')
+    @patch('app.repositories.impl.oauth_token_repository_impl.OAuthTokenRepositoryImpl')
+    @patch('app.repositories.impl.user_repository_impl.UserRepositoryImpl')
     def test_unexpected_exception_returns_401(self, MockUserRepo, MockTokenRepo, MockAuthService):
         from app.decorators.auth_decorators import token_required
 
@@ -117,7 +117,7 @@ class TestTokenRequired:
             return ('ok', 200)
 
         with app.test_request_context('/', headers={'Authorization': 'Bearer some-token'}):
-            with patch('app.decorators.auth_decorators.db') as mock_db:
+            with patch('app.extensions.db') as mock_db:
                 mock_db.session = Mock()
                 response = protected()
                 assert response[1] == 401

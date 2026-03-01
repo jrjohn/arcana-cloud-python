@@ -30,6 +30,14 @@ def _make_user(uid=1, username='alice'):
     u.created_at = None
     u.updated_at = None
     u.last_login_at = None
+    # toDict() is called by DirectServiceCommunication to serialise User objects
+    u.toDict.return_value = {
+        'id': uid, 'username': username,
+        'email': f'{username}@example.com',
+        'first_name': 'Alice', 'last_name': 'Test',
+        'role': UserRole.USER.value, 'status': UserStatus.ACTIVE.value,
+        'is_verified': False, 'is_active': True,
+    }
     return u
 
 
