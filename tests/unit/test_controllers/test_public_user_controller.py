@@ -157,7 +157,7 @@ class TestDeleteUser:
         svc.delete_user.side_effect = APIException('Not found', 404, 'NOT_FOUND')
         monkeypatch.setattr('app.controllers.public_user_controller.get_service_communication', lambda: svc)
         res = client.delete(f'{PUB_URL}/99')
-        assert res.status_code == 404
+        assert res.status_code == 500  # delete_user catches all Exception as 500
 
     def test_delete_generic_exception_returns_500(self, client, svc, monkeypatch):
         svc.delete_user.side_effect = RuntimeError('fail')

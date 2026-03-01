@@ -129,6 +129,7 @@ class TestDirectServiceCommunicationUpdateUser:
         svc = Mock()
         user = _make_user()
         user.first_name = 'Updated'
+        user.toDict.return_value['first_name'] = 'Updated'
         svc.updateUser.return_value = user
         comm = DirectServiceCommunication(svc)
         result = comm.update_user(1, {'first_name': 'Updated'})
@@ -161,6 +162,7 @@ class TestDirectServiceCommunicationVerifyUser:
         svc = Mock()
         user = _make_user()
         user.is_verified = True
+        user.toDict.return_value['is_verified'] = True
         svc.verifyUser.return_value = user
         comm = DirectServiceCommunication(svc)
         result = comm.verify_user(1)
@@ -173,6 +175,7 @@ class TestDirectServiceCommunicationUpdateUserStatus:
         svc = Mock()
         user = _make_user()
         user.status = UserStatus.INACTIVE
+        user.toDict.return_value['status'] = UserStatus.INACTIVE.value
         svc.updateUserStatus.return_value = user
         comm = DirectServiceCommunication(svc)
         result = comm.update_user_status(1, 'inactive')
@@ -253,6 +256,7 @@ class TestDirectRepositoryCommunicationUpdate:
         repo = Mock()
         user = _make_user()
         user.first_name = 'Bob'
+        user.toDict.return_value['first_name'] = 'Bob'
         repo.update.return_value = user
         comm = DirectRepositoryCommunication(repo)
         result = comm.update('User', 1, {'first_name': 'Bob'})

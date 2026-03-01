@@ -264,7 +264,7 @@ class TestGetRequestId:
     def test_get_request_id_from_g(self, app):
         """Test getting request ID from flask g object"""
         with app.app_context():
-            with patch('app.utils.Response.g') as mock_g:
+            with patch('app.utils.response.g') as mock_g:
                 mock_g.request_id = 'test-request-id-123'
                 result = get_request_id()
                 assert result == 'test-request-id-123'

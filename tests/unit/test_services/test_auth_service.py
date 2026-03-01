@@ -5,7 +5,7 @@ Comprehensive tests for AuthServiceImpl
 import pytest
 import jwt
 from unittest.mock import Mock, MagicMock, patch
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app.services.impl.auth_service_impl import AuthServiceImpl
 from app.models.user import User, UserRole, UserStatus
@@ -321,7 +321,7 @@ class TestAuthService:
     def test_refresh_token_expired(self, auth_service, mock_token_repository, sample_token):
         """Test refresh with expired refresh token"""
         # Arrange — set refresh_expires_at to the past so isRefreshExpired() returns True
-        sample_token.refresh_expires_at = datetime.utcnow() - timedelta(days=1)
+        sample_token.refresh_expires_at = datetime.now(timezone.utc) - timedelta(days=1)
         mock_token_repository.find_by_refresh_token.return_value = sample_token
 
         # Act & Assert
@@ -409,7 +409,7 @@ class TestAuthService:
     def test_validate_token_expired(self, auth_service, mock_token_repository, sample_token):
         """Test validate expired token — isValid() returns False"""
         # Arrange — move expires_at to the past
-        sample_token.expires_at = datetime.utcnow() - timedelta(hours=1)
+        sample_token.expires_at = datetime.now(timezone.utc) - timedelta(hours=1)
         mock_token_repository.find_by_access_token.return_value = sample_token
 
         # Act & Assert

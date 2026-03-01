@@ -151,7 +151,7 @@ class TestLayeredUserService:
             return svc
 
     def test_get_users_calls_http_client(self, layered_svc, mock_client):
-        mock_client.get.return_value = {'data': {'users': [], 'pagination': {'total': 0}}}
+        mock_client.get.return_value = {'success': True, 'data': {'users': [], 'pagination': {'total': 0}}}
 
         result = layered_svc.getUsers(page=1, per_page=10)
         assert 'users' in result
@@ -159,6 +159,7 @@ class TestLayeredUserService:
 
     def test_get_user_by_id_calls_http_client(self, layered_svc, mock_client):
         mock_client.get.return_value = {
+            'success': True,
             'data': {
                 'id': 1, 'username': 'john', 'email': 'j@test.com',
                 'role': 'USER', 'status': 'ACTIVE',

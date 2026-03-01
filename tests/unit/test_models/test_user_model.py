@@ -3,7 +3,7 @@ User Model Unit Tests
 Comprehensive tests for User model
 """
 import pytest
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.models.user import User, UserRole, UserStatus
 
@@ -107,9 +107,9 @@ class TestUserModel:
         assert user.last_login_at is None
 
         # Act
-        before_update = datetime.utcnow()
+        before_update = datetime.now(timezone.utc)
         user.updateLastLogin()
-        after_update = datetime.utcnow()
+        after_update = datetime.now(timezone.utc)
 
         # Assert
         assert user.last_login_at is not None
@@ -168,8 +168,8 @@ class TestUserModel:
             password='TestPass123'
         )
         user.id = 1
-        user.created_at = datetime.utcnow()
-        user.updated_at = datetime.utcnow()
+        user.created_at = datetime.now(timezone.utc)
+        user.updated_at = datetime.now(timezone.utc)
         user.updateLastLogin()
 
         # Act

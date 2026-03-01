@@ -33,6 +33,7 @@ def app():
         admin.id = 1
         admin.role = UserRole.ADMIN
         MockAuth.return_value.validateToken.return_value = admin
+        admin.toDict.return_value = {'id': 1, 'email': 'admin@test.com', 'role': 'admin'}
         from app import create_app
         a = create_app('testing')
         a.config['TESTING'] = True
