@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 from app.utils.exceptions import APIException
 
-AUTH_URL = '/api/auth'
+AUTH_URL = '/api/v1/auth'
 JSON_CT = {'Content-Type': 'application/json'}
 AUTH_HDR = {'Authorization': 'Bearer test-token', 'Content-Type': 'application/json'}
 

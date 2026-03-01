@@ -15,7 +15,7 @@ from app.models.user import User, UserRole, UserStatus
 # ---------------------------------------------------------------------------
 
 def _make_user(uid=1, username='alice'):
-    u = User.__new__(User)
+    u = MagicMock(spec=User)
     u.id = uid
     u.username = username
     u.email = f'{username}@example.com'
