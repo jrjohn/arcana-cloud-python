@@ -190,15 +190,15 @@ class TestRoleRequired:
                 assert response == ('ok', 200)
 
 
-# ── require_permission decorator ──────────────────────────────────────────────
+# ── permission_required decorator ──────────────────────────────────────────────
 
 class TestRequirePermission:
 
     def test_no_current_user_returns_401(self):
-        from app.decorators.auth_decorators import require_permission
+        from app.decorators.auth_decorators import permission_required
         app = _make_app()
 
-        @require_permission(['read:users'])
+        @permission_required(['read:users'])
         def protected():
             return ('ok', 200)
 
@@ -209,10 +209,10 @@ class TestRequirePermission:
                 assert response[1] == 401
 
     def test_admin_bypasses_permission_check(self):
-        from app.decorators.auth_decorators import require_permission
+        from app.decorators.auth_decorators import permission_required
         app = _make_app()
 
-        @require_permission(['read:users', 'write:users'])
+        @permission_required(['read:users', 'write:users'])
         def protected():
             return ('admin ok', 200)
 
@@ -224,10 +224,10 @@ class TestRequirePermission:
                 assert response == ('admin ok', 200)
 
     def test_user_with_all_permissions_passes(self):
-        from app.decorators.auth_decorators import require_permission
+        from app.decorators.auth_decorators import permission_required
         app = _make_app()
 
-        @require_permission(['read:users'])
+        @permission_required(['read:users'])
         def protected():
             return ('ok', 200)
 
@@ -240,10 +240,10 @@ class TestRequirePermission:
                 assert response == ('ok', 200)
 
     def test_user_missing_permissions_returns_403(self):
-        from app.decorators.auth_decorators import require_permission
+        from app.decorators.auth_decorators import permission_required
         app = _make_app()
 
-        @require_permission(['read:users', 'delete:users'])
+        @permission_required(['read:users', 'delete:users'])
         def protected():
             return ('ok', 200)
 
@@ -256,10 +256,10 @@ class TestRequirePermission:
                 assert response[1] == 403
 
     def test_user_no_permissions_attr_returns_403(self):
-        from app.decorators.auth_decorators import require_permission
+        from app.decorators.auth_decorators import permission_required
         app = _make_app()
 
-        @require_permission(['read:users'])
+        @permission_required(['read:users'])
         def protected():
             return ('ok', 200)
 
@@ -273,10 +273,10 @@ class TestRequirePermission:
                 assert response[1] == 403
 
     def test_empty_permission_list_passes(self):
-        from app.decorators.auth_decorators import require_permission
+        from app.decorators.auth_decorators import permission_required
         app = _make_app()
 
-        @require_permission([])
+        @permission_required([])
         def protected():
             return ('ok', 200)
 

@@ -13,10 +13,9 @@ class TestDebugTask:
         """Line 85: print(f'Request: {self.request!r}')"""
         from app.tasks.celery_worker import debug_task
 
-        # Call the task's underlying function with a mock self
-        # debug_task.run() passes the task instance as self for bind=True tasks
+        # Use apply() to run the task synchronously (handles bind=True correctly)
         with patch('builtins.print') as mock_print:
-            debug_task.run()
+            debug_task.apply()
 
         # Verify print was called (line 85 executed)
         mock_print.assert_called_once()

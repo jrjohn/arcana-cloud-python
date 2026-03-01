@@ -3,7 +3,7 @@ Communication Factory Unit Tests
 Tests for app/communication/factory.py
 """
 import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock,  Mock, patch
 import os
 
 from app.communication.factory import CommunicationFactory
