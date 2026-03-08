@@ -32,7 +32,7 @@ services:
     container_name: arcana-ci-python-grpc-repository
     entrypoint: ["/app/docker/entrypoint-repository.sh"]
     environment:
-      FLASK_ENV: testing
+      FLASK_ENV: development
       DEPLOYMENT_MODE: layered
       DEPLOYMENT_LAYER: repository
       COMMUNICATION_PROTOCOL: grpc
@@ -62,7 +62,7 @@ services:
     container_name: arcana-ci-python-grpc-service
     entrypoint: ["/app/docker/entrypoint-service.sh"]
     environment:
-      FLASK_ENV: testing
+      FLASK_ENV: development
       DEPLOYMENT_MODE: layered
       DEPLOYMENT_LAYER: service
       COMMUNICATION_PROTOCOL: grpc
@@ -89,7 +89,7 @@ services:
     image: ${PYTHON_IMAGE:-localhost:5000/arcana/python-app:latest}
     container_name: arcana-ci-python-grpc-controller
     environment:
-      FLASK_ENV: testing
+      FLASK_ENV: development
       DEPLOYMENT_MODE: layered
       DEPLOYMENT_LAYER: controller
       COMMUNICATION_PROTOCOL: grpc

@@ -29,7 +29,7 @@ metadata:
   name: arcana-ci-config
   namespace: arcana-ci-kind-python
 data:
-  FLASK_ENV: "testing"
+  FLASK_ENV: "development"
   DEPLOYMENT_MODE: "layered"
   COMMUNICATION_PROTOCOL: "grpc"
   MYSQL_DATABASE: "arcana_cloud"
