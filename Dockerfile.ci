@@ -24,5 +24,11 @@ WORKDIR /app
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 COPY . .
+# Fix case-sensitivity: macOS imports use lowercase but files are uppercase
+RUN for f in $(find app -name "*.py" | grep "[A-Z]"); do \
+      dir=$(dirname "$f"); base=$(basename "$f"); \
+      lower=$(echo "$base" | tr "A-Z" "a-z"); \
+      if [ "$base" != "$lower" ]; then mv "$f" "$dir/$lower"; fi; \
+    done
 EXPOSE 5000
 CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "wsgi:application"]
