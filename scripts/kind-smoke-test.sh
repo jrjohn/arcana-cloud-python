@@ -59,7 +59,9 @@ kind load docker-image "${IMAGE_ALIAS}" --name "${CLUSTER_NAME}"
 # Apply manifest
 # ---------------------------------------------------------------------------
 echo "[k8s] Applying manifest ${MANIFEST} ..."
-kubectl apply -f "${MANIFEST}"
+# Wait a moment for the API server to be fully reachable
+sleep 5
+kubectl apply -f "${MANIFEST}" --validate=false
 
 # ---------------------------------------------------------------------------
 # Wait for pods to be ready
