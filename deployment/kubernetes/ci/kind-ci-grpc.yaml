@@ -20,6 +20,7 @@ stringData:
   DB_PASSWORD: "ci_arcana"
   JWT_SECRET_KEY: "ci-secret-key-minimum-32-characters"
   MYSQL_ROOT_PASSWORD: "ci_root"
+  DATABASE_URL: "mysql+pymysql://arcana:ci_arcana@mysql:3306/arcana_cloud"
 
 ---
 # ConfigMap — non-sensitive config
@@ -67,9 +68,17 @@ spec:
       labels:
         app: mysql
     spec:
+      automountServiceAccountToken: false
       containers:
         - name: mysql
           image: mysql:8.0
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+              ephemeral-storage: "256Mi"
+            limits:
+              memory: "1Gi"
           ports:
             - containerPort: 3306
           env:
@@ -131,9 +140,17 @@ spec:
       labels:
         app: redis
     spec:
+      automountServiceAccountToken: false
       containers:
         - name: redis
           image: redis:7-alpine
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+              ephemeral-storage: "64Mi"
+            limits:
+              memory: "256Mi"
           ports:
             - containerPort: 6379
 
@@ -169,11 +186,19 @@ spec:
       labels:
         app: arcana-ci-repository
     spec:
+      automountServiceAccountToken: false
       containers:
         - name: repository
           image: arcana-cloud-python:ci
           imagePullPolicy: Never
           command: ["/app/docker/entrypoint-repository.sh"]
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+              ephemeral-storage: "128Mi"
+            limits:
+              memory: "512Mi"
           ports:
             - name: grpc
               containerPort: 50052
@@ -212,7 +237,10 @@ spec:
                   name: arcana-ci-secrets
                   key: JWT_SECRET_KEY
             - name: DATABASE_URL
-              value: "mysql+pymysql://arcana:ci_arcana@mysql:3306/arcana_cloud"
+              valueFrom:
+                secretKeyRef:
+                  name: arcana-ci-secrets
+                  key: DATABASE_URL
             - name: REDIS_URL
               value: "redis://redis:6379/0"
           readinessProbe:
@@ -259,11 +287,19 @@ spec:
       labels:
         app: arcana-ci-service
     spec:
+      automountServiceAccountToken: false
       containers:
         - name: service
           image: arcana-cloud-python:ci
           imagePullPolicy: Never
           command: ["/app/docker/entrypoint-service.sh"]
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+              ephemeral-storage: "128Mi"
+            limits:
+              memory: "512Mi"
           ports:
             - name: grpc
               containerPort: 50051
@@ -302,7 +338,10 @@ spec:
                   name: arcana-ci-secrets
                   key: JWT_SECRET_KEY
             - name: DATABASE_URL
-              value: "mysql+pymysql://arcana:ci_arcana@mysql:3306/arcana_cloud"
+              valueFrom:
+                secretKeyRef:
+                  name: arcana-ci-secrets
+                  key: DATABASE_URL
             - name: REDIS_URL
               value: "redis://redis:6379/0"
           readinessProbe:
@@ -351,10 +390,18 @@ spec:
       labels:
         app: arcana-ci-controller
     spec:
+      automountServiceAccountToken: false
       containers:
         - name: controller
           image: arcana-cloud-python:ci
           imagePullPolicy: Never
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+              ephemeral-storage: "128Mi"
+            limits:
+              memory: "512Mi"
           ports:
             - name: http
               containerPort: 5000

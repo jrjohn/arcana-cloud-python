@@ -37,7 +37,7 @@ services:
       DEPLOYMENT_LAYER: repository
       COMMUNICATION_PROTOCOL: grpc
       GRPC_PORT: "50052"
-      DATABASE_URL: "mysql+pymysql://arcana:ci_arcana@mysql:3306/arcana_cloud"
+      DATABASE_URL: "${CI_GRPC_DATABASE_URL}"
       REDIS_URL: "redis://redis:6379/0"
       SECRET_KEY: ci-secret-key
       JWT_SECRET_KEY: ci-secret-key-minimum-32-characters
@@ -68,7 +68,7 @@ services:
       COMMUNICATION_PROTOCOL: grpc
       GRPC_PORT: "50051"
       USER_REPO_URLS: "repository:50052"
-      DATABASE_URL: "mysql+pymysql://arcana:ci_arcana@mysql:3306/arcana_cloud"
+      DATABASE_URL: "${CI_GRPC_DATABASE_URL}"
       REDIS_URL: "redis://redis:6379/0"
       SECRET_KEY: ci-secret-key
       JWT_SECRET_KEY: ci-secret-key-minimum-32-characters
