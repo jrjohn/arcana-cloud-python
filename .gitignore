@@ -85,3 +85,6 @@ celerybeat.pid
 
 # pytest
 .pytest_cache/
+# CI env files (contain test credentials - set in CI environment)
+.env.ci
+**/.env.ci

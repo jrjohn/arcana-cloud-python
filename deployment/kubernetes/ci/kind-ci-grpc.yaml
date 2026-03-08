@@ -16,11 +16,12 @@ metadata:
   name: arcana-ci-secrets
   namespace: arcana-ci-kind-python
 type: Opaque
+data:
+  DATABASE_URL: bXlzcWwrcHlteXNxbDovL2FyY2FuYTpjaV9hcmNhbmFAbXlzcWw6MzMwNi9hcmNhbmFfY2xvdWQ=
 stringData:
   DB_PASSWORD: "ci_arcana"
   JWT_SECRET_KEY: "ci-secret-key-minimum-32-characters"
   MYSQL_ROOT_PASSWORD: "ci_root"
-  DATABASE_URL: "mysql+pymysql://arcana:ci_arcana@mysql:3306/arcana_cloud"
 
 ---
 # ConfigMap — non-sensitive config
