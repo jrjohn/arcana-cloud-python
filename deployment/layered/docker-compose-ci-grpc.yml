@@ -1,0 +1,118 @@
+# Python gRPC CI Integration Test — 3-layer gRPC
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: arcana-ci-python-grpc-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ci_root
+      MYSQL_DATABASE: arcana_cloud
+      MYSQL_USER: arcana
+      MYSQL_PASSWORD: ci_arcana
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pci_root"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    networks:
+      - arcana-ci-python-grpc-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: arcana-ci-python-grpc-redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+    networks:
+      - arcana-ci-python-grpc-net
+
+  repository:
+    image: ${PYTHON_IMAGE:-localhost:5000/arcana/python-app:latest}
+    container_name: arcana-ci-python-grpc-repository
+    entrypoint: ["/app/docker/entrypoint-repository.sh"]
+    environment:
+      FLASK_ENV: testing
+      DEPLOYMENT_MODE: layered
+      DEPLOYMENT_LAYER: repository
+      COMMUNICATION_PROTOCOL: grpc
+      GRPC_PORT: "50052"
+      DATABASE_URL: "mysql+pymysql://arcana:ci_arcana@mysql:3306/arcana_cloud"
+      REDIS_URL: "redis://redis:6379/0"
+      SECRET_KEY: ci-secret-key
+      JWT_SECRET_KEY: ci-secret-key-minimum-32-characters
+      SERVICE_NAME: arcana-cloud-repository
+      SERVICE_PORT: "5002"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/bin/bash", "/app/docker/healthcheck-repository.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    networks:
+      - arcana-ci-python-grpc-net
+
+  service:
+    image: ${PYTHON_IMAGE:-localhost:5000/arcana/python-app:latest}
+    container_name: arcana-ci-python-grpc-service
+    entrypoint: ["/app/docker/entrypoint-service.sh"]
+    environment:
+      FLASK_ENV: testing
+      DEPLOYMENT_MODE: layered
+      DEPLOYMENT_LAYER: service
+      COMMUNICATION_PROTOCOL: grpc
+      GRPC_PORT: "50051"
+      USER_REPO_URLS: "repository:50052"
+      DATABASE_URL: "mysql+pymysql://arcana:ci_arcana@mysql:3306/arcana_cloud"
+      REDIS_URL: "redis://redis:6379/0"
+      SECRET_KEY: ci-secret-key
+      JWT_SECRET_KEY: ci-secret-key-minimum-32-characters
+      SERVICE_NAME: arcana-cloud-service
+    depends_on:
+      repository:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/bin/bash", "/app/docker/healthcheck-service.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    networks:
+      - arcana-ci-python-grpc-net
+
+  controller:
+    image: ${PYTHON_IMAGE:-localhost:5000/arcana/python-app:latest}
+    container_name: arcana-ci-python-grpc-controller
+    environment:
+      FLASK_ENV: testing
+      DEPLOYMENT_MODE: layered
+      DEPLOYMENT_LAYER: controller
+      COMMUNICATION_PROTOCOL: grpc
+      USER_SERVICE_URLS: "service:50051"
+      AUTH_SERVICE_URLS: "service:50051"
+      PORT: "5000"
+      REDIS_URL: "redis://redis:6379/0"
+      SECRET_KEY: ci-secret-key
+      JWT_SECRET_KEY: ci-secret-key-minimum-32-characters
+      SERVICE_NAME: arcana-cloud-controller
+    depends_on:
+      service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:5000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    networks:
+      - arcana-ci-python-grpc-net
+
+networks:
+  arcana-ci-python-grpc-net:
+    driver: bridge
+    name: arcana-ci-python-grpc-net
