@@ -84,7 +84,7 @@ for INFRA_IMG in mysql:8.0 redis:7-alpine; do
   if docker image inspect "${INFRA_IMG}" > /dev/null 2>&1; then
     echo "[kind] Pre-loading ${INFRA_IMG} via docker save ..."
     docker save "${INFRA_IMG}" | docker exec -i "${CP_CONTAINER}" \
-      ctr --namespace=k8s.io images import --all-platforms - 2>/dev/null || \
+      ctr --namespace=k8s.io images import - 2>/dev/null || \
     echo "[kind] Warning: failed to pre-load ${INFRA_IMG}, will pull from registry"
   fi
 done
