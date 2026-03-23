@@ -192,12 +192,13 @@ class TestCreateRepositoryCommunicationExtended:
 
     def test_monolithic_without_repo_instance_uses_legacy(self):
         """Lines 245-248: no repository_instance → creates UserRepositoryImpl internally"""
-        with patch('app.communication.factory.UserRepositoryImpl') as MockRepo, \
-             patch('app.communication.factory.db') as mock_db:
+        with patch('app.repositories.impl.user_repository_impl.UserRepositoryImpl') as MockRepo, \
+             patch('app.extensions.db') as mock_db:
+            mock_db.session = MagicMock()
             with patch.dict(os.environ, {'DEPLOYMENT_MODE': 'monolithic'}):
                 comm = CommunicationFactory.create_repository_communication()
         assert isinstance(comm, DirectRepositoryCommunication)
-        MockRepo.assert_called_once()
+        MockRepo.assert_called_once_with(mock_db.session)
 
     def test_microservices_http_returns_http_repository_communication(self):
         """Lines 253-262: microservices mode → HTTPRepositoryCommunication"""
