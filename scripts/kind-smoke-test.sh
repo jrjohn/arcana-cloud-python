@@ -68,6 +68,14 @@ fi
 docker tag "${IMAGE}" "${IMAGE_ALIAS}"
 kind load docker-image "${IMAGE_ALIAS}" --name "${CLUSTER_NAME}"
 
+# Pre-load infrastructure images to avoid pull delays inside Kind
+for INFRA_IMG in mysql:8.0 redis:7-alpine; do
+  if docker image inspect "${INFRA_IMG}" > /dev/null 2>&1; then
+    echo "[kind] Pre-loading ${INFRA_IMG} into cluster ..."
+    kind load docker-image "${INFRA_IMG}" --name "${CLUSTER_NAME}" || true
+  fi
+done
+
 # ---------------------------------------------------------------------------
 # Apply manifest
 # ---------------------------------------------------------------------------
@@ -96,8 +104,12 @@ wait_pods() {
 
     if [[ ${elapsed} -ge ${TIMEOUT} ]]; then
       echo "[k8s] TIMEOUT waiting for ${label} pods"
-      kubectl get pods -n "${NS}" 2>/dev/null || true
-      kubectl describe pods -n "${NS}" -l "app=${label}" 2>/dev/null | tail -30 || true
+      echo "--- All pods in namespace ${NS} ---"
+      kubectl get pods -n "${NS}" -o wide 2>&1 || true
+      echo "--- Describe pod ${label} ---"
+      kubectl describe pods -n "${NS}" -l "app=${label}" 2>&1 | tail -40 || true
+      echo "--- Pod logs for ${label} ---"
+      kubectl logs -n "${NS}" -l "app=${label}" --all-containers --tail=30 2>&1 || true
       return 1
     fi
 

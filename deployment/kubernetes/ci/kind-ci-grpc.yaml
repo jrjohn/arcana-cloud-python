@@ -197,12 +197,13 @@ spec:
             - -c
             - |
               echo "Waiting for MySQL ..."
-              timeout 120 sh -c 'until nc -z mysql 3306; do sleep 2; done'
+              timeout 180 sh -c 'until nc -z mysql 3306; do sleep 2; done'
+              sleep 5
               echo "MySQL is reachable, creating tables ..."
               python -c "
               import os
-              os.environ.setdefault('DEPLOYMENT_MODE','monolithic')
-              os.environ.setdefault('DEPLOYMENT_LAYER','monolithic')
+              os.environ['DEPLOYMENT_MODE'] = 'monolithic'
+              os.environ['DEPLOYMENT_LAYER'] = 'monolithic'
               from app import create_app
               from app.extensions import db
               app = create_app('development')
@@ -210,6 +211,7 @@ spec:
                   db.create_all()
                   print('DB tables created successfully')
               "
+              echo "Init container done"
           env:
             - name: FLASK_ENV
               valueFrom:
