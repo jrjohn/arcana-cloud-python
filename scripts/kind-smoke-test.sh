@@ -18,11 +18,15 @@ NS="arcana-ci-kind-python"
 NODE_PORT="30095"
 MANIFEST="deployment/kubernetes/ci/kind-ci-grpc.yaml"
 
+# Use isolated kubeconfig to avoid interference from concurrent Kind clusters
+export KUBECONFIG="/tmp/kubeconfig-${CLUSTER_NAME}"
+
 echo "=== Kind K8s Smoke Test: ${PROTOCOL} ==="
 echo "    Cluster:  ${CLUSTER_NAME}"
 echo "    Image:    ${IMAGE} → ${IMAGE_ALIAS}"
 echo "    Manifest: ${MANIFEST}"
 echo "    Timeout:  ${TIMEOUT}s"
+echo "    Kubeconfig: ${KUBECONFIG}"
 
 # ---------------------------------------------------------------------------
 # Cleanup helper
@@ -32,6 +36,7 @@ cleanup() {
   docker network disconnect kind "$(hostname)" 2>/dev/null || true
   echo "[cleanup] Deleting kind cluster ${CLUSTER_NAME} ..."
   kind delete cluster --name "${CLUSTER_NAME}" 2>/dev/null || true
+  rm -f "${KUBECONFIG}" 2>/dev/null || true
 }
 trap cleanup EXIT
 
@@ -39,7 +44,7 @@ trap cleanup EXIT
 # Create kind cluster
 # ---------------------------------------------------------------------------
 echo "[kind] Creating cluster ${CLUSTER_NAME} ..."
-kind create cluster --name "${CLUSTER_NAME}" --wait 60s
+kind create cluster --name "${CLUSTER_NAME}" --wait 60s --kubeconfig "${KUBECONFIG}"
 
 # Rewrite kubeconfig server URL: 127.0.0.1 -> kind control-plane container IP
 # (Jenkins runs inside Docker, so 127.0.0.1 in kubeconfig points to Jenkins itself, not the host)
@@ -52,6 +57,10 @@ if [ -n "${CP_IP}" ]; then
   echo "[kind] Rewriting kubeconfig server to ${CP_IP} (Jenkins joined kind network) ..."
   kubectl config set-cluster "kind-${CLUSTER_NAME}" --server="https://${CP_IP}:6443" --insecure-skip-tls-verify=true
 fi
+
+# Verify kubectl connectivity
+echo "[kind] Verifying kubectl connectivity ..."
+kubectl cluster-info 2>&1 | head -3
 
 # ---------------------------------------------------------------------------
 # Load image into kind
