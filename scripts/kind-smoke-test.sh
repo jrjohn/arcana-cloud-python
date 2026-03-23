@@ -68,11 +68,15 @@ fi
 docker tag "${IMAGE}" "${IMAGE_ALIAS}"
 kind load docker-image "${IMAGE_ALIAS}" --name "${CLUSTER_NAME}"
 
-# Pre-load infrastructure images to avoid pull delays inside Kind
+# Pre-load infrastructure images using docker save/ctr import
+# (kind load docker-image fails for multi-platform images like mysql)
+CP_CONTAINER="${CLUSTER_NAME}-control-plane"
 for INFRA_IMG in mysql:8.0 redis:7-alpine; do
   if docker image inspect "${INFRA_IMG}" > /dev/null 2>&1; then
-    echo "[kind] Pre-loading ${INFRA_IMG} into cluster ..."
-    kind load docker-image "${INFRA_IMG}" --name "${CLUSTER_NAME}" || true
+    echo "[kind] Pre-loading ${INFRA_IMG} via docker save ..."
+    docker save "${INFRA_IMG}" | docker exec -i "${CP_CONTAINER}" \
+      ctr --namespace=k8s.io images import --all-platforms - 2>/dev/null || \
+    echo "[kind] Warning: failed to pre-load ${INFRA_IMG}, will pull from registry"
   fi
 done
 
@@ -115,7 +119,13 @@ wait_pods() {
 
     sleep ${interval}
     elapsed=$((elapsed + interval))
-    echo "[k8s] ...${elapsed}s elapsed, waiting for ${label}"
+    # Print pod status every 120s for debugging
+    if (( elapsed % 120 == 0 )); then
+      echo "[k8s] --- Pod status at ${elapsed}s ---"
+      kubectl get pods -n "${NS}" -o wide 2>&1 || true
+    else
+      echo "[k8s] ...${elapsed}s elapsed, waiting for ${label}"
+    fi
   done
 }
 
