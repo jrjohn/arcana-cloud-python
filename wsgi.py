@@ -11,6 +11,9 @@ config_name = os.getenv('FLASK_ENV', 'development')
 # 創建應用實例
 app = create_app(config_name)
 
+# WSGI standard expects 'application' callable (used by gunicorn wsgi:application)
+application = app
+
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5555))
     debug = os.getenv('DEBUG', 'False').lower() == 'true'
