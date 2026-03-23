@@ -208,7 +208,7 @@ REGISTER=$(curl -sf --max-time 15 \
 run_test "POST /api/v1/auth/register" "access_token" "${REGISTER}"
 
 # Extract access_token using grep (no python3 in Jenkins container)
-ACCESS_TOKEN=$(echo "${REGISTER}" | grep -o '"access_token":"[^"]*"' | head -1 | cut -d'"' -f4 || echo "")
+ACCESS_TOKEN=$(echo "${REGISTER}" | grep -o '"access_token": *"[^"]*"' | head -1 | sed 's/.*: *"//;s/"//' || echo "")
 
 if [[ -n "${ACCESS_TOKEN}" ]]; then
   LOGIN=$(curl -sf --max-time 15 \

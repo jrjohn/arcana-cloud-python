@@ -59,8 +59,8 @@ fi
 
 # Python response: {"data": {"access_token": "...", "refresh_token": "...", "user": {...}}}
 # Extract token with grep/cut (no python3 in Jenkins container)
-TOKEN=$(grep -o '"access_token":"[^"]*"' /tmp/smoke-login-${LABEL}.json 2>/dev/null \
-    | head -1 | cut -d'"' -f4 || echo "")
+TOKEN=$(grep -o '"access_token": *"[^"]*"' /tmp/smoke-login-${LABEL}.json 2>/dev/null \
+    | head -1 | sed 's/.*: *"//;s/"//' || echo "")
 if [ -z "${TOKEN}" ]; then
   echo "  ✗ No access_token in login response"
   cat /tmp/smoke-login-${LABEL}.json 2>/dev/null || true
@@ -83,8 +83,8 @@ if [ "${ME_HTTP_CODE}" != "200" ]; then
 fi
 
 # Extract username with grep/cut (no python3 in Jenkins container)
-ME_USER=$(grep -o '"username":"[^"]*"' /tmp/smoke-me-${LABEL}.json 2>/dev/null \
-    | head -1 | cut -d'"' -f4 || echo "?")
+ME_USER=$(grep -o '"username": *"[^"]*"' /tmp/smoke-me-${LABEL}.json 2>/dev/null \
+    | head -1 | sed 's/.*: *"//;s/"//' || echo "?")
 echo "  ✓ Auth call OK — user: ${ME_USER}"
 
 echo ""
