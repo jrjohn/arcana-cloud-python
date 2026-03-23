@@ -188,6 +188,55 @@ spec:
         app: arcana-ci-repository
     spec:
       automountServiceAccountToken: false
+      initContainers:
+        - name: db-migrate
+          image: arcana-cloud-python:ci
+          imagePullPolicy: Never
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for MySQL ..."
+              timeout 120 sh -c 'until nc -z mysql 3306; do sleep 2; done'
+              echo "MySQL is reachable, creating tables ..."
+              python -c "
+              import os
+              os.environ.setdefault('DEPLOYMENT_MODE','monolithic')
+              os.environ.setdefault('DEPLOYMENT_LAYER','monolithic')
+              from app import create_app
+              from app.extensions import db
+              app = create_app('development')
+              with app.app_context():
+                  db.create_all()
+                  print('DB tables created successfully')
+              "
+          env:
+            - name: FLASK_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-ci-config
+                  key: FLASK_ENV
+            - name: DEPLOYMENT_MODE
+              value: "monolithic"
+            - name: DEPLOYMENT_LAYER
+              value: "monolithic"
+            - name: SECRET_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: arcana-ci-config
+                  key: SECRET_KEY
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: arcana-ci-secrets
+                  key: JWT_SECRET_KEY
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: arcana-ci-secrets
+                  key: DATABASE_URL
+            - name: REDIS_URL
+              value: "redis://redis:6379/0"
       containers:
         - name: repository
           image: arcana-cloud-python:ci
