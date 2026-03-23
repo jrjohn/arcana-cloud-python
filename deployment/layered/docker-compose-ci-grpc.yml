@@ -96,6 +96,7 @@ services:
       USER_SERVICE_URLS: "service:50051"
       AUTH_SERVICE_URLS: "service:50051"
       PORT: "5000"
+      DATABASE_URL: "${CI_GRPC_DATABASE_URL}"
       REDIS_URL: "redis://redis:6379/0"
       SECRET_KEY: ci-secret-key
       JWT_SECRET_KEY: ci-secret-key-minimum-32-characters
