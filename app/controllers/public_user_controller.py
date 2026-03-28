@@ -9,7 +9,6 @@ from datetime import datetime, timezone
 
 from app.schemas.user_schema import PublicUserCreateSchema, PublicUserUpdateSchema
 from app.decorators.validation_decorators import validate_schema, validate_pagination
-from app.models.user import User
 from app.utils.exceptions import APIException, NotFoundError
 
 # Import DI container

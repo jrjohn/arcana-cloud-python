@@ -2,10 +2,8 @@
 gRPC Communication Implementation
 For layered and microservices modes using gRPC protocol
 """
-import os
 import grpc
 from typing import Dict, Any, Optional
-from google.protobuf.json_format import MessageToDict
 
 from app.communication.interfaces import (
     ServiceCommunicationInterface,
@@ -23,7 +21,7 @@ from app.utils.exceptions import (
     APIException, NotFoundError, ConflictError,
     ValidationError, AuthenticationError, AuthorizationError
 )
-from app.models.user import UserRole, UserStatus
+from app.models.user import UserStatus
 
 
 class GRPCServiceCommunication(ServiceCommunicationInterface):

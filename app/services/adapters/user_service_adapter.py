@@ -3,7 +3,7 @@ User Service Adapter
 Provides a unified interface that works in both monolithic and layered modes
 """
 import os
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any
 from abc import ABC, abstractmethod
 
 from app.services.clients.service_client import ServiceClient

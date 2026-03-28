@@ -3,7 +3,7 @@ Load Balancer
 Load balancer - Round Robin implementation
 """
 import threading
-from typing import List, Optional
+from typing import List
 import logging
 
 logger = logging.getLogger(__name__)

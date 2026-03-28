@@ -3,11 +3,11 @@ Authentication Decorators
 Authentication decorators - Annotation-based OAuth2 + JWT validation
 """
 from functools import wraps
-from typing import List, Optional, Callable
+from typing import List, Callable
 from flask import request, g
 
 from app.models.user import User, UserRole
-from app.utils.exceptions import AuthenticationError, AuthorizationError
+from app.utils.exceptions import AuthenticationError
 from app.utils.response import error_response
 
 
