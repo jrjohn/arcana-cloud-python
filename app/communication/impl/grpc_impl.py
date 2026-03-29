@@ -26,7 +26,7 @@ from app.utils.exceptions import (
 from app.models.user import UserRole, UserStatus
 
 
-class GRPCServiceCommunication(ServiceCommunicationInterface):
+class GRPCServiceCommunicationImpl(ServiceCommunicationInterface):
     """
     gRPC service communication
     For Controller → Service communication via gRPC
@@ -294,7 +294,7 @@ class GRPCServiceCommunication(ServiceCommunicationInterface):
                 pass
 
 
-class GRPCRepositoryCommunication(RepositoryCommunicationInterface):
+class GRPCRepositoryCommunicationImpl(RepositoryCommunicationInterface):
     """
     gRPC repository communication
     For Service → Repository communication via gRPC

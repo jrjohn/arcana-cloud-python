@@ -1,22 +1,22 @@
 """Communication Implementations Package"""
 from app.communication.impl.direct import (
-    DirectServiceCommunication,
-    DirectRepositoryCommunication
+    DirectServiceCommunicationImpl,
+    DirectRepositoryCommunicationImpl
 )
 from app.communication.impl.http_rest import (
-    HTTPServiceCommunication,
-    HTTPRepositoryCommunication
+    HTTPServiceCommunicationImpl,
+    HTTPRepositoryCommunicationImpl
 )
 from app.communication.impl.grpc_impl import (
-    GRPCServiceCommunication,
-    GRPCRepositoryCommunication
+    GRPCServiceCommunicationImpl,
+    GRPCRepositoryCommunicationImpl
 )
 
 __all__ = [
-    'DirectServiceCommunication',
-    'DirectRepositoryCommunication',
-    'HTTPServiceCommunication',
-    'HTTPRepositoryCommunication',
-    'GRPCServiceCommunication',
-    'GRPCRepositoryCommunication',
+    'DirectServiceCommunicationImpl',
+    'DirectRepositoryCommunicationImpl',
+    'HTTPServiceCommunicationImpl',
+    'HTTPRepositoryCommunicationImpl',
+    'GRPCServiceCommunicationImpl',
+    'GRPCRepositoryCommunicationImpl',
 ]

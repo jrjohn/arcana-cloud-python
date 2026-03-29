@@ -21,7 +21,7 @@ from app.utils.exceptions import (
 )
 
 
-class HTTPServiceCommunication(ServiceCommunicationInterface):
+class HTTPServiceCommunicationImpl(ServiceCommunicationInterface):
     """
     HTTP/REST service communication
     For Controller → Service communication via HTTP
@@ -193,7 +193,7 @@ class HTTPServiceCommunication(ServiceCommunicationInterface):
         return result.get('data', result)
 
 
-class HTTPRepositoryCommunication(RepositoryCommunicationInterface):
+class HTTPRepositoryCommunicationImpl(RepositoryCommunicationInterface):
     """
     HTTP/REST repository communication
     For Service → Repository communication via HTTP

@@ -6,7 +6,7 @@ import pytest
 from unittest.mock import Mock, MagicMock, patch, PropertyMock
 import requests
 
-from app.communication.impl.http_rest import HTTPServiceCommunication, HTTPRepositoryCommunication
+from app.communication.impl.http_rest import HTTPServiceCommunicationImpl, HTTPRepositoryCommunicationImpl
 from app.communication.interfaces import DeploymentMode, CommunicationMode, CommunicationProtocol
 from app.utils.exceptions import (
     APIException, NotFoundError, ConflictError,
@@ -27,24 +27,24 @@ def _make_http_error(status_code, body=None):
     return err
 
 
-# ── HTTPServiceCommunication ──────────────────────────────────────────────────
+# ── HTTPServiceCommunicationImpl ──────────────────────────────────────────────────
 
 class TestHTTPServiceCommunicationInit:
 
     def test_layered_mode_sets_layered_http_mode(self):
-        comm = HTTPServiceCommunication(['http://svc:5001'], DeploymentMode.LAYERED)
+        comm = HTTPServiceCommunicationImpl(['http://svc:5001'], DeploymentMode.LAYERED)
         assert comm.get_mode() == CommunicationMode.LAYERED_HTTP
 
     def test_microservices_mode_sets_microservices_http_mode(self):
-        comm = HTTPServiceCommunication(['http://svc:5001'], DeploymentMode.MICROSERVICES)
+        comm = HTTPServiceCommunicationImpl(['http://svc:5001'], DeploymentMode.MICROSERVICES)
         assert comm.get_mode() == CommunicationMode.MICROSERVICES_HTTP
 
     def test_protocol_is_http(self):
-        comm = HTTPServiceCommunication(['http://svc:5001'], DeploymentMode.LAYERED)
+        comm = HTTPServiceCommunicationImpl(['http://svc:5001'], DeploymentMode.LAYERED)
         assert comm.get_protocol() == CommunicationProtocol.HTTP
 
     def test_round_robin_url_rotation(self):
-        comm = HTTPServiceCommunication(['http://a:5001', 'http://b:5001'], DeploymentMode.LAYERED)
+        comm = HTTPServiceCommunicationImpl(['http://a:5001', 'http://b:5001'], DeploymentMode.LAYERED)
         url1 = comm._get_next_url()
         url2 = comm._get_next_url()
         url3 = comm._get_next_url()
@@ -58,7 +58,7 @@ class TestHTTPServiceCommunicationMakeRequest:
     @pytest.fixture
     def comm(self):
         with patch('requests.Session'):
-            svc = HTTPServiceCommunication(['http://svc:5001'], DeploymentMode.LAYERED)
+            svc = HTTPServiceCommunicationImpl(['http://svc:5001'], DeploymentMode.LAYERED)
             svc.session = Mock()
             return svc
 
@@ -128,7 +128,7 @@ class TestHTTPServiceCommunicationMethods:
     @pytest.fixture
     def comm(self):
         with patch('requests.Session'):
-            svc = HTTPServiceCommunication(['http://svc:5001'], DeploymentMode.LAYERED)
+            svc = HTTPServiceCommunicationImpl(['http://svc:5001'], DeploymentMode.LAYERED)
             svc.session = Mock()
             return svc
 
@@ -201,14 +201,14 @@ class TestHTTPServiceCommunicationMethods:
         assert result['status'] == 'active'
 
 
-# ── HTTPRepositoryCommunication ───────────────────────────────────────────────
+# ── HTTPRepositoryCommunicationImpl ───────────────────────────────────────────────
 
-class TestHTTPRepositoryCommunication:
+class TestHTTPRepositoryCommunicationImpl:
 
     @pytest.fixture
     def comm(self):
         with patch('requests.Session'):
-            repo = HTTPRepositoryCommunication(['http://repo:5002'], DeploymentMode.MICROSERVICES)
+            repo = HTTPRepositoryCommunicationImpl(['http://repo:5002'], DeploymentMode.MICROSERVICES)
             repo.session = Mock()
             return repo
 
@@ -222,7 +222,7 @@ class TestHTTPRepositoryCommunication:
 
     def test_init_layered_sets_layered_mode(self):
         with patch('requests.Session'):
-            repo = HTTPRepositoryCommunication(['http://repo:5002'], DeploymentMode.LAYERED)
+            repo = HTTPRepositoryCommunicationImpl(['http://repo:5002'], DeploymentMode.LAYERED)
             assert repo.get_mode() == CommunicationMode.LAYERED_HTTP
 
     def test_get_by_id(self, comm):

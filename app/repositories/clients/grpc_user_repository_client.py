@@ -1,6 +1,6 @@
 """
 gRPC User Repository Client
-Wraps GRPCRepositoryCommunication to provide repository interface
+Wraps GRPCRepositoryCommunicationImpl to provide repository interface
 """
 import os
 from typing import List, Tuple, Optional

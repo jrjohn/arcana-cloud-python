@@ -11,7 +11,7 @@ from app.communication.interfaces import (
 )
 
 
-class DirectServiceCommunication(ServiceCommunicationInterface):
+class DirectServiceCommunicationImpl(ServiceCommunicationInterface):
     """
     Direct service communication (Monolithic mode)
     Calls service layer directly without any network communication
@@ -92,7 +92,7 @@ class DirectServiceCommunication(ServiceCommunicationInterface):
         return user.toDict()
 
 
-class DirectRepositoryCommunication(RepositoryCommunicationInterface):
+class DirectRepositoryCommunicationImpl(RepositoryCommunicationInterface):
     """
     Direct repository communication (Monolithic mode)
     Calls repository layer directly without any network communication

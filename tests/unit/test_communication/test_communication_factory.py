@@ -8,8 +8,8 @@ import os
 
 from app.communication.factory import CommunicationFactory
 from app.communication.interfaces import DeploymentMode, CommunicationProtocol
-from app.communication.impl.direct import DirectServiceCommunication, DirectRepositoryCommunication
-from app.communication.impl.http_rest import HTTPRepositoryCommunication, HTTPServiceCommunication
+from app.communication.impl.direct import DirectServiceCommunicationImpl, DirectRepositoryCommunicationImpl
+from app.communication.impl.http_rest import HTTPRepositoryCommunicationImpl, HTTPServiceCommunicationImpl
 
 
 class TestCommunicationFactoryInternals:
@@ -133,17 +133,17 @@ class TestCreateServiceCommunication:
         svc = Mock()
         with patch.dict(os.environ, {'DEPLOYMENT_MODE': 'monolithic', 'DEPLOYMENT_LAYER': 'monolithic'}):
             comm = CommunicationFactory.create_service_communication(service_instance=svc)
-        assert isinstance(comm, DirectServiceCommunication)
+        assert isinstance(comm, DirectServiceCommunicationImpl)
         assert comm.service is svc
 
     def test_monolithic_without_service_instance_creates_legacy(self):
         """In monolithic mode without instance, legacy path creates dependencies"""
         with patch.dict(os.environ, {'DEPLOYMENT_MODE': 'monolithic', 'DEPLOYMENT_LAYER': 'monolithic'}):
             mock_svc = Mock()
-            with patch('app.communication.impl.direct.DirectServiceCommunication.__init__',
+            with patch('app.communication.impl.direct.DirectServiceCommunicationImpl.__init__',
                        return_value=None) as mock_init:
-                with patch('app.communication.factory.DirectServiceCommunication') as MockDSC:
-                    MockDSC.return_value = Mock(spec=DirectServiceCommunication)
+                with patch('app.communication.factory.DirectServiceCommunicationImpl') as MockDSC:
+                    MockDSC.return_value = Mock(spec=DirectServiceCommunicationImpl)
                     # Just verify it doesn't crash
                     try:
                         comm = CommunicationFactory.create_service_communication()
@@ -158,7 +158,7 @@ class TestCreateRepositoryCommunication:
         repo = Mock()
         with patch.dict(os.environ, {'DEPLOYMENT_MODE': 'monolithic', 'DEPLOYMENT_LAYER': 'monolithic'}):
             comm = CommunicationFactory.create_repository_communication(repository_instance=repo)
-        assert isinstance(comm, DirectRepositoryCommunication)
+        assert isinstance(comm, DirectRepositoryCommunicationImpl)
         assert comm.repository is repo
 
     def test_layered_mode_non_microservices_is_direct(self):
@@ -166,7 +166,7 @@ class TestCreateRepositoryCommunication:
         repo = Mock()
         with patch.dict(os.environ, {'DEPLOYMENT_MODE': 'layered', 'DEPLOYMENT_LAYER': 'service'}):
             comm = CommunicationFactory.create_repository_communication(repository_instance=repo)
-        assert isinstance(comm, DirectRepositoryCommunication)
+        assert isinstance(comm, DirectRepositoryCommunicationImpl)
 
 
 class TestGetCommunicationInfo:
@@ -196,27 +196,27 @@ class TestCreateRepositoryCommunicationExtended:
              patch('app.communication.factory.db') as mock_db:
             with patch.dict(os.environ, {'DEPLOYMENT_MODE': 'monolithic'}):
                 comm = CommunicationFactory.create_repository_communication()
-        assert isinstance(comm, DirectRepositoryCommunication)
+        assert isinstance(comm, DirectRepositoryCommunicationImpl)
         MockRepo.assert_called_once()
 
     def test_microservices_http_returns_http_repository_communication(self):
-        """Lines 253-262: microservices mode → HTTPRepositoryCommunication"""
+        """Lines 253-262: microservices mode → HTTPRepositoryCommunicationImpl"""
         with patch.dict(os.environ, {
             'DEPLOYMENT_MODE': 'microservices',
             'USER_REPO_URLS': 'http://repo-service:5002'
         }):
             comm = CommunicationFactory.create_repository_communication()
-        assert isinstance(comm, HTTPRepositoryCommunication)
+        assert isinstance(comm, HTTPRepositoryCommunicationImpl)
 
     def test_microservices_grpc_returns_grpc_repository_communication(self):
-        """Lines 259-260: microservices + grpc → GRPCRepositoryCommunication (check by type name)"""
+        """Lines 259-260: microservices + grpc → GRPCRepositoryCommunicationImpl (check by type name)"""
         with patch.dict(os.environ, {
             'DEPLOYMENT_MODE': 'microservices',
             'COMMUNICATION_PROTOCOL': 'grpc',
             'USER_REPO_URLS': 'repo-service:50052'
         }):
             comm = CommunicationFactory.create_repository_communication()
-        assert type(comm).__name__ == 'GRPCRepositoryCommunication'
+        assert type(comm).__name__ == 'GRPCRepositoryCommunicationImpl'
 
 
 class TestShouldUseRemoteCommunicationExtended:

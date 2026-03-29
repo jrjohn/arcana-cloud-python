@@ -5,7 +5,7 @@ Tests for app/communication/impl/direct.py
 import pytest
 from unittest.mock import Mock, MagicMock, patch
 
-from app.communication.impl.direct import DirectServiceCommunication, DirectRepositoryCommunication
+from app.communication.impl.direct import DirectServiceCommunicationImpl, DirectRepositoryCommunicationImpl
 from app.communication.interfaces import CommunicationMode, CommunicationProtocol
 from app.models.user import User, UserRole, UserStatus
 
@@ -30,7 +30,7 @@ def _make_user(uid=1, username='alice'):
     u.created_at = None
     u.updated_at = None
     u.last_login_at = None
-    # toDict() is called by DirectServiceCommunication to serialise User objects
+    # toDict() is called by DirectServiceCommunicationImpl to serialise User objects
     u.toDict.return_value = {
         'id': uid, 'username': username,
         'email': f'{username}@example.com',
@@ -44,17 +44,17 @@ def _make_user(uid=1, username='alice'):
 class TestDirectServiceCommunicationInit:
     def test_mode_is_monolithic(self):
         svc = Mock()
-        comm = DirectServiceCommunication(svc)
+        comm = DirectServiceCommunicationImpl(svc)
         assert comm.get_mode() == CommunicationMode.MONOLITHIC
 
     def test_protocol_is_direct(self):
         svc = Mock()
-        comm = DirectServiceCommunication(svc)
+        comm = DirectServiceCommunicationImpl(svc)
         assert comm.get_protocol() == CommunicationProtocol.DIRECT
 
     def test_health_check_true(self):
         svc = Mock()
-        comm = DirectServiceCommunication(svc)
+        comm = DirectServiceCommunicationImpl(svc)
         assert comm.health_check() is True
 
 
@@ -64,7 +64,7 @@ class TestDirectServiceCommunicationCall:
     def test_call_delegates_to_service_method(self):
         svc = Mock()
         svc.someMethod.return_value = 'result'
-        comm = DirectServiceCommunication(svc)
+        comm = DirectServiceCommunicationImpl(svc)
         result = comm.call('someMethod', foo='bar')
         svc.someMethod.assert_called_once_with(foo='bar')
         assert result == 'result'
@@ -73,7 +73,7 @@ class TestDirectServiceCommunicationCall:
         svc = Mock()
         user = _make_user()
         svc.getUser.return_value = user
-        comm = DirectServiceCommunication(svc)
+        comm = DirectServiceCommunicationImpl(svc)
         result = comm.call('getUser', user_id=1)
         assert isinstance(result, dict)
         assert result['username'] == 'alice'
@@ -86,7 +86,7 @@ class TestDirectServiceCommunicationGetUsers:
             'items': [],
             'pagination': {'page': 1, 'per_page': 20, 'total': 0}
         }
-        comm = DirectServiceCommunication(svc)
+        comm = DirectServiceCommunicationImpl(svc)
         result = comm.get_users(page=1, per_page=20)
         svc.getUsers.assert_called_once_with(page=1, per_page=20)
         assert 'items' in result
@@ -94,7 +94,7 @@ class TestDirectServiceCommunicationGetUsers:
     def test_get_users_passes_filters(self):
         svc = Mock()
         svc.getUsers.return_value = {'items': [], 'pagination': {}}
-        comm = DirectServiceCommunication(svc)
+        comm = DirectServiceCommunicationImpl(svc)
         comm.get_users(page=2, per_page=10, role=UserRole.ADMIN)
         svc.getUsers.assert_called_once_with(page=2, per_page=10, role=UserRole.ADMIN)
 
@@ -104,7 +104,7 @@ class TestDirectServiceCommunicationGetUserById:
         svc = Mock()
         user = _make_user(uid=5)
         svc.getUserById.return_value = user
-        comm = DirectServiceCommunication(svc)
+        comm = DirectServiceCommunicationImpl(svc)
         result = comm.get_user_by_id(5)
         svc.getUserById.assert_called_once_with(5)
         assert isinstance(result, dict)
@@ -116,7 +116,7 @@ class TestDirectServiceCommunicationCreateUser:
         svc = Mock()
         user = _make_user()
         svc.createUser.return_value = user
-        comm = DirectServiceCommunication(svc)
+        comm = DirectServiceCommunicationImpl(svc)
         result = comm.create_user({
             'username': 'alice', 'email': 'alice@example.com', 'password': 'Pass123!'
         })
@@ -131,7 +131,7 @@ class TestDirectServiceCommunicationUpdateUser:
         user.first_name = 'Updated'
         user.toDict.return_value['first_name'] = 'Updated'
         svc.updateUser.return_value = user
-        comm = DirectServiceCommunication(svc)
+        comm = DirectServiceCommunicationImpl(svc)
         result = comm.update_user(1, {'first_name': 'Updated'})
         svc.updateUser.assert_called_once_with(1, first_name='Updated')
         assert result['first_name'] == 'Updated'
@@ -141,7 +141,7 @@ class TestDirectServiceCommunicationDeleteUser:
     def test_delete_user(self):
         svc = Mock()
         svc.deleteUser.return_value = None
-        comm = DirectServiceCommunication(svc)
+        comm = DirectServiceCommunicationImpl(svc)
         result = comm.delete_user(1)
         svc.deleteUser.assert_called_once_with(1)
         assert result['success'] is True
@@ -151,7 +151,7 @@ class TestDirectServiceCommunicationChangePassword:
     def test_change_password(self):
         svc = Mock()
         svc.changePassword.return_value = None
-        comm = DirectServiceCommunication(svc)
+        comm = DirectServiceCommunicationImpl(svc)
         result = comm.change_password(1, 'old', 'new')
         svc.changePassword.assert_called_once_with(1, 'old', 'new')
         assert result['success'] is True
@@ -164,7 +164,7 @@ class TestDirectServiceCommunicationVerifyUser:
         user.is_verified = True
         user.toDict.return_value['is_verified'] = True
         svc.verifyUser.return_value = user
-        comm = DirectServiceCommunication(svc)
+        comm = DirectServiceCommunicationImpl(svc)
         result = comm.verify_user(1)
         svc.verifyUser.assert_called_once_with(1)
         assert result['is_verified'] is True
@@ -177,30 +177,30 @@ class TestDirectServiceCommunicationUpdateUserStatus:
         user.status = UserStatus.INACTIVE
         user.toDict.return_value['status'] = UserStatus.INACTIVE.value
         svc.updateUserStatus.return_value = user
-        comm = DirectServiceCommunication(svc)
+        comm = DirectServiceCommunicationImpl(svc)
         result = comm.update_user_status(1, 'inactive')
         svc.updateUserStatus.assert_called_once_with(1, UserStatus.INACTIVE)
         assert result['status'] == UserStatus.INACTIVE.value
 
 
 # ---------------------------------------------------------------------------
-# DirectRepositoryCommunication
+# DirectRepositoryCommunicationImpl
 # ---------------------------------------------------------------------------
 
 class TestDirectRepositoryCommunicationInit:
     def test_mode_is_monolithic(self):
         repo = Mock()
-        comm = DirectRepositoryCommunication(repo)
+        comm = DirectRepositoryCommunicationImpl(repo)
         assert comm.get_mode() == CommunicationMode.MONOLITHIC
 
     def test_protocol_is_direct(self):
         repo = Mock()
-        comm = DirectRepositoryCommunication(repo)
+        comm = DirectRepositoryCommunicationImpl(repo)
         assert comm.get_protocol() == CommunicationProtocol.DIRECT
 
     def test_health_check_true(self):
         repo = Mock()
-        comm = DirectRepositoryCommunication(repo)
+        comm = DirectRepositoryCommunicationImpl(repo)
         assert comm.health_check() is True
 
 
@@ -208,7 +208,7 @@ class TestDirectRepositoryCommunicationCall:
     def test_call_delegates_to_repo_method(self):
         repo = Mock()
         repo.someMethod.return_value = 'value'
-        comm = DirectRepositoryCommunication(repo)
+        comm = DirectRepositoryCommunicationImpl(repo)
         result = comm.call('someMethod', x=1)
         repo.someMethod.assert_called_once_with(x=1)
         assert result == 'value'
@@ -217,7 +217,7 @@ class TestDirectRepositoryCommunicationCall:
         repo = Mock()
         user = _make_user()
         repo.findUser.return_value = user
-        comm = DirectRepositoryCommunication(repo)
+        comm = DirectRepositoryCommunicationImpl(repo)
         result = comm.call('findUser', user_id=1)
         assert isinstance(result, dict)
 
@@ -227,7 +227,7 @@ class TestDirectRepositoryCommunicationGetById:
         repo = Mock()
         user = _make_user(uid=3)
         repo.getById.return_value = user
-        comm = DirectRepositoryCommunication(repo)
+        comm = DirectRepositoryCommunicationImpl(repo)
         result = comm.get_by_id('User', 3)
         repo.getById.assert_called_once_with(3)
         assert result['id'] == 3
@@ -235,7 +235,7 @@ class TestDirectRepositoryCommunicationGetById:
     def test_get_by_id_not_found(self):
         repo = Mock()
         repo.getById.return_value = None
-        comm = DirectRepositoryCommunication(repo)
+        comm = DirectRepositoryCommunicationImpl(repo)
         result = comm.get_by_id('User', 999)
         assert result is None
 
@@ -245,7 +245,7 @@ class TestDirectRepositoryCommunicationCreate:
         repo = Mock()
         user = _make_user()
         repo.create.return_value = user
-        comm = DirectRepositoryCommunication(repo)
+        comm = DirectRepositoryCommunicationImpl(repo)
         result = comm.create('User', {'username': 'alice'})
         repo.create.assert_called_once_with(username='alice')
         assert result['username'] == 'alice'
@@ -258,7 +258,7 @@ class TestDirectRepositoryCommunicationUpdate:
         user.first_name = 'Bob'
         user.toDict.return_value['first_name'] = 'Bob'
         repo.update.return_value = user
-        comm = DirectRepositoryCommunication(repo)
+        comm = DirectRepositoryCommunicationImpl(repo)
         result = comm.update('User', 1, {'first_name': 'Bob'})
         repo.update.assert_called_once_with(1, first_name='Bob')
         assert result['first_name'] == 'Bob'
@@ -268,7 +268,7 @@ class TestDirectRepositoryCommunicationDelete:
     def test_delete_delegates(self):
         repo = Mock()
         repo.delete.return_value = None
-        comm = DirectRepositoryCommunication(repo)
+        comm = DirectRepositoryCommunicationImpl(repo)
         result = comm.delete('User', 1)
         repo.delete.assert_called_once_with(1)
         assert result['success'] is True
@@ -279,7 +279,7 @@ class TestDirectRepositoryCommunicationQuery:
         repo = Mock()
         user = _make_user()
         repo.getAll.return_value = ([user], 1)
-        comm = DirectRepositoryCommunication(repo)
+        comm = DirectRepositoryCommunicationImpl(repo)
         result = comm.query('User', {}, page=1, per_page=20)
         assert result['total'] == 1
         assert result['page'] == 1

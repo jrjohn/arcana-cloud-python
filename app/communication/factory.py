@@ -13,16 +13,16 @@ from app.communication.interfaces import (
     CommunicationProtocol
 )
 from app.communication.impl.direct import (
-    DirectServiceCommunication,
-    DirectRepositoryCommunication
+    DirectServiceCommunicationImpl,
+    DirectRepositoryCommunicationImpl
 )
 from app.communication.impl.http_rest import (
-    HTTPServiceCommunication,
-    HTTPRepositoryCommunication
+    HTTPServiceCommunicationImpl,
+    HTTPRepositoryCommunicationImpl
 )
 from app.communication.impl.grpc_impl import (
-    GRPCServiceCommunication,
-    GRPCRepositoryCommunication
+    GRPCServiceCommunicationImpl,
+    GRPCRepositoryCommunicationImpl
 )
 
 
@@ -138,7 +138,7 @@ class CommunicationFactory:
 
         Args:
             service_instance: Optional service instance for dependency injection.
-                             If provided, will be used for DirectServiceCommunication.
+                             If provided, will be used for DirectServiceCommunicationImpl.
                              If None, will create dependencies internally (legacy behavior).
 
         Returns:
@@ -148,20 +148,20 @@ class CommunicationFactory:
             # Monolithic mode with DI
             service = container.get('user_service')
             comm = CommunicationFactory.create_service_communication(service_instance=service)
-            → DirectServiceCommunication(service)
+            → DirectServiceCommunicationImpl(service)
 
             # Layered mode with HTTP
             DEPLOYMENT_MODE=layered
             DEPLOYMENT_LAYER=controller
             USER_SERVICE_URLS=http://service-layer:5001
-            → HTTPServiceCommunication
+            → HTTPServiceCommunicationImpl
 
             # Layered mode with gRPC
             DEPLOYMENT_MODE=layered
             DEPLOYMENT_LAYER=controller
             COMMUNICATION_PROTOCOL=grpc
             USER_SERVICE_URLS=service-layer:50051
-            → GRPCServiceCommunication
+            → GRPCServiceCommunicationImpl
         """
         deployment_mode = cls._get_deployment_mode()
         protocol_override = cls._get_communication_protocol()
@@ -180,7 +180,7 @@ class CommunicationFactory:
                 user_repo = UserRepositoryImpl(db.session)
                 service_instance = UserServiceImpl(user_repo)
 
-            return DirectServiceCommunication(service_instance)
+            return DirectServiceCommunicationImpl(service_instance)
 
         # Remote communication needed - determine protocol
         protocol = protocol_override or cls._get_default_protocol(deployment_mode)
@@ -190,9 +190,9 @@ class CommunicationFactory:
         service_urls = [url.strip() for url in service_urls_str.split(',')]
 
         if protocol == CommunicationProtocol.GRPC:
-            return GRPCServiceCommunication(service_urls, deployment_mode)
+            return GRPCServiceCommunicationImpl(service_urls, deployment_mode)
         else:
-            return HTTPServiceCommunication(service_urls, deployment_mode)
+            return HTTPServiceCommunicationImpl(service_urls, deployment_mode)
 
     @classmethod
     def create_repository_communication(cls, repository_instance=None) -> RepositoryCommunicationInterface:
@@ -207,7 +207,7 @@ class CommunicationFactory:
 
         Args:
             repository_instance: Optional repository instance for dependency injection.
-                                If provided, will be used for DirectRepositoryCommunication.
+                                If provided, will be used for DirectRepositoryCommunicationImpl.
                                 If None, will create dependencies internally (legacy behavior).
 
         Returns:
@@ -217,19 +217,19 @@ class CommunicationFactory:
             # Monolithic mode with DI
             repo = container.get('user_repository')
             comm = CommunicationFactory.create_repository_communication(repository_instance=repo)
-            → DirectRepositoryCommunication(repo)
+            → DirectRepositoryCommunicationImpl(repo)
 
             # Microservices mode with HTTP
             DEPLOYMENT_MODE=microservices
             DEPLOYMENT_LAYER=service
             USER_REPO_URLS=http://user-repository:5002
-            → HTTPRepositoryCommunication
+            → HTTPRepositoryCommunicationImpl
 
             # Microservices mode with gRPC
             DEPLOYMENT_MODE=microservices
             COMMUNICATION_PROTOCOL=grpc
             USER_REPO_URLS=user-repository:50052
-            → GRPCRepositoryCommunication
+            → GRPCRepositoryCommunicationImpl
         """
         deployment_mode = cls._get_deployment_mode()
         protocol_override = cls._get_communication_protocol()
@@ -247,7 +247,7 @@ class CommunicationFactory:
 
                 repository_instance = UserRepositoryImpl(db.session)
 
-            return DirectRepositoryCommunication(repository_instance)
+            return DirectRepositoryCommunicationImpl(repository_instance)
 
         # Remote communication needed
         protocol = protocol_override or cls._get_default_protocol(deployment_mode)
@@ -257,9 +257,9 @@ class CommunicationFactory:
         repo_urls = [url.strip() for url in repo_urls_str.split(',')]
 
         if protocol == CommunicationProtocol.GRPC:
-            return GRPCRepositoryCommunication(repo_urls, deployment_mode)
+            return GRPCRepositoryCommunicationImpl(repo_urls, deployment_mode)
         else:
-            return HTTPRepositoryCommunication(repo_urls, deployment_mode)
+            return HTTPRepositoryCommunicationImpl(repo_urls, deployment_mode)
 
     @classmethod
     def get_communication_info(cls) -> dict:
