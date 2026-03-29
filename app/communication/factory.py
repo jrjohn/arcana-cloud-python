@@ -11,11 +11,11 @@ from app.communication.interfaces import (
     DeploymentMode,
     CommunicationProtocol
 )
-from app.communication.impl.direct import (
+from app.communication.impl.direct_impl import (
     DirectServiceCommunication,
     DirectRepositoryCommunication
 )
-from app.communication.impl.http_rest import (
+from app.communication.impl.http_rest_impl import (
     HTTPServiceCommunication,
     HTTPRepositoryCommunication
 )
