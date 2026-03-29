@@ -6,7 +6,7 @@ import pytest
 from unittest.mock import Mock, MagicMock, patch, PropertyMock
 import requests
 
-from app.communication.impl.http_rest import HTTPServiceCommunicationImpl, HTTPRepositoryCommunicationImpl
+from app.communication.impl.http_rest_impl import HTTPServiceCommunicationImpl, HTTPRepositoryCommunicationImpl
 from app.communication.interfaces import DeploymentMode, CommunicationMode, CommunicationProtocol
 from app.utils.exceptions import (
     APIException, NotFoundError, ConflictError,

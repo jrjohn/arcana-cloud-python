@@ -8,8 +8,8 @@ import os
 
 from app.communication.factory import CommunicationFactory
 from app.communication.interfaces import DeploymentMode, CommunicationProtocol
-from app.communication.impl.direct import DirectServiceCommunicationImpl, DirectRepositoryCommunicationImpl
-from app.communication.impl.http_rest import HTTPRepositoryCommunicationImpl, HTTPServiceCommunicationImpl
+from app.communication.impl.direct_impl import DirectServiceCommunicationImpl, DirectRepositoryCommunicationImpl
+from app.communication.impl.http_rest_impl import HTTPRepositoryCommunicationImpl, HTTPServiceCommunicationImpl
 
 
 class TestCommunicationFactoryInternals:

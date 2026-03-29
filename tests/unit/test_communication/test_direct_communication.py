@@ -5,7 +5,7 @@ Tests for app/communication/impl/direct.py
 import pytest
 from unittest.mock import Mock, MagicMock, patch
 
-from app.communication.impl.direct import DirectServiceCommunicationImpl, DirectRepositoryCommunicationImpl
+from app.communication.impl.direct_impl import DirectServiceCommunicationImpl, DirectRepositoryCommunicationImpl
 from app.communication.interfaces import CommunicationMode, CommunicationProtocol
 from app.models.user import User, UserRole, UserStatus
 
