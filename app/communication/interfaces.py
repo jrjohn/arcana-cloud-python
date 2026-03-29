@@ -3,7 +3,7 @@ Communication Interfaces
 Abstract interfaces for cross-layer communication
 """
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional, TypeVar, Generic
+from typing import Any, Dict, TypeVar, Generic
 from enum import Enum
 
 

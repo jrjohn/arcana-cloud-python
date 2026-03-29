@@ -11,7 +11,7 @@ from urllib3.util.retry import Retry
 
 from app.repositories.user_repository import UserRepository
 from app.models.user import User, UserRole, UserStatus
-from app.utils.exceptions import DatabaseError, NotFoundError
+from app.utils.exceptions import DatabaseError
 
 
 class HTTPUserRepositoryClient(UserRepository):

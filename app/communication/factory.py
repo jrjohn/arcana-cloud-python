@@ -4,7 +4,6 @@ Factory pattern for creating appropriate communication layer based on configurat
 """
 import os
 from typing import Optional
-from enum import Enum
 
 from app.communication.interfaces import (
     ServiceCommunicationInterface,
@@ -12,11 +11,11 @@ from app.communication.interfaces import (
     DeploymentMode,
     CommunicationProtocol
 )
-from app.communication.impl.direct import (
+from app.communication.impl.direct_impl import (
     DirectServiceCommunicationImpl,
     DirectRepositoryCommunicationImpl
 )
-from app.communication.impl.http_rest import (
+from app.communication.impl.http_rest_impl import (
     HTTPServiceCommunicationImpl,
     HTTPRepositoryCommunicationImpl
 )
@@ -167,6 +166,7 @@ class CommunicationFactory:
         protocol_override = cls._get_communication_protocol()
 
         # Check if remote communication is needed
+        deployment_layer = cls._get_deployment_layer()
         use_remote = cls._should_use_remote_communication(deployment_mode, deployment_layer)
 
         if not use_remote:
@@ -270,6 +270,7 @@ class CommunicationFactory:
             Dict with communication configuration details
         """
         deployment_mode = cls._get_deployment_mode()
+        deployment_layer = cls._get_deployment_layer()
         protocol_override = cls._get_communication_protocol()
 
         service_remote = cls._should_use_remote_communication(deployment_mode, deployment_layer)

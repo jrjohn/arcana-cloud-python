@@ -3,7 +3,7 @@ User Service Implementation
 User Service implementation
 """
 import re
-from typing import Optional, List, Dict, Any
+from typing import Optional, Dict, Any
 
 from app.models.user import User, UserRole, UserStatus
 from app.repository.user_repository import UserRepository

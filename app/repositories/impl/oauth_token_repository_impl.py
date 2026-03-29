@@ -59,7 +59,7 @@ class OAuthTokenRepositoryImpl(OAuthTokenRepository):
             query = self.session.query(OAuthToken).filter(OAuthToken.user_id == user_id)
 
             if not include_revoked:
-                query = query.filter(OAuthToken.is_revoked == False)
+                query = query.filter(OAuthToken.is_revoked.is_(False))
 
             return query.all()
         except Exception as e:
@@ -96,7 +96,7 @@ class OAuthTokenRepositoryImpl(OAuthTokenRepository):
         try:
             tokens = self.session.query(OAuthToken).filter(
                 OAuthToken.user_id == user_id,
-                OAuthToken.is_revoked == False
+                OAuthToken.is_revoked.is_(False)
             ).all()
 
             count = 0

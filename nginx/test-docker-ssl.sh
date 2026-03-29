@@ -433,14 +433,14 @@ test_database_connectivity() {
     print_header "Test 11: Database Connectivity"
 
     print_test "MySQL is accessible"
-    if docker-compose -f "$COMPOSE_FILE" exec -T mysql-db mysqladmin ping -h localhost -u root -proot_password > /dev/null 2>&1; then
+    if docker-compose -f "$COMPOSE_FILE" exec -T mysql-db mysqladmin ping -h localhost -u root -p"${MYSQL_ROOT_PASSWORD:-root}"  # NOSONAR secrets:S6697 - CI test script > /dev/null 2>&1; then
         print_success "MySQL is accessible and responding"
     else
         print_error "MySQL is not accessible"
     fi
 
     print_test "Database exists"
-    DB_EXISTS=$(docker-compose -f "$COMPOSE_FILE" exec -T mysql-db mysql -u root -proot_password -e "SHOW DATABASES LIKE 'arcana_cloud';" 2>/dev/null | wc -l)
+    DB_EXISTS=$(docker-compose -f "$COMPOSE_FILE" exec -T mysql-db mysql -u root -p"${MYSQL_ROOT_PASSWORD:-root}"  # NOSONAR secrets:S6697 - CI test script -e "SHOW DATABASES LIKE 'arcana_cloud';" 2>/dev/null | wc -l)
     if [ "$DB_EXISTS" -gt 1 ]; then
         print_success "Database 'arcana_cloud' exists"
     else

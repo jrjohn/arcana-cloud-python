@@ -17,34 +17,50 @@ IMAGE_ALIAS="arcana-cloud-python:ci"
 NS="arcana-ci-kind-python"
 NODE_PORT="30095"
 MANIFEST="deployment/kubernetes/ci/kind-ci-grpc.yaml"
-EXPECTED_PODS=3
+
+# Use isolated kubeconfig to avoid interference from concurrent Kind clusters
+export KUBECONFIG="/tmp/kubeconfig-${CLUSTER_NAME}"
 
 echo "=== Kind K8s Smoke Test: ${PROTOCOL} ==="
 echo "    Cluster:  ${CLUSTER_NAME}"
 echo "    Image:    ${IMAGE} → ${IMAGE_ALIAS}"
 echo "    Manifest: ${MANIFEST}"
 echo "    Timeout:  ${TIMEOUT}s"
+echo "    Kubeconfig: ${KUBECONFIG}"
 
 # ---------------------------------------------------------------------------
 # Cleanup helper
 # ---------------------------------------------------------------------------
 cleanup() {
+  echo "[cleanup] Disconnecting from kind network ..."
+  docker network disconnect kind "$(hostname)" 2>/dev/null || true
   echo "[cleanup] Deleting kind cluster ${CLUSTER_NAME} ..."
   kind delete cluster --name "${CLUSTER_NAME}" 2>/dev/null || true
+  rm -f "${KUBECONFIG}" 2>/dev/null || true
 }
 trap cleanup EXIT
 
 # ---------------------------------------------------------------------------
-# Create kind cluster (delete any stale cluster with the same name first)
+# Create kind cluster
 # ---------------------------------------------------------------------------
-echo "[kind] Checking for existing cluster ${CLUSTER_NAME} ..."
-if kind get clusters 2>/dev/null | grep -q "^${CLUSTER_NAME}$"; then
-  echo "[kind] Deleting stale cluster ${CLUSTER_NAME} ..."
-  kind delete cluster --name "${CLUSTER_NAME}" 2>/dev/null || true
+echo "[kind] Creating cluster ${CLUSTER_NAME} ..."
+kind create cluster --name "${CLUSTER_NAME}" --wait 60s --kubeconfig "${KUBECONFIG}"
+
+# Rewrite kubeconfig server URL: 127.0.0.1 -> kind control-plane container IP
+# (Jenkins runs inside Docker, so 127.0.0.1 in kubeconfig points to Jenkins itself, not the host)
+# Connect Jenkins container to kind network so kubectl can reach the control plane
+JENKINS_CONTAINER=$(hostname)
+docker network connect kind "${JENKINS_CONTAINER}" 2>/dev/null || true
+
+CP_IP=$(docker inspect "${CLUSTER_NAME}-control-plane" --format '{{.NetworkSettings.Networks.kind.IPAddress}}' 2>/dev/null)
+if [ -n "${CP_IP}" ]; then
+  echo "[kind] Rewriting kubeconfig server to ${CP_IP} (Jenkins joined kind network) ..."
+  kubectl config set-cluster "kind-${CLUSTER_NAME}" --server="https://${CP_IP}:6443" --insecure-skip-tls-verify=true
 fi
 
-echo "[kind] Creating cluster ${CLUSTER_NAME} ..."
-kind create cluster --name "${CLUSTER_NAME}" --wait 60s
+# Verify kubectl connectivity
+echo "[kind] Verifying kubectl connectivity ..."
+kubectl cluster-info 2>&1 | head -3
 
 # ---------------------------------------------------------------------------
 # Load image into kind
@@ -61,26 +77,37 @@ fi
 docker tag "${IMAGE}" "${IMAGE_ALIAS}"
 kind load docker-image "${IMAGE_ALIAS}" --name "${CLUSTER_NAME}"
 
+# Pre-load infrastructure images using docker save/ctr import
+# (kind load docker-image fails for multi-platform images like mysql)
+CP_CONTAINER="${CLUSTER_NAME}-control-plane"
+for INFRA_IMG in mysql:8.0 redis:7-alpine; do
+  if docker image inspect "${INFRA_IMG}" > /dev/null 2>&1; then
+    echo "[kind] Pre-loading ${INFRA_IMG} via docker save ..."
+    docker save "${INFRA_IMG}" | docker exec -i "${CP_CONTAINER}" \
+      ctr --namespace=k8s.io images import - 2>/dev/null || \
+    echo "[kind] Warning: failed to pre-load ${INFRA_IMG}, will pull from registry"
+  fi
+done
+
 # ---------------------------------------------------------------------------
 # Apply manifest
 # ---------------------------------------------------------------------------
 echo "[k8s] Applying manifest ${MANIFEST} ..."
-# Wait a moment for the API server to be fully reachable
-sleep 5
-kubectl apply -f "${MANIFEST}" --validate=false
+kubectl apply -f "${MANIFEST}"
 
 # ---------------------------------------------------------------------------
 # Wait for pods to be ready
 # ---------------------------------------------------------------------------
-wait_pod() {
-  local label="$1"
+wait_pods() {
   local elapsed=0
   local interval=10
+  local label="$1"
 
-  echo "[k8s] Waiting for pod (app=${label}) to be ready ..."
+  echo "[k8s] Waiting for pods (${label}) to be ready ..."
   while true; do
     local ready
     ready=$(kubectl get pods -n "${NS}" -l "app=${label}" \
+      --field-selector=status.phase=Running \
       -o jsonpath='{.items[*].status.conditions[?(@.type=="Ready")].status}' 2>/dev/null || echo "")
 
     if [[ "${ready}" == *"True"* ]]; then
@@ -89,29 +116,32 @@ wait_pod() {
     fi
 
     if [[ ${elapsed} -ge ${TIMEOUT} ]]; then
-      echo "[k8s] TIMEOUT waiting for ${label} pods after ${TIMEOUT}s"
-      kubectl get pods -n "${NS}" 2>/dev/null || true
-      kubectl describe pods -n "${NS}" -l "app=${label}" 2>/dev/null | tail -40 || true
+      echo "[k8s] TIMEOUT waiting for ${label} pods"
+      echo "--- All pods in namespace ${NS} ---"
+      kubectl get pods -n "${NS}" -o wide 2>&1 || true
+      echo "--- Describe pod ${label} ---"
+      kubectl describe pods -n "${NS}" -l "app=${label}" 2>&1 | tail -40 || true
+      echo "--- Pod logs for ${label} ---"
+      kubectl logs -n "${NS}" -l "app=${label}" --all-containers --tail=30 2>&1 || true
       return 1
     fi
 
     sleep ${interval}
     elapsed=$((elapsed + interval))
-    echo "[k8s] ...${elapsed}s elapsed, waiting for ${label}"
+    # Print pod status every 120s for debugging
+    if (( elapsed % 120 == 0 )); then
+      echo "[k8s] --- Pod status at ${elapsed}s ---"
+      kubectl get pods -n "${NS}" -o wide 2>&1 || true
+    else
+      echo "[k8s] ...${elapsed}s elapsed, waiting for ${label}"
+    fi
   done
 }
 
-# Wait for all layers in order (dependency chain)
-wait_pod "arcana-ci-repository"
-wait_pod "arcana-ci-service"
-wait_pod "arcana-ci-controller"
-
-# Verify expected pod count
-RUNNING_PODS=$(kubectl get pods -n "${NS}" \
-  -l "app in (arcana-ci-repository,arcana-ci-service,arcana-ci-controller)" \
-  --field-selector=status.phase=Running \
-  --no-headers 2>/dev/null | wc -l | tr -d ' ')
-echo "[k8s] Running app pods: ${RUNNING_PODS} / ${EXPECTED_PODS} expected"
+# Wait for all layers in order
+wait_pods "arcana-ci-repository"
+wait_pods "arcana-ci-service"
+wait_pods "arcana-ci-controller"
 
 # ---------------------------------------------------------------------------
 # Get NodePort address
@@ -122,9 +152,87 @@ BASE_URL="http://${NODE_IP}:${NODE_PORT}"
 echo "[test] Smoke testing ${BASE_URL} ..."
 
 # ---------------------------------------------------------------------------
-# Run integration smoke test
+# Wait for controller health
 # ---------------------------------------------------------------------------
-bash scripts/integration-smoke-test.sh "${BASE_URL}" "k8s-grpc" 120
+elapsed=0
+interval=10
+echo "[test] Waiting for controller health endpoint ..."
+while true; do
+  if curl -sf --max-time 5 "${BASE_URL}/health" > /dev/null 2>&1; then
+    echo "[test] Controller is healthy after ${elapsed}s"
+    break
+  fi
+  if [[ ${elapsed} -ge ${TIMEOUT} ]]; then
+    echo "[test] TIMEOUT waiting for health endpoint"
+    kubectl get pods -n "${NS}" 2>/dev/null || true
+    exit 1
+  fi
+  sleep ${interval}
+  elapsed=$((elapsed + interval))
+  echo "[test] ...${elapsed}s elapsed"
+done
 
+# ---------------------------------------------------------------------------
+# Smoke tests (self-contained — no python3/node dependency in Jenkins container)
+# ---------------------------------------------------------------------------
+PASS=0
+FAIL=0
+
+run_test() {
+  local desc="$1"
+  local expected="$2"
+  local actual="$3"
+  if echo "${actual}" | grep -qF "${expected}"; then
+    echo "[PASS] ${desc}"
+    PASS=$((PASS + 1))
+  else
+    echo "[FAIL] ${desc} — expected '${expected}' in: ${actual}"
+    FAIL=$((FAIL + 1))
+  fi
+}
+
+HEALTH=$(curl -sf --max-time 10 "${BASE_URL}/health" || echo '{}')
+run_test "GET /health" "healthy" "${HEALTH}"
+
+TIMESTAMP=$(date +%s%3N)
+TEST_USER="kindsmoke${TIMESTAMP}"
+TEST_EMAIL="${TEST_USER}@test.arcana"
+TEST_PASS="KindSmoke@123!"
+
+REGISTER=$(curl -sf --max-time 15 \
+  -X POST "${BASE_URL}/api/v1/auth/register" \
+  -H "Content-Type: application/json" \
+  -d "{\"username\":\"${TEST_USER}\",\"email\":\"${TEST_EMAIL}\",\"password\":\"${TEST_PASS}\"}" \
+  || echo '{"error":"register_failed"}')
+# Python response: {"data":{"access_token":"...","refresh_token":"...","user":{...}}}
+run_test "POST /api/v1/auth/register" "access_token" "${REGISTER}"
+
+# Extract access_token using grep (no python3 in Jenkins container)
+ACCESS_TOKEN=$(echo "${REGISTER}" | sed -n 's/.*"access_token" *: *"\([^"]*\)".*/\1/p' | head -1 || echo "")
+
+if [[ -n "${ACCESS_TOKEN}" ]]; then
+  LOGIN=$(curl -sf --max-time 15 \
+    -X POST "${BASE_URL}/api/v1/auth/login" \
+    -H "Content-Type: application/json" \
+    -d "{\"username_or_email\":\"${TEST_USER}\",\"password\":\"${TEST_PASS}\"}" \
+    || echo '{"error":"login_failed"}')
+  run_test "POST /api/v1/auth/login" "access_token" "${LOGIN}"
+else
+  echo "[SKIP] Skipping login test (no token from register)"
+  FAIL=$((FAIL + 1))
+fi
+
+# ---------------------------------------------------------------------------
+# Summary
+# ---------------------------------------------------------------------------
+TOTAL=$((PASS + FAIL))
 echo ""
-echo "=== ✅ Kind K8s smoke test PASSED [${PROTOCOL}] ==="
+echo "=== Kind Results [${PROTOCOL}]: ${PASS}/${TOTAL} passed ==="
+
+if [[ ${FAIL} -gt 0 ]]; then
+  echo "KIND SMOKE TEST FAILED"
+  exit 1
+else
+  echo "KIND SMOKE TEST PASSED"
+  exit 0
+fi

@@ -4,12 +4,10 @@ Implements RepositoryService gRPC interface for Repository Layer
 """
 import grpc
 from concurrent import futures
-from datetime import datetime
-from typing import Optional
 
 from app.grpc_protos import repository_service_pb2, repository_service_pb2_grpc, common_pb2
 from app.di_container import get_user_repository
-from app.utils.exceptions import APIException, NotFoundError, ConflictError, ValidationError
+from app.utils.exceptions import NotFoundError, ConflictError, ValidationError
 from app.models.user import UserRole, UserStatus
 
 

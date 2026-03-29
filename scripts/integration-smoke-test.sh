@@ -58,12 +58,9 @@ if [ "${LOGIN_HTTP_CODE}" != "200" ]; then
 fi
 
 # Python response: {"data": {"access_token": "...", "refresh_token": "...", "user": {...}}}
-TOKEN=$(python3 -c "
-import json,sys
-d=json.load(sys.stdin)
-dd=d.get('data',{})
-print(dd.get('access_token',''))
-" < /tmp/smoke-login-${LABEL}.json 2>/dev/null || echo "")
+# Extract token with sed (no python3 in Jenkins container)
+TOKEN=$(sed -n 's/.*"access_token" *: *"\([^"]*\)".*/\1/p' /tmp/smoke-login-${LABEL}.json 2>/dev/null \
+    | head -1 || echo "")
 if [ -z "${TOKEN}" ]; then
   echo "  ✗ No access_token in login response"
   cat /tmp/smoke-login-${LABEL}.json 2>/dev/null || true
@@ -85,8 +82,9 @@ if [ "${ME_HTTP_CODE}" != "200" ]; then
   exit 1
 fi
 
-ME_USER=$(python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('data',{}).get('username','?'))" \
-    < /tmp/smoke-me-${LABEL}.json 2>/dev/null || echo "?")
+# Extract username with sed (no python3 in Jenkins container)
+ME_USER=$(sed -n 's/.*"username" *: *"\([^"]*\)".*/\1/p' /tmp/smoke-me-${LABEL}.json 2>/dev/null \
+    | head -1 || echo "?")
 echo "  ✓ Auth call OK — user: ${ME_USER}"
 
 echo ""

@@ -3,7 +3,6 @@ Auth Service Layer HTTP API Routes
 Exposes AuthService business logic as HTTP/REST endpoints for Controller Layer
 """
 from flask import Blueprint, request, jsonify
-from typing import Optional
 
 from app.di_container import get_auth_service as get_service_from_container
 from app.utils.exceptions import APIException, NotFoundError, AuthenticationError

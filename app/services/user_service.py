@@ -3,7 +3,7 @@ User Service Interface
 User Service interface
 """
 from abc import ABC, abstractmethod
-from typing import Optional, List, Dict, Any
+from typing import Optional, Dict, Any
 
 from app.models.user import User, UserRole, UserStatus
 

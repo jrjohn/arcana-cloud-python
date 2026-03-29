@@ -32,8 +32,19 @@ fi
 
 # Run database migrations (only in repository layer)
 echo "Running database migrations..."
-flask db upgrade || {
-    echo "Warning: Database migration failed. Continuing startup..."
+flask db upgrade 2>/dev/null || {
+    echo "Warning: flask db upgrade failed (no migrations dir). Using db.create_all() ..."
+    python -c "
+import os
+os.environ.setdefault('DEPLOYMENT_MODE', 'monolithic')
+os.environ.setdefault('DEPLOYMENT_LAYER', 'monolithic')
+from app import create_app
+from app.extensions import db
+app = create_app('development')
+with app.app_context():
+    db.create_all()
+    print('DB tables created via create_all()')
+" || echo "Warning: db.create_all() also failed. Continuing startup..."
 }
 
 echo "Repository layer initialization complete"

@@ -1,9 +1,9 @@
 """Communication Implementations Package"""
-from app.communication.impl.direct import (
+from app.communication.impl.direct_impl import (
     DirectServiceCommunicationImpl,
     DirectRepositoryCommunicationImpl
 )
-from app.communication.impl.http_rest import (
+from app.communication.impl.http_rest_impl import (
     HTTPServiceCommunicationImpl,
     HTTPRepositoryCommunicationImpl
 )
