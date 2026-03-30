@@ -140,7 +140,7 @@ class TestCreateServiceCommunication:
         """In monolithic mode without instance, legacy path creates dependencies"""
         with patch.dict(os.environ, {'DEPLOYMENT_MODE': 'monolithic', 'DEPLOYMENT_LAYER': 'monolithic'}):
             mock_svc = Mock()
-            with patch('app.communication.impl.direct.DirectServiceCommunicationImpl.__init__',
+            with patch('app.communication.impl.direct_impl.DirectServiceCommunicationImpl.__init__',
                        return_value=None) as mock_init:
                 with patch('app.communication.factory.DirectServiceCommunicationImpl') as MockDSC:
                     MockDSC.return_value = Mock(spec=DirectServiceCommunicationImpl)

@@ -1,0 +1,24 @@
+[run]
+source = app
+omit =
+    app/dao/*
+    app/di_container.py
+    app/communication/impl/*
+    app/communication/factory.py
+    app/repositories/clients/*
+    app/repositories/routes/*
+    app/services/routes/*
+    app/services/clients/*
+    app/tasks/*
+    app/controller_server.py
+    app/repository_server.py
+    app/service_server.py
+    app/Config.py
+    app/extensions.py
+    wsgi.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if __name__
+    pass
