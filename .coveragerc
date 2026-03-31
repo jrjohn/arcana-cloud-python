@@ -15,6 +15,9 @@ omit =
     app/service_server.py
     app/Config.py
     app/extensions.py
+    app/Extensions.py
+    app/grpc_protos/*
+    app/services/adapters/*
     wsgi.py
 
 [report]
