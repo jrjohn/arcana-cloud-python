@@ -1,7 +1,7 @@
 # Python 3.14.0 compatible packages (最新版)
 
 # Flask 框架與擴展
-Flask==3.1.2
+Flask==3.1.3
 Flask-RESTful==0.3.10
 Flask-SQLAlchemy==3.1.1
 Flask-Migrate==4.1.0
