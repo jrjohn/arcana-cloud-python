@@ -21,7 +21,7 @@ marshmallow==4.1.0
 # 認證與安全
 authlib==1.6.5
 PyJWT==2.10.1
-cryptography==46.0.3
+cryptography==46.0.7
 
 # Redis 與快取
 redis==7.0.1
