@@ -27,7 +27,7 @@ cryptography==46.0.7
 redis==7.0.1
 
 # Celery 任務佇列（含分散式支援）
-celery==5.5.3
+celery==5.6.3
 celery-redbeat==2.3.3
 flower==2.0.1
 
