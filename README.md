@@ -1,5 +1,5 @@
 <!-- agent-managed badges START -->
-[![Quality Gate](https://arcana.boo/sonarqube/api/project_badges/quality_gate?project=python-app)](https://arcana.boo/sonarqube/dashboard?id=python-app)
+[![Quality Gate](https://img.shields.io/badge/Quality_Gate-ERROR-red)](https://arcana.boo/sonarqube/dashboard?id=python-app)
 [![Build](https://arcana.boo/jenkins/buildStatus/icon?job=python-app-pipeline)](https://arcana.boo/jenkins/job/python-app-pipeline/)
 **Rank**: Quality Gate `OK` · Build `blue` · Sonar coverage `96.5%`
 <!-- agent-managed badges END -->
