@@ -51,14 +51,9 @@ def token_required(f: Callable) -> Callable:
 
         # Validate token（使用 AuthService）
         try:
-            from app.repositories.impl.user_repository_impl import UserRepositoryImpl
-            from app.repositories.impl.oauth_token_repository_impl import OAuthTokenRepositoryImpl
-            from app.services.impl.auth_service_impl import AuthServiceImpl
-            from app.extensions import db
+            from app.di_container import get_auth_service
 
-            user_repo = UserRepositoryImpl(db.session)
-            token_repo = OAuthTokenRepositoryImpl(db.session)
-            auth_service = AuthServiceImpl(user_repo, token_repo)
+            auth_service = get_auth_service()
 
             user = auth_service.validateToken(token)
             g.current_user = user
@@ -210,14 +205,9 @@ def optional_token(f: Callable) -> Callable:
             try:
                 token_type, token = auth_header.split(' ')
                 if token_type.lower() == 'bearer':
-                    from app.repositories.impl.user_repository_impl import UserRepositoryImpl
-                    from app.repositories.impl.oauth_token_repository_impl import OAuthTokenRepositoryImpl
-                    from app.services.impl.auth_service_impl import AuthServiceImpl
-                    from app.extensions import db
+                    from app.di_container import get_auth_service
 
-                    user_repo = UserRepositoryImpl(db.session)
-                    token_repo = OAuthTokenRepositoryImpl(db.session)
-                    auth_service = AuthServiceImpl(user_repo, token_repo)
+                    auth_service = get_auth_service()
 
                     user = auth_service.validateToken(token)
                     g.current_user = user
