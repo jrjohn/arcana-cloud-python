@@ -58,18 +58,15 @@ class TestTokenRequired:
             response = protected()
             assert response[1] == 401
 
-    @patch('app.services.impl.auth_service_impl.AuthServiceImpl')
-    @patch('app.repositories.impl.oauth_token_repository_impl.OAuthTokenRepositoryImpl')
-    @patch('app.repositories.impl.user_repository_impl.UserRepositoryImpl')
-    def test_valid_token_calls_protected_route(self, MockUserRepo, MockTokenRepo, MockAuthService):
+    @patch('app.di_container.get_auth_service')
+    def test_valid_token_calls_protected_route(self, mock_get_auth_service):
         from app.decorators.auth_decorators import token_required
-        from app.extensions import db
 
         app = _make_app()
 
         mock_user = Mock(spec=User)
         mock_user.username = 'alice'
-        MockAuthService.return_value.validateToken.return_value = mock_user
+        mock_get_auth_service.return_value.validateToken.return_value = mock_user
 
         @token_required
         def protected():
@@ -77,50 +74,40 @@ class TestTokenRequired:
 
         with app.test_request_context('/', headers={'Authorization': 'Bearer valid-token'}):
             with app.app_context():
-                with patch('app.extensions.db') as mock_db:
-                    mock_db.session = Mock()
-                    response = protected()
+                response = protected()
             # If validateToken returns a user, decorated function should run
             # Response may be ('ok', 200) or error depending on DB setup
 
-    @patch('app.services.impl.auth_service_impl.AuthServiceImpl')
-    @patch('app.repositories.impl.oauth_token_repository_impl.OAuthTokenRepositoryImpl')
-    @patch('app.repositories.impl.user_repository_impl.UserRepositoryImpl')
-    def test_invalid_token_returns_401(self, MockUserRepo, MockTokenRepo, MockAuthService):
+    @patch('app.di_container.get_auth_service')
+    def test_invalid_token_returns_401(self, mock_get_auth_service):
         from app.decorators.auth_decorators import token_required
         from app.utils.exceptions import AuthenticationError
 
         app = _make_app()
-        MockAuthService.return_value.validateToken.side_effect = AuthenticationError('Token expired')
+        mock_get_auth_service.return_value.validateToken.side_effect = AuthenticationError('Token expired')
 
         @token_required
         def protected():
             return ('ok', 200)
 
         with app.test_request_context('/', headers={'Authorization': 'Bearer bad-token'}):
-            with patch('app.extensions.db') as mock_db:
-                mock_db.session = Mock()
-                response = protected()
-                assert response[1] == 401
+            response = protected()
+            assert response[1] == 401
 
-    @patch('app.services.impl.auth_service_impl.AuthServiceImpl')
-    @patch('app.repositories.impl.oauth_token_repository_impl.OAuthTokenRepositoryImpl')
-    @patch('app.repositories.impl.user_repository_impl.UserRepositoryImpl')
-    def test_unexpected_exception_returns_401(self, MockUserRepo, MockTokenRepo, MockAuthService):
+    @patch('app.di_container.get_auth_service')
+    def test_unexpected_exception_returns_401(self, mock_get_auth_service):
         from app.decorators.auth_decorators import token_required
 
         app = _make_app()
-        MockAuthService.return_value.validateToken.side_effect = RuntimeError('Unexpected')
+        mock_get_auth_service.return_value.validateToken.side_effect = RuntimeError('Unexpected')
 
         @token_required
         def protected():
             return ('ok', 200)
 
         with app.test_request_context('/', headers={'Authorization': 'Bearer some-token'}):
-            with patch('app.extensions.db') as mock_db:
-                mock_db.session = Mock()
-                response = protected()
-                assert response[1] == 401
+            response = protected()
+            assert response[1] == 401
 
 
 class TestRoleRequired:
@@ -330,11 +317,8 @@ class TestOptionalToken:
         def public():
             return ('ok', 200)
 
-        with patch('app.repositories.impl.user_repository_impl.UserRepositoryImpl'), \
-             patch('app.repositories.impl.oauth_token_repository_impl.OAuthTokenRepositoryImpl'), \
-             patch('app.services.impl.auth_service_impl.AuthServiceImpl') as MockAuth, \
-             patch('app.extensions.db'):
-            MockAuth.return_value.validateToken.return_value = mock_user
+        with patch('app.di_container.get_auth_service') as mock_get_auth_service:
+            mock_get_auth_service.return_value.validateToken.return_value = mock_user
             with app.test_request_context('/', headers={'Authorization': 'Bearer valid-token'}):
                 with app.app_context():
                     response = public()
@@ -349,11 +333,8 @@ class TestOptionalToken:
         def public():
             return ('ok', 200)
 
-        with patch('app.repositories.impl.user_repository_impl.UserRepositoryImpl'), \
-             patch('app.repositories.impl.oauth_token_repository_impl.OAuthTokenRepositoryImpl'), \
-             patch('app.services.impl.auth_service_impl.AuthServiceImpl') as MockAuth, \
-             patch('app.extensions.db'):
-            MockAuth.return_value.validateToken.side_effect = Exception('Invalid token')
+        with patch('app.di_container.get_auth_service') as mock_get_auth_service:
+            mock_get_auth_service.return_value.validateToken.side_effect = Exception('Invalid token')
             with app.test_request_context('/', headers={'Authorization': 'Bearer bad-token'}):
                 with app.app_context():
                     response = public()

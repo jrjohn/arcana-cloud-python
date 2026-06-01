@@ -99,6 +99,11 @@ class OAuthToken(db.Model):
             if hasattr(self, key):
                 setattr(self, key, value)
 
+    @staticmethod
+    def _as_aware_utc(dt: datetime) -> datetime:
+        # DB-loaded datetimes are tz-naive (MySQL DATETIME stores no tz); treat as UTC
+        return dt if dt.tzinfo is not None else dt.replace(tzinfo=timezone.utc)
+
     def isExpired(self) -> bool:
         """
         Check if access token is expired
@@ -106,7 +111,7 @@ class OAuthToken(db.Model):
         Returns:
             Whether expired
         """
-        return datetime.now(timezone.utc) >= self.expires_at
+        return datetime.now(timezone.utc) >= self._as_aware_utc(self.expires_at)
 
     def isRefreshExpired(self) -> bool:
         """
@@ -117,7 +122,7 @@ class OAuthToken(db.Model):
         """
         if not self.refresh_expires_at:
             return True
-        return datetime.now(timezone.utc) >= self.refresh_expires_at
+        return datetime.now(timezone.utc) >= self._as_aware_utc(self.refresh_expires_at)
 
     def isValid(self) -> bool:
         """
