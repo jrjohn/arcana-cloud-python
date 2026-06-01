@@ -61,43 +61,45 @@ pipeline {
 
         stage("Unit Tests") {
             steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                    sh '''#!/bin/bash
-                        # DinD-safe coverage extraction: this Jenkins talks to the HOST docker
-                        # daemon, so the compose `./coverage:/output` bind mount resolves to a stray
-                        # host path and the report never lands in the workspace (sonar then sees
-                        # coverage=0). Run a NAMED container (not --rm) and `docker cp` the report
-                        # out, which streams through the API into the real workspace.
-                        set +e
-                        docker rm -f "${APP_NAME}-cov-${BUILD_NUMBER}" 2>/dev/null || true
-                        docker compose -f docker-compose.test.yml run \
-                            --name "${APP_NAME}-cov-${BUILD_NUMBER}" --build test
-                        rc=$?
-                        mkdir -p coverage
-                        docker cp "${APP_NAME}-cov-${BUILD_NUMBER}:/app/cov/coverage.xml" coverage/coverage.xml || true
-                        docker rm -f "${APP_NAME}-cov-${BUILD_NUMBER}" 2>/dev/null || true
-                        exit $rc
-                    '''
-                }
+                sh '''#!/bin/bash
+                    # DinD-safe coverage extraction: this Jenkins talks to the HOST docker
+                    # daemon, so the compose `./coverage:/output` bind mount resolves to a stray
+                    # host path and the report never lands in the workspace (sonar then sees
+                    # coverage=0). Run a NAMED container (not --rm) and `docker cp` the report
+                    # out, which streams through the API into the real workspace.
+                    set +e
+                    docker rm -f "${APP_NAME}-cov-${BUILD_NUMBER}" 2>/dev/null || true
+                    docker compose -f docker-compose.test.yml run \
+                        --name "${APP_NAME}-cov-${BUILD_NUMBER}" --build test
+                    rc=$?
+                    mkdir -p coverage
+                    docker cp "${APP_NAME}-cov-${BUILD_NUMBER}:/app/cov/coverage.xml" coverage/coverage.xml || true
+                    docker rm -f "${APP_NAME}-cov-${BUILD_NUMBER}" 2>/dev/null || true
+                    exit $rc
+                '''
             }
         }
 
         stage("Integration: Layered gRPC") {
             steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                    sh '''#!/bin/bash
-                        PYTHON_IMAGE=${IMAGE_TAG}:build-${BUILD_NUMBER} \
-                        docker compose -p arcana-ci-python-grpc \
-                            --env-file deployment/layered/.env.ci \
-                            -f deployment/layered/docker-compose-ci-grpc.yml \
-                            up -d
-                        JENKINS_ID=$(hostname)
-                        docker network connect arcana-ci-python-grpc-net ${JENKINS_ID} 2>/dev/null || true
-                        bash scripts/integration-smoke-test.sh \
-                            http://arcana-ci-python-grpc-controller:5000 grpc-layered 300
-                        docker network disconnect arcana-ci-python-grpc-net ${JENKINS_ID} 2>/dev/null || true
-                    '''
-                }
+                sh '''#!/bin/bash
+                    set -e
+                    # CI gRPC DB URL is supplied inline (the .env.ci referenced by the old
+                    # --env-file is gitignored, so it never exists on a fresh Jenkins clone →
+                    # compose up aborted with "couldn't find env file" → no containers → the
+                    # smoke-test health check timed out). Value matches the mysql service creds
+                    # and the (passing) K8s-gRPC variant's DATABASE_URL.
+                    export CI_GRPC_DATABASE_URL="mysql+pymysql://arcana:ci_arcana@mysql:3306/arcana_cloud"
+                    PYTHON_IMAGE=${IMAGE_TAG}:build-${BUILD_NUMBER} \
+                    docker compose -p arcana-ci-python-grpc \
+                        -f deployment/layered/docker-compose-ci-grpc.yml \
+                        up -d
+                    JENKINS_ID=$(hostname)
+                    docker network connect arcana-ci-python-grpc-net ${JENKINS_ID} 2>/dev/null || true
+                    bash scripts/integration-smoke-test.sh \
+                        http://arcana-ci-python-grpc-controller:5000 grpc-layered 300
+                    docker network disconnect arcana-ci-python-grpc-net ${JENKINS_ID} 2>/dev/null || true
+                '''
             }
             post {
                 always {
@@ -106,8 +108,7 @@ pipeline {
                         echo "=== Service logs ===" && docker logs arcana-ci-python-grpc-service 2>&1 | tail -20 || true
                         echo "=== Repository logs ===" && docker logs arcana-ci-python-grpc-repository 2>&1 | tail -20 || true
                         docker network disconnect arcana-ci-python-grpc-net $(hostname) 2>/dev/null || true
-                        PYTHON_IMAGE=placeholder docker compose -p arcana-ci-python-grpc \
-                            --env-file deployment/layered/.env.ci \
+                        CI_GRPC_DATABASE_URL=placeholder PYTHON_IMAGE=placeholder docker compose -p arcana-ci-python-grpc \
                             -f deployment/layered/docker-compose-ci-grpc.yml \
                             down -v --remove-orphans 2>/dev/null || true
                     '''
@@ -117,13 +118,11 @@ pipeline {
 
         stage("Integration: K8s gRPC") {
             steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                    sh '''#!/bin/bash
-                        export PATH="/var/jenkins_home/bin:${PATH}"
-                        kind version || { echo "kind not found"; exit 1; }
-                        bash scripts/kind-smoke-test.sh "${IMAGE_TAG}:build-${BUILD_NUMBER}" grpc 480
-                    '''
-                }
+                sh '''#!/bin/bash
+                    export PATH="/var/jenkins_home/bin:${PATH}"
+                    kind version || { echo "kind not found"; exit 1; }
+                    bash scripts/kind-smoke-test.sh "${IMAGE_TAG}:build-${BUILD_NUMBER}" grpc 480
+                '''
             }
             post {
                 always {
@@ -139,35 +138,51 @@ pipeline {
 
         stage("SonarQube Analysis") {
             steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                    withSonarQubeEnv('SonarQube') {
-                        script {
-                            def prArgs = env.CHANGE_ID ? """ \
-                                -Dsonar.pullrequest.key=${env.CHANGE_ID} \
-                                -Dsonar.pullrequest.branch=${env.BRANCH_NAME} \
-                                -Dsonar.pullrequest.base=${env.CHANGE_TARGET}""" : ''
-                            sh """sonar-scanner -Dsonar.projectKey=python-app -Dsonar.scm.disabled=true${prArgs}"""
-                        }
-                    }
+                withSonarQubeEnv('SonarQube') {
+                    sh """sonar-scanner -Dsonar.projectKey=python-app -Dsonar.scm.disabled=true"""
+                    sh '''
+                        set -e
+                        TOKEN="${SONAR_AUTH_TOKEN:-$SONAR_TOKEN}"
+                        RT=.scannerwork/report-task.txt
+                        [ -f "$RT" ] || { echo "report-task.txt missing"; exit 1; }
+                        CE_TASK_ID=$(grep '^ceTaskId=' "$RT" | cut -d= -f2-)
+                        ANALYSIS_ID=""
+                        for i in $(seq 1 60); do
+                            RESP=$(curl -s -u "$TOKEN:" "$SONAR_HOST_URL/api/ce/task?id=$CE_TASK_ID")
+                            ST=$(echo "$RESP" | grep -o '"status":"[A-Z_]*"' | head -1 | cut -d'"' -f4)
+                            echo "  CE status: ${ST:-?} (try $i)"
+                            if [ "$ST" = "SUCCESS" ]; then ANALYSIS_ID=$(echo "$RESP" | grep -o '"analysisId":"[^"]*"' | head -1 | cut -d'"' -f4); break;
+                            elif [ "$ST" = "FAILED" ] || [ "$ST" = "CANCELED" ]; then echo "CE $ST"; exit 1; fi
+                            sleep 5
+                        done
+                        [ -n "$ANALYSIS_ID" ] || { echo "CE timeout"; exit 1; }
+                        GATE=$(curl -s -u "$TOKEN:" "$SONAR_HOST_URL/api/qualitygates/project_status?analysisId=$ANALYSIS_ID")
+                        GST=$(echo "$GATE" | grep -o '"status":"[A-Z]*"' | head -1 | cut -d'"' -f4)
+                        echo "Quality gate: ${GST:-UNKNOWN}"
+                        if [ "$GST" != "OK" ]; then echo "$GATE"; exit 1; fi
+                    '''
                 }
             }
         }
 
         stage("Architecture Qube") {
             steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                    sh '''
-                        mkdir -p arch-qube-reports
-                        docker run --rm \
-                            --network devops_default \
-                            -v $(pwd):/project \
-                            -v $(pwd)/arch-qube-reports:/output \
-                            arcana.boo/arcana/arch-qube:latest scan /project \
-                            --framework python --no-ai \
-                            --ci --format json,markdown \
-                            -o /output --threshold 90 || true
-                    '''
-                }
+                sh '''
+                    docker rm -f arcana-arch-qube-python 2>/dev/null || true
+                    docker create --name arcana-arch-qube-python --network devops_default \
+                        -v /src -v /output \
+                        arcana.boo/arcana/arch-qube:latest \
+                        scan /src --framework python --no-ai --ci \
+                        --format json,markdown -o /output --threshold 90 || exit 1
+                    tar --exclude=./.git --exclude=./arch-qube-reports -C . -cf - . \
+                        | docker cp - arcana-arch-qube-python:/src || exit 1
+                    docker start -a arcana-arch-qube-python
+                    AQ_RC=$?
+                    mkdir -p arch-qube-reports
+                    docker cp arcana-arch-qube-python:/output/. arch-qube-reports/ 2>/dev/null || true
+                    docker rm -f arcana-arch-qube-python 2>/dev/null || true
+                    exit $AQ_RC
+                '''
             }
         }
 
