@@ -62,7 +62,22 @@ pipeline {
         stage("Unit Tests") {
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                    sh "docker compose -f docker-compose.test.yml run --rm --build test"
+                    sh '''#!/bin/bash
+                        # DinD-safe coverage extraction: this Jenkins talks to the HOST docker
+                        # daemon, so the compose `./coverage:/output` bind mount resolves to a stray
+                        # host path and the report never lands in the workspace (sonar then sees
+                        # coverage=0). Run a NAMED container (not --rm) and `docker cp` the report
+                        # out, which streams through the API into the real workspace.
+                        set +e
+                        docker rm -f "${APP_NAME}-cov-${BUILD_NUMBER}" 2>/dev/null || true
+                        docker compose -f docker-compose.test.yml run \
+                            --name "${APP_NAME}-cov-${BUILD_NUMBER}" --build test
+                        rc=$?
+                        mkdir -p coverage
+                        docker cp "${APP_NAME}-cov-${BUILD_NUMBER}:/app/cov/coverage.xml" coverage/coverage.xml || true
+                        docker rm -f "${APP_NAME}-cov-${BUILD_NUMBER}" 2>/dev/null || true
+                        exit $rc
+                    '''
                 }
             }
         }
