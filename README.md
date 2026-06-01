@@ -1,15 +1,18 @@
 <!-- agent-managed badges START -->
-[![Quality Gate](https://img.shields.io/badge/Quality_Gate-ERROR-red)](https://arcana.boo/sonarqube/dashboard?id=python-app)
+[![Quality Gate](https://img.shields.io/badge/Quality_Gate-OK-brightgreen)](https://arcana.boo/sonarqube/dashboard?id=python-app)
 [![Build](https://img.shields.io/badge/Build-passing-brightgreen)](https://arcana.boo/jenkins/job/python-app-pipeline-mb/job/main/)
 **Rank**: Quality Gate `OK` · Build `blue` · Sonar coverage `96.5%`
 <!-- agent-managed badges END -->
+<!-- arch-rank START -->
+**Architecture**: arch-qube `100/100` · grade `A+` · `PASS`
+<!-- arch-rank END -->
 
 # Arcana Cloud Python - Enterprise Flask Microservices Platform
 
 [![Architecture Rating](https://img.shields.io/badge/Architecture%20Rating-⭐⭐⭐⭐⭐%209.2%2F10-gold.svg)](#architecture-evaluation)
 [![Python](https://img.shields.io/badge/python-3.14-blue.svg?logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![Flask](https://img.shields.io/badge/flask-3.1.3-green.svg?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
-[![gRPC](https://img.shields.io/badge/gRPC-1.68-00ADD8.svg?logo=grpc&logoColor=white)](https://grpc.io/)
+[![gRPC](https://img.shields.io/badge/gRPC-1.76-00ADD8.svg?logo=grpc&logoColor=white)](https://grpc.io/)
 [![Architecture](https://img.shields.io/badge/architecture-microservices-orange.svg)]()
 [![Tests](https://img.shields.io/badge/tests-93%2F93_passing-brightgreen.svg)]()
 [![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)]()
