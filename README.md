@@ -1,11 +1,3 @@
-<!-- agent-managed badges START -->
-[![Quality Gate](https://img.shields.io/badge/Quality_Gate-OK-brightgreen)](https://arcana.boo/sonarqube/dashboard?id=python-app)
-[![Build](https://img.shields.io/badge/Build-passing-brightgreen)](https://arcana.boo/jenkins/job/python-app-pipeline-mb/job/main/)
-**Rank**: Quality Gate `OK` · Build `blue` · Sonar coverage `96.5%`
-<!-- agent-managed badges END -->
-<!-- arch-rank START -->
-**Architecture**: arch-qube `100/100` · grade `A+` · `PASS`
-<!-- arch-rank END -->
 
 # Arcana Cloud Python - Enterprise Flask Microservices Platform
 
@@ -18,6 +10,20 @@
 [![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)]()
 [![PEP 8](https://img.shields.io/badge/code_style-PEP_8-blue.svg)](https://peps.python.org/pep-0008/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+<!-- agent-managed badges START -->
+<p align="center">
+  <a href="https://arcana.boo/sonarqube/dashboard?id=python-app"><img src="https://img.shields.io/badge/Quality_Gate-OK-brightgreen?style=for-the-badge" alt="Quality Gate"></a>
+  <a href="https://arcana.boo/jenkins/job/python-app-pipeline-mb/job/main/"><img src="https://img.shields.io/badge/Build-passing-brightgreen?style=for-the-badge" alt="Build"></a>
+</p>
+<!-- agent-managed badges END -->
+<!-- arch-rank START -->
+<p align="center">
+  <img src="https://img.shields.io/badge/arch--qube-100%2F100-blue?style=for-the-badge" alt="arch-qube">
+  <img src="https://img.shields.io/badge/Grade-A%2B-brightgreen?style=for-the-badge" alt="Grade">
+  <img src="https://img.shields.io/badge/Arch_Gate-PASS-brightgreen?style=for-the-badge" alt="Architecture Gate">
+</p>
+<!-- arch-rank END -->
 
 Enterprise-grade cloud platform with **gRPC-first architecture** (2.78x faster than HTTP REST), supporting dual-protocol communication and three flexible deployment modes (Monolithic, Layered, Microservices).
 
