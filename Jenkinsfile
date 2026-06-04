@@ -40,7 +40,6 @@ pipeline {
         stage("Cleanup Old Images") {
             steps {
                 sh '''
-                    docker image prune -f || true
                     docker images --format '{{.Repository}}:{{.Tag}}' \
                         | grep "${APP_NAME}.*build-" \
                         | sort -t- -k2 -rn \
@@ -168,19 +167,19 @@ pipeline {
         stage("Architecture Qube") {
             steps {
                 sh '''
-                    docker rm -f arcana-arch-qube-python 2>/dev/null || true
-                    docker create --name arcana-arch-qube-python --network devops_default \
+                    docker rm -f arcana-arch-qube-python-${BUILD_NUMBER} 2>/dev/null || true
+                    docker create --name arcana-arch-qube-python-${BUILD_NUMBER} --network devops_default \
                         -v /src -v /output \
                         arcana.boo/arcana/arch-qube:latest \
                         scan /src --framework python --no-ai --ci \
                         --format json,markdown -o /output --threshold 90 || exit 1
                     tar --exclude=./.git --exclude=./arch-qube-reports -C . -cf - . \
-                        | docker cp - arcana-arch-qube-python:/src || exit 1
-                    docker start -a arcana-arch-qube-python
+                        | docker cp - arcana-arch-qube-python-${BUILD_NUMBER}:/src || exit 1
+                    docker start -a arcana-arch-qube-python-${BUILD_NUMBER}
                     AQ_RC=$?
                     mkdir -p arch-qube-reports
-                    docker cp arcana-arch-qube-python:/output/. arch-qube-reports/ 2>/dev/null || true
-                    docker rm -f arcana-arch-qube-python 2>/dev/null || true
+                    docker cp arcana-arch-qube-python-${BUILD_NUMBER}:/output/. arch-qube-reports/ 2>/dev/null || true
+                    docker rm -f arcana-arch-qube-python-${BUILD_NUMBER} 2>/dev/null || true
                     exit $AQ_RC
                 '''
             }
