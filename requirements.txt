@@ -16,7 +16,7 @@ alembic==1.18.4
 PyMySQL==1.1.2
 
 # 數據驗證與序列化
-marshmallow==4.1.0
+marshmallow==4.3.0
 
 # 認證與安全
 authlib==1.7.2
