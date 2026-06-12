@@ -4,7 +4,7 @@
 [![Architecture Rating](https://img.shields.io/badge/Architecture%20Rating-⭐⭐⭐⭐⭐%209.2%2F10-gold.svg)](#architecture-evaluation)
 [![Python](https://img.shields.io/badge/python-3.14-blue.svg?logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![Flask](https://img.shields.io/badge/flask-3.1.3-green.svg?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
-[![gRPC](https://img.shields.io/badge/gRPC-1.76-00ADD8.svg?logo=grpc&logoColor=white)](https://grpc.io/)
+[![gRPC](https://img.shields.io/badge/gRPC-1.81-00ADD8.svg?logo=grpc&logoColor=white)](https://grpc.io/)
 [![Architecture](https://img.shields.io/badge/architecture-microservices-orange.svg)]()
 [![Tests](https://img.shields.io/badge/tests-93%2F93_passing-brightgreen.svg)]()
 [![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)]()
@@ -80,7 +80,7 @@ Enterprise-grade cloud platform with **gRPC-first architecture** (2.78x faster t
                                  │
 ┌────────────────────────────────▼────────────────────────────────────────┐
 │                    Arcana Cloud Python Backend                          │
-│  Flask 3.1.2 | Python 3.14 | gRPC-first + HTTP REST (dual-protocol)     │
+│  Flask 3.1.3 | Python 3.14 | gRPC-first + HTTP REST (dual-protocol)     │
 │                                                                         │
 │  ┌──────────────┐      ┌──────────────┐      ┌──────────────┐           │
 │  │ Controller   │─────▶│   Service    │─────▶│  Repository  │           │
@@ -105,7 +105,7 @@ Enterprise-grade cloud platform with **gRPC-first architecture** (2.78x faster t
 - ✅ **3-Layer Clean Architecture** - Controller/Service/Repository with interface-driven design
 - ✅ **gRPC-First Architecture** - gRPC default with HTTP REST support (6.30x faster for point queries)
 - ✅ **Flexible Deployment** - Monolithic, Layered, and Microservices modes
-- ✅ **Type Safety** - Full type hints with Python 3.13, mypy-compliant
+- ✅ **Type Safety** - Full type hints with Python 3.14, mypy-compliant
 - ✅ **PEP 8 Compliant** - Professional Python code standards (snake_case modules)
 - ✅ **100% Test Coverage** - 83/83 integration tests passing
 - ✅ **Production-Ready** - Docker, Kubernetes, monitoring, and security built-in
@@ -139,13 +139,13 @@ Enterprise-grade cloud platform with **gRPC-first architecture** (2.78x faster t
 ## 📋 Technology Stack
 
 ### Core Framework
-- **Python**: 3.14.0 (Latest stable)
-- **Flask**: 3.1.2 with Application Factory pattern
-- **SQLAlchemy**: 2.0.44 (ORM with type hints)
-- **Marshmallow**: 4.1.0 (Schema validation)
+- **Python**: 3.14.5 (Latest stable)
+- **Flask**: 3.1.3 with Application Factory pattern
+- **SQLAlchemy**: 2.0.50 (ORM with type hints)
+- **Marshmallow**: 4.3.0 (Schema validation)
 
 ### Communication Layers
-- **gRPC (Default)**: 1.68.0 with Protocol Buffers 5.28.2 - 2.78x faster on average
+- **gRPC (Default)**: 1.81.1 with Protocol Buffers 5.28.2 - 2.78x faster on average
 - **HTTP REST**: Flask RESTful endpoints for external clients
 - **Performance**: gRPC delivers 6.30x speedup for point queries
 
@@ -1011,6 +1011,6 @@ copies or substantial portions of the Software.
 
 ---
 
-**Built with ❤️ using Flask 3.1.2, Python 3.14, gRPC, and modern cloud-native practices**
+**Built with ❤️ using Flask 3.1.3, Python 3.14, gRPC, and modern cloud-native practices**
 
 **Project Rank: A+ (92/100)** | **Tests: 83/83 Passing** | **Coverage: 100%** | **gRPC Performance: 2.78x Faster**
