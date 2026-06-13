@@ -69,13 +69,22 @@ pipeline {
                     # coverage=0). Run a NAMED container (not --rm) and `docker cp` the report
                     # out, which streams through the API into the real workspace.
                     set +e
-                    docker rm -f "${APP_NAME}-cov-${BUILD_NUMBER}" 2>/dev/null || true
+                    # BUILD_NUMBER is per-branch in a multibranch pipeline, so it
+                    # resets to 1 for every fresh branch/PR. Concurrent first-builds of
+                    # different branches all produced the same "${APP_NAME}-cov-1" name
+                    # and collided on the shared host daemon ("container name already in
+                    # use"). disableConcurrentBuilds() only serializes the SAME branch.
+                    # Add the (docker-safe) branch dimension so the cov container name is
+                    # globally unique without serializing unit tests across branches.
+                    SAFE_REF="$(printf '%s' "${BRANCH_NAME:-local}" | tr -c 'A-Za-z0-9_.-' '-')"
+                    COV_NAME="${APP_NAME}-cov-${SAFE_REF}-${BUILD_NUMBER}"
+                    docker rm -f "${COV_NAME}" 2>/dev/null || true
                     docker compose -f docker-compose.test.yml run \
-                        --name "${APP_NAME}-cov-${BUILD_NUMBER}" --build test
+                        --name "${COV_NAME}" --build test
                     rc=$?
                     mkdir -p coverage
-                    docker cp "${APP_NAME}-cov-${BUILD_NUMBER}:/app/cov/coverage.xml" coverage/coverage.xml || true
-                    docker rm -f "${APP_NAME}-cov-${BUILD_NUMBER}" 2>/dev/null || true
+                    docker cp "${COV_NAME}:/app/cov/coverage.xml" coverage/coverage.xml || true
+                    docker rm -f "${COV_NAME}" 2>/dev/null || true
                     exit $rc
                 '''
             }
