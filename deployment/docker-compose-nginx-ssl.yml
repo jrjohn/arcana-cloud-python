@@ -220,7 +220,7 @@ services:
   # Redis Cache
   # ============================================================================
   redis-cache:
-    image: redis:7-alpine
+    image: redis:8-alpine
     container_name: arcana-redis
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:

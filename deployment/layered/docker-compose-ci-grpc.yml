@@ -18,7 +18,7 @@ services:
       - arcana-ci-python-grpc-net
 
   redis:
-    image: redis:7-alpine
+    image: redis:8-alpine
     container_name: arcana-ci-python-grpc-redis
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
