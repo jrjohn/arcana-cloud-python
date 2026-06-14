@@ -1,7 +1,7 @@
 # Python gRPC CI Integration Test — 3-layer gRPC
 services:
   mysql:
-    image: mysql:8.0
+    image: mysql:9.7
     container_name: arcana-ci-python-grpc-mysql
     environment:
       MYSQL_ROOT_PASSWORD: ci_root

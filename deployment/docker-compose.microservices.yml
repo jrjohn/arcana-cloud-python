@@ -217,7 +217,7 @@ services:
   # MySQL Database
   # ============================================================================
   mysql:
-    image: mysql:8.0
+    image: mysql:9.7
     container_name: arcana-cloud-mysql
     restart: unless-stopped
     ports:
