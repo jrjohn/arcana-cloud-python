@@ -6,8 +6,8 @@
 [![Flask](https://img.shields.io/badge/flask-3.1.3-green.svg?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
 [![gRPC](https://img.shields.io/badge/gRPC-1.81-00ADD8.svg?logo=grpc&logoColor=white)](https://grpc.io/)
 [![Architecture](https://img.shields.io/badge/architecture-microservices-orange.svg)]()
-[![Tests](https://img.shields.io/badge/tests-93%2F93_passing-brightgreen.svg)]()
-[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/tests-628_passing-brightgreen.svg)]()
+[![Coverage](https://img.shields.io/badge/coverage-96.5%25-brightgreen.svg)]()
 [![PEP 8](https://img.shields.io/badge/code_style-PEP_8-blue.svg)](https://peps.python.org/pep-0008/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
