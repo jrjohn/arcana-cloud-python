@@ -166,7 +166,7 @@ Enterprise-grade cloud platform with **gRPC-first architecture** (2.78x faster t
 - **Kubernetes**: Full manifests with HPA, Ingress, RBAC
 
 ### Testing & Quality
-- **pytest**: 8.3.4 with fixtures
+- **pytest**: 9.1.0 with fixtures
 - **Coverage**: 100% (83/83 integration tests)
 - **Type Checking**: mypy (strict mode)
 - **Linting**: flake8, pylint
