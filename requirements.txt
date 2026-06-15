@@ -13,7 +13,7 @@ flask-limiter==4.1.1
 # 資料庫與 ORM
 SQLAlchemy==2.0.50
 alembic==1.18.4
-PyMySQL==1.1.2
+PyMySQL==1.2.0
 
 # 數據驗證與序列化
 marshmallow==4.3.0
