@@ -57,6 +57,15 @@ pipeline {
             steps {
                 sh "VERSION=${VERSION} docker compose -f docker-compose.ci.yml build"
                 sh "docker tag localhost:5000/arcana/${APP_NAME}:${VERSION} ${IMAGE_TAG}:build-${BUILD_NUMBER}"
+                script {
+                    if (env.BRANCH_NAME == 'main') {
+                        // Persist the durable build-N tag to the registry NOW, before the
+                        // multi-minute Unit/Integration/Sonar/Arch-Qube window during which
+                        // host image GC can reclaim the local tags (image-vanish race →
+                        // final "Push to Registry" failed with "tag does not exist").
+                        sh "docker push ${IMAGE_TAG}:build-${BUILD_NUMBER}"
+                    }
+                }
             }
         }
 
@@ -211,8 +220,14 @@ pipeline {
         stage("Push to Registry") {
             when { branch 'main' }
             steps {
+                // build-${BUILD_NUMBER} was already pushed durably in "Docker Compose
+                // Build". The local :VERSION / :build-N tags may have been reclaimed by
+                // host image GC during the test/Sonar/arch-qube window, so re-derive
+                // :VERSION from the durable registry copy instead of a local tag that
+                // can vanish (root cause of #62: "tag does not exist :1.0.0").
+                sh "docker pull ${IMAGE_TAG}:build-${BUILD_NUMBER}"
+                sh "docker tag ${IMAGE_TAG}:build-${BUILD_NUMBER} ${IMAGE_TAG}:${VERSION}"
                 sh "docker push ${IMAGE_TAG}:${VERSION}"
-                sh "docker push ${IMAGE_TAG}:build-${BUILD_NUMBER}"
             }
         }
 
