@@ -38,7 +38,7 @@ dependency-injector==4.49.0
 gunicorn==26.0.0
 
 # 工具與輔助
-python-dotenv==1.1.1
+python-dotenv==1.2.2
 requests==2.32.5
 python-json-logger==4.0.0
 
