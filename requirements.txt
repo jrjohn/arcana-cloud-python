@@ -39,7 +39,7 @@ gunicorn==26.0.0
 
 # 工具與輔助
 python-dotenv==1.2.2
-requests==2.32.5
+requests==2.34.2
 python-json-logger==4.1.0
 
 # 服務間通訊（可選）
