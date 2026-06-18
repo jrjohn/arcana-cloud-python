@@ -32,7 +32,7 @@ celery-redbeat==2.3.3
 flower==2.0.1
 
 # 依賴注入
-dependency-injector==4.49.0
+dependency-injector==4.49.1
 
 # WSGI 服務器
 gunicorn==26.0.0
