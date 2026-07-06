@@ -44,4 +44,4 @@ python-json-logger==4.1.0
 
 # 服務間通訊（可選）
 grpcio==1.81.1
-grpcio-tools==1.81.1
+grpcio-tools==1.82.0
