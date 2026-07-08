@@ -4,7 +4,7 @@
 [![Architecture Rating](https://img.shields.io/badge/Architecture%20Rating-⭐⭐⭐⭐⭐%209.2%2F10-gold.svg)](#architecture-evaluation)
 [![Python](https://img.shields.io/badge/python-3.14-blue.svg?logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![Flask](https://img.shields.io/badge/flask-3.1.3-green.svg?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
-[![gRPC](https://img.shields.io/badge/gRPC-1.81-00ADD8.svg?logo=grpc&logoColor=white)](https://grpc.io/)
+[![gRPC](https://img.shields.io/badge/gRPC-1.82-00ADD8.svg?logo=grpc&logoColor=white)](https://grpc.io/)
 [![Architecture](https://img.shields.io/badge/architecture-microservices-orange.svg)]()
 [![Tests](https://img.shields.io/badge/tests-628_passing-brightgreen.svg)]()
 [![Coverage](https://img.shields.io/badge/coverage-96.5%25-brightgreen.svg)]()
@@ -145,7 +145,7 @@ Enterprise-grade cloud platform with **gRPC-first architecture** (2.78x faster t
 - **Marshmallow**: 4.3.0 (Schema validation)
 
 ### Communication Layers
-- **gRPC (Default)**: 1.81.1 with Protocol Buffers 5.28.2 - 2.78x faster on average
+- **gRPC (Default)**: 1.82.0 with Protocol Buffers 5.28.2 - 2.78x faster on average
 - **HTTP REST**: Flask RESTful endpoints for external clients
 - **Performance**: gRPC delivers 6.30x speedup for point queries
 
