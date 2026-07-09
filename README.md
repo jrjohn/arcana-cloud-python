@@ -157,7 +157,7 @@ Enterprise-grade cloud platform with **gRPC-first architecture** (2.78x faster t
 
 ### Data & Caching
 - **Database**: MySQL 8.0 (via SQLAlchemy)
-- **Cache**: Redis 7.0 with connection pooling
+- **Cache**: Redis 8.0 with connection pooling
 - **Migration**: Alembic via Flask-Migrate
 
 ### Container & Orchestration
@@ -180,7 +180,7 @@ Enterprise-grade cloud platform with **gRPC-first architecture** (2.78x faster t
 
 - Python 3.14+
 - MySQL 8.0+ or PostgreSQL 16+
-- Redis 7.0+
+- Redis 8.0+
 - Docker & Docker Compose (optional)
 
 ### Installation
@@ -882,7 +882,7 @@ def get_users():
 
 - Python 3.14+
 - MySQL 8.0+
-- Redis 7.0+
+- Redis 8.0+
 
 ### Setup Development Environment
 
