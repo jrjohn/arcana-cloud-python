@@ -145,7 +145,7 @@ Enterprise-grade cloud platform with **gRPC-first architecture** (2.78x faster t
 - **Marshmallow**: 4.3.0 (Schema validation)
 
 ### Communication Layers
-- **gRPC (Default)**: 1.82.0 with Protocol Buffers 5.28.2 - 2.78x faster on average
+- **gRPC (Default)**: 1.82.1 with Protocol Buffers 5.28.2 - 2.78x faster on average
 - **HTTP REST**: Flask RESTful endpoints for external clients
 - **Performance**: gRPC delivers 6.30x speedup for point queries
 
