@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.9](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.8...v1.1.9) (2026-07-10)
+
+
+### Bug Fixes
+
+* **deps:** bump grpcio to 1.82.1 to unblock grpcio-tools 1.82.1 ([935a191](https://github.com/jrjohn/arcana-cloud-python/commit/935a19123aa89cf49e6ee1555593e50c0e8720fe))
+
 ## [1.1.8](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.7...v1.1.8) (2026-07-09)
 
 
