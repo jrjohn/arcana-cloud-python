@@ -10,7 +10,7 @@ faker==40.31.0
 black==26.5.1
 flake8==7.3.0
 mypy==2.3.0
-coverage==7.15.1
+coverage==7.15.2
 ruff==0.15.21
 bandit==1.9.4
 safety==3.8.1
