@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.11](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.10...v1.1.11) (2026-08-13)
+
+
+### Documentation
+
+* **readme:** fix drifted gRPC badge 1.82→1.83.0 (match grpcio) ([#99](https://github.com/jrjohn/arcana-cloud-python/issues/99)) ([47e2c28](https://github.com/jrjohn/arcana-cloud-python/commit/47e2c286ea9e791c8ba8fdfe59225244d8fd7c7c))
+
 ## [1.1.10](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.9...v1.1.10) (2026-07-12)
 
 
