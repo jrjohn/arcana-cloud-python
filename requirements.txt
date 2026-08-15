@@ -11,7 +11,7 @@ flask-cors==6.0.5
 flask-limiter==4.1.1
 
 # 資料庫與 ORM
-SQLAlchemy==2.0.51
+SQLAlchemy==2.0.52
 alembic==1.19.1
 PyMySQL==1.2.0
 
