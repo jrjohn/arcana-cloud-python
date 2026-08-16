@@ -250,7 +250,7 @@ services:
   # Redis Cache
   # ============================================================================
   redis:
-    image: redis:8.8-alpine
+    image: redis:8.10-alpine
     container_name: arcana-cloud-redis
     restart: unless-stopped
     ports:
