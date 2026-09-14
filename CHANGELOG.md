@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.13](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.12...v1.1.13) (2026-09-14)
+
+
+### Documentation
+
+* sync README versions + CI badges ([a126c50](https://github.com/jrjohn/arcana-cloud-python/commit/a126c502d49ba4eff2de87b29b42c66a1b613c4f))
+
 ## [1.1.12](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.11...v1.1.12) (2026-09-14)
 
 
