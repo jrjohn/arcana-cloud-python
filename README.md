@@ -139,13 +139,13 @@ Enterprise-grade cloud platform with **gRPC-first architecture** (2.78x faster t
 ## 📋 Technology Stack
 
 ### Core Framework
-- **Python**: 3.14.6 (Latest stable)
+- **Python**: 3.14.7 (Latest stable)
 - **Flask**: 3.1.3 with Application Factory pattern
-- **SQLAlchemy**: 2.0.51 (ORM with type hints)
-- **Marshmallow**: 4.3.0 (Schema validation)
+- **SQLAlchemy**: 2.0.52 (ORM with type hints)
+- **Marshmallow**: 4.3.1 (Schema validation)
 
 ### Communication Layers
-- **gRPC (Default)**: 1.82.1 with Protocol Buffers 5.28.2 - 2.78x faster on average
+- **gRPC (Default)**: 1.83.0 with Protocol Buffers 5.28.2 - 2.78x faster on average
 - **HTTP REST**: Flask RESTful endpoints for external clients
 - **Performance**: gRPC delivers 6.30x speedup for point queries
 
