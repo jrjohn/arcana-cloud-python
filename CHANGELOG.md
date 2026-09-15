@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.16](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.15...v1.1.16) (2026-09-15)
+
+
+### Bug Fixes
+
+* **deps:** update dependency faker to v40.39.0 ([#120](https://github.com/jrjohn/arcana-cloud-python/issues/120)) ([d8068fc](https://github.com/jrjohn/arcana-cloud-python/commit/d8068fcfa36df44314f8f200e23cd2f0719d7ab3))
+* **deps:** update dependency sqlalchemy to v2.0.54 ([#119](https://github.com/jrjohn/arcana-cloud-python/issues/119)) ([34e61e9](https://github.com/jrjohn/arcana-cloud-python/commit/34e61e95b7b5e8cf7f87c3da238a4357e0c85044))
+
 ## [1.1.15](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.14...v1.1.15) (2026-09-15)
 
 
