@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.17](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.16...v1.1.17) (2026-09-16)
+
+
+### Bug Fixes
+
+* **deps:** update dependency grpcio to v1.84.0 ([#123](https://github.com/jrjohn/arcana-cloud-python/issues/123)) ([c97c6e8](https://github.com/jrjohn/arcana-cloud-python/commit/c97c6e8d352d49e1465d8ff9139db9257fc49635))
+* **deps:** update dependency ruff to v0.16.8 ([#122](https://github.com/jrjohn/arcana-cloud-python/issues/122)) ([a8d614c](https://github.com/jrjohn/arcana-cloud-python/commit/a8d614c56075d2ef4b190030be57ebc27a11cbe7))
+
 ## [1.1.16](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.15...v1.1.16) (2026-09-15)
 
 
