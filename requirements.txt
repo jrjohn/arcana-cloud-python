@@ -35,7 +35,7 @@ flower==2.1.0
 dependency-injector==4.49.1
 
 # WSGI 服務器
-gunicorn==26.0.0
+gunicorn==26.2.0
 
 # 工具與輔助
 python-dotenv==1.2.3
