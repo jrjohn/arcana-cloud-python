@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.20](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.19...v1.1.20) (2026-09-21)
+
+
+### Bug Fixes
+
+* **deps:** update dependency python-json-logger to v4.2.0 ([#131](https://github.com/jrjohn/arcana-cloud-python/issues/131)) ([3f2ffd4](https://github.com/jrjohn/arcana-cloud-python/commit/3f2ffd46937be52d040cf21ee636721c3a1bb5f4))
+
 ## [1.1.19](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.18...v1.1.19) (2026-09-21)
 
 
