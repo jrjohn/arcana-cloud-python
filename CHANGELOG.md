@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.19](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.18...v1.1.19) (2026-09-21)
+
+
+### Bug Fixes
+
+* **deps:** update dependency gunicorn to v26.2.0 ([#128](https://github.com/jrjohn/arcana-cloud-python/issues/128)) ([147a31b](https://github.com/jrjohn/arcana-cloud-python/commit/147a31bbc2ce9d3b029bfb806181383680e8402f))
+* **deps:** update dependency pyjwt to v2.14.0 ([#129](https://github.com/jrjohn/arcana-cloud-python/issues/129)) ([bbffe66](https://github.com/jrjohn/arcana-cloud-python/commit/bbffe6607a9584f172d9fca0db5c729ea446c3c7))
+
 ## [1.1.18](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.17...v1.1.18) (2026-09-19)
 
 
