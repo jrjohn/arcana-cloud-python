@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.21](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.20...v1.1.21) (2026-09-22)
+
+
+### Bug Fixes
+
+* **deps:** update dependency flake8 to v7.4.0 ([#133](https://github.com/jrjohn/arcana-cloud-python/issues/133)) ([a6eb102](https://github.com/jrjohn/arcana-cloud-python/commit/a6eb102d38c11a6ec2f5af429bb70d710efd5d1b))
+* **deps:** update dependency flower to v2.2.0 ([#134](https://github.com/jrjohn/arcana-cloud-python/issues/134)) ([cfea912](https://github.com/jrjohn/arcana-cloud-python/commit/cfea912e641de9f5096dcfde2b758aae9097d91b))
+
 ## [1.1.20](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.19...v1.1.20) (2026-09-21)
 
 
