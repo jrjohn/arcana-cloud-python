@@ -112,6 +112,12 @@ pipeline {
                     # smoke-test health check timed out). Value matches the mysql service creds
                     # and the (passing) K8s-gRPC variant's DATABASE_URL.
                     export CI_GRPC_DATABASE_URL="mysql+pymysql://arcana:ci_arcana@mysql:3306/arcana_cloud"
+                    # build-${BUILD_NUMBER} was already pushed durably in "Docker Compose
+                    # Build". The local tag can be reclaimed by host image GC during the
+                    # Unit Tests window before this stage runs, so re-pull the durable
+                    # registry copy first (same fix already applied to the K8s gRPC and
+                    # Push to Registry stages below — see #159: "No such image").
+                    docker pull "${IMAGE_TAG}:build-${BUILD_NUMBER}"
                     PYTHON_IMAGE=${IMAGE_TAG}:build-${BUILD_NUMBER} \
                     docker compose -p arcana-ci-python-grpc \
                         -f deployment/layered/docker-compose-ci-grpc.yml \
