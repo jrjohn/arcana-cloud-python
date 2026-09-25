@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.24](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.23...v1.1.24) (2026-09-25)
+
+
+### Bug Fixes
+
+* **deps:** update dependency ruff to v0.16.9 ([#143](https://github.com/jrjohn/arcana-cloud-python/issues/143)) ([d2e18f1](https://github.com/jrjohn/arcana-cloud-python/commit/d2e18f15e8a88e2f673a26260b0609cae8aaf571))
+* **deps:** update dependency sqlalchemy to v2.1.0 ([#144](https://github.com/jrjohn/arcana-cloud-python/issues/144)) ([f84a687](https://github.com/jrjohn/arcana-cloud-python/commit/f84a6873f338c0b3182526449594f9bd9f598002))
+
 ## [1.1.23](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.22...v1.1.23) (2026-09-24)
 
 
