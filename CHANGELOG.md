@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.26](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.25...v1.1.26) (2026-09-27)
+
+
+### Bug Fixes
+
+* **deps:** update dependency coverage to v7.16.2 ([#148](https://github.com/jrjohn/arcana-cloud-python/issues/148)) ([478ec6f](https://github.com/jrjohn/arcana-cloud-python/commit/478ec6f05bf9b30cf8fe31c36619c984c112d7a3))
+* **deps:** update dependency pytest-mock to v3.16.0 ([#149](https://github.com/jrjohn/arcana-cloud-python/issues/149)) ([b513647](https://github.com/jrjohn/arcana-cloud-python/commit/b513647bf83545b6d5467a6f84e73be48991832e))
+
 ## [1.1.25](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.24...v1.1.25) (2026-09-26)
 
 
