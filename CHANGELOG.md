@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.27](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.26...v1.1.27) (2026-09-28)
+
+
+### Bug Fixes
+
+* **deps:** update dependency pyjwt to v2.15.1 ([#151](https://github.com/jrjohn/arcana-cloud-python/issues/151)) ([24c83f9](https://github.com/jrjohn/arcana-cloud-python/commit/24c83f9fa0021826bd80291a618bf037c8c36a2b))
+
 ## [1.1.26](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.25...v1.1.26) (2026-09-27)
 
 
