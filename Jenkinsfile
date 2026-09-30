@@ -193,19 +193,23 @@ pipeline {
         stage("Architecture Qube") {
             steps {
                 sh '''
-                    docker rm -f arcana-arch-qube-python-${BUILD_NUMBER} 2>/dev/null || true
-                    docker create --name arcana-arch-qube-python-${BUILD_NUMBER} --network devops_default \
+                    # Branch in the name: BUILD_NUMBER restarts at 1 on every branch, so two branches building
+                    # at once used the same name and one's `docker rm -f` deleted the other's container
+                    # (arcana-ios PR-14/PR-15, 2026-09-30: "destination ...:/src must be a directory").
+                    AQ="arcana-arch-qube-python-$(printf '%s' "${BRANCH_NAME}-${BUILD_NUMBER}" | tr -c 'A-Za-z0-9_.-' '-')"
+                    docker rm -f "$AQ" 2>/dev/null || true
+                    docker create --name "$AQ" --network devops_default \
                         -v /src -v /output \
                         arcana.boo/arcana/arch-qube:latest \
                         scan /src --framework python --no-ai --ci \
                         --format json,markdown -o /output --threshold 90 || exit 1
                     tar --exclude=./.git --exclude=./arch-qube-reports -C . -cf - . \
-                        | docker cp - arcana-arch-qube-python-${BUILD_NUMBER}:/src || exit 1
-                    docker start -a arcana-arch-qube-python-${BUILD_NUMBER}
+                        | docker cp - "$AQ":/src || exit 1
+                    docker start -a "$AQ"
                     AQ_RC=$?
                     mkdir -p arch-qube-reports
-                    docker cp arcana-arch-qube-python-${BUILD_NUMBER}:/output/. arch-qube-reports/ 2>/dev/null || true
-                    docker rm -f arcana-arch-qube-python-${BUILD_NUMBER} 2>/dev/null || true
+                    docker cp "$AQ":/output/. arch-qube-reports/ 2>/dev/null || true
+                    docker rm -f "$AQ" 2>/dev/null || true
                     exit $AQ_RC
                 '''
             }
