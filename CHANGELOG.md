@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.29](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.28...v1.1.29) (2026-09-30)
+
+
+### Bug Fixes
+
+* **deps:** update dependency cryptography to v50.0.2 ([#156](https://github.com/jrjohn/arcana-cloud-python/issues/156)) ([ba71845](https://github.com/jrjohn/arcana-cloud-python/commit/ba718452fa2fd0a4e816849edee0d84a21418a1c))
+
 ## [1.1.28](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.27...v1.1.28) (2026-09-29)
 
 
