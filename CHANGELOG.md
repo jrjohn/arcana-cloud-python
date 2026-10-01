@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.30](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.29...v1.1.30) (2026-10-01)
+
+
+### Bug Fixes
+
+* **deps:** update dependency python-dotenv to v1.2.4 ([#158](https://github.com/jrjohn/arcana-cloud-python/issues/158)) ([805c558](https://github.com/jrjohn/arcana-cloud-python/commit/805c55875afaba8da83f5fd88b361404b65e7ecd))
+
 ## [1.1.29](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.28...v1.1.29) (2026-09-30)
 
 
