@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.31](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.30...v1.1.31) (2026-10-02)
+
+
+### Bug Fixes
+
+* **deps:** update dependency mypy to v2.4.0 ([#161](https://github.com/jrjohn/arcana-cloud-python/issues/161)) ([c5b3c17](https://github.com/jrjohn/arcana-cloud-python/commit/c5b3c171fb6fcfafa2a27163f61977fcc627ebf8))
+* **deps:** update dependency ruff to v0.16.10 ([#160](https://github.com/jrjohn/arcana-cloud-python/issues/160)) ([1b35083](https://github.com/jrjohn/arcana-cloud-python/commit/1b35083f0fe1d2dc4864d77d9d62d2d7a6f6a5be))
+
 ## [1.1.30](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.29...v1.1.30) (2026-10-01)
 
 
