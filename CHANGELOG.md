@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.33](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.32...v1.1.33) (2026-10-02)
+
+
+### Bug Fixes
+
+* **deps:** update dependency sqlalchemy to v2.1.3 ([#166](https://github.com/jrjohn/arcana-cloud-python/issues/166)) ([7736d0c](https://github.com/jrjohn/arcana-cloud-python/commit/7736d0c521dd0695559daea88399fadce22e8ba6))
+
 ## [1.1.32](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.31...v1.1.32) (2026-10-02)
 
 
