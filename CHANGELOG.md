@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.34](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.33...v1.1.34) (2026-10-04)
+
+
+### Bug Fixes
+
+* **deps:** update dependency black to v26.10.0 ([#168](https://github.com/jrjohn/arcana-cloud-python/issues/168)) ([591d0bb](https://github.com/jrjohn/arcana-cloud-python/commit/591d0bbb9d24ec3bee927d99d409379bf4718f7f))
+
 ## [1.1.33](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.32...v1.1.33) (2026-10-02)
 
 
