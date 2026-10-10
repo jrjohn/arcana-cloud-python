@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.38](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.37...v1.1.38) (2026-10-10)
+
+
+### Bug Fixes
+
+* **deps:** update dependency faker to v40.43.0 ([#174](https://github.com/jrjohn/arcana-cloud-python/issues/174)) ([9bd64ca](https://github.com/jrjohn/arcana-cloud-python/commit/9bd64ca58660301b3242d1eb745683058a87d79d))
+
 ## [1.1.37](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.36...v1.1.37) (2026-10-10)
 
 
