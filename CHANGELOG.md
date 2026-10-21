@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.45](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.44...v1.1.45) (2026-10-21)
+
+
+### Bug Fixes
+
+* **deps:** update dependency sqlalchemy to v2.1.6 ([#191](https://github.com/jrjohn/arcana-cloud-python/issues/191)) ([d44584a](https://github.com/jrjohn/arcana-cloud-python/commit/d44584a0f84c8952e502f472259090d03459455d))
+* **deps:** update mysql docker tag to v26.10 ([#192](https://github.com/jrjohn/arcana-cloud-python/issues/192)) ([47ff96e](https://github.com/jrjohn/arcana-cloud-python/commit/47ff96ec908993d2e8f25bd77d2b1cacff8205da))
+
 ## [1.1.44](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.43...v1.1.44) (2026-10-17)
 
 
