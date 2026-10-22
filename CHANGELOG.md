@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.46](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.45...v1.1.46) (2026-10-22)
+
+
+### Bug Fixes
+
+* **deps:** update dependency alembic to v1.20.1 ([#194](https://github.com/jrjohn/arcana-cloud-python/issues/194)) ([bf0e8ee](https://github.com/jrjohn/arcana-cloud-python/commit/bf0e8ee53412da2c64ca8365f858dc8d5ecfa578))
+* **deps:** update python docker tag to v3.15.1 ([#195](https://github.com/jrjohn/arcana-cloud-python/issues/195)) ([9f30cbf](https://github.com/jrjohn/arcana-cloud-python/commit/9f30cbfe5c87be3f9cbec2d1ee1c166745c8c05a))
+
 ## [1.1.45](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.44...v1.1.45) (2026-10-21)
 
 
