@@ -139,7 +139,7 @@ Enterprise-grade cloud platform with **gRPC-first architecture** (2.78x faster t
 ## 📋 Technology Stack
 
 ### Core Framework
-- **Python**: 3.15.0 (Latest stable)
+- **Python**: 3.15.1 (Latest stable)
 - **Flask**: 3.1.3 with Application Factory pattern
 - **SQLAlchemy**: 2.1.6 (ORM with type hints)
 - **Marshmallow**: 4.3.1 (Schema validation)
