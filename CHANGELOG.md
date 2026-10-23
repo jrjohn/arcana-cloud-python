@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.50](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.49...v1.1.50) (2026-10-23)
+
+
+### Bug Fixes
+
+* **deps:** update dependency ruff to v0.17.2 ([#201](https://github.com/jrjohn/arcana-cloud-python/issues/201)) ([f16ef84](https://github.com/jrjohn/arcana-cloud-python/commit/f16ef8433fdf3d0b06a8e2ddc0f253b8872f1cfd))
+
 ## [1.1.49](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.48...v1.1.49) (2026-10-23)
 
 
