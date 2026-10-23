@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.49](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.48...v1.1.49) (2026-10-23)
+
+
+### Bug Fixes
+
+* **deps:** update dependency coverage to v7.17.0 ([#202](https://github.com/jrjohn/arcana-cloud-python/issues/202)) ([8105e72](https://github.com/jrjohn/arcana-cloud-python/commit/8105e72dedca300e70ed3516c4ceec2d5b298db5))
+
 ## [1.1.48](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.47...v1.1.48) (2026-10-23)
 
 
