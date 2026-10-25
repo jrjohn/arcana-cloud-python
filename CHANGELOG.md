@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.51](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.50...v1.1.51) (2026-10-25)
+
+
+### Bug Fixes
+
+* **deps:** update dependency pytest-asyncio to v1.4.1 ([#205](https://github.com/jrjohn/arcana-cloud-python/issues/205)) ([03a0dca](https://github.com/jrjohn/arcana-cloud-python/commit/03a0dca431d725c6d2c0e36e1bce4c7c7a880ac4))
+
 ## [1.1.50](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.49...v1.1.50) (2026-10-23)
 
 
