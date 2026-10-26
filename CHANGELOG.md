@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.54](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.53...v1.1.54) (2026-10-26)
+
+
+### Bug Fixes
+
+* **deps:** update python docker tag to v3.15.2 ([#211](https://github.com/jrjohn/arcana-cloud-python/issues/211)) ([acd1b46](https://github.com/jrjohn/arcana-cloud-python/commit/acd1b4693afdd6e2c7a7f0dcaae4f0f2ff3618d9))
+
 ## [1.1.53](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.52...v1.1.53) (2026-10-26)
 
 
