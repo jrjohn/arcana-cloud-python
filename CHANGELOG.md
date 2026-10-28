@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.56](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.55...v1.1.56) (2026-10-28)
+
+
+### Bug Fixes
+
+* **deps:** update dependency pytest to v9.2.0 ([#215](https://github.com/jrjohn/arcana-cloud-python/issues/215)) ([91867c9](https://github.com/jrjohn/arcana-cloud-python/commit/91867c919c8cf58aa5f67f9da781765f6b878b1a))
+
 ## [1.1.55](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.54...v1.1.55) (2026-10-27)
 
 
