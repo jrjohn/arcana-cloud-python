@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.58](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.57...v1.1.58) (2026-10-29)
+
+
+### Bug Fixes
+
+* **deps:** update dependency flake8 to v7.5.0 ([#220](https://github.com/jrjohn/arcana-cloud-python/issues/220)) ([871dd7e](https://github.com/jrjohn/arcana-cloud-python/commit/871dd7e50bff33ab58e70e9461f5106857df60be))
+
 ## [1.1.57](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.56...v1.1.57) (2026-10-28)
 
 
