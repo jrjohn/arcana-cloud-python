@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.57](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.56...v1.1.57) (2026-10-28)
+
+
+### Bug Fixes
+
+* **deps:** update dependency faker to v40.44.0 ([#218](https://github.com/jrjohn/arcana-cloud-python/issues/218)) ([8842aa4](https://github.com/jrjohn/arcana-cloud-python/commit/8842aa478fd09b2ae40c46d2ce099018d03010d7))
+* **deps:** update dependency mypy to v2.4.1 ([#217](https://github.com/jrjohn/arcana-cloud-python/issues/217)) ([a62b4e8](https://github.com/jrjohn/arcana-cloud-python/commit/a62b4e8d9ca3fd9019c3fb244a9d7934d894a240))
+
 ## [1.1.56](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.55...v1.1.56) (2026-10-28)
 
 
