@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.61](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.60...v1.1.61) (2026-11-01)
+
+
+### Bug Fixes
+
+* **deps:** update dependency authlib to v1.9.2 ([#226](https://github.com/jrjohn/arcana-cloud-python/issues/226)) ([358028e](https://github.com/jrjohn/arcana-cloud-python/commit/358028e1e00a13d821021652f5765084f566275c))
+* **deps:** update dependency pytest-asyncio to v1.4.1.post1 ([#227](https://github.com/jrjohn/arcana-cloud-python/issues/227)) ([dca704e](https://github.com/jrjohn/arcana-cloud-python/commit/dca704e1d5d4f1581395105634d00b1caa2a7867))
+
 ## [1.1.60](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.59...v1.1.60) (2026-10-31)
 
 
