@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.65](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.64...v1.1.65) (2026-11-04)
+
+
+### Bug Fixes
+
+* **deps:** update dependency coverage to v7.17.2 ([#237](https://github.com/jrjohn/arcana-cloud-python/issues/237)) ([d761f4c](https://github.com/jrjohn/arcana-cloud-python/commit/d761f4ccfce43594898eee4635c8e9929b062e31))
+* **deps:** update dependency marshmallow to v4.4.0 ([#238](https://github.com/jrjohn/arcana-cloud-python/issues/238)) ([d5d893e](https://github.com/jrjohn/arcana-cloud-python/commit/d5d893e76ac3528e64284a765039e2ccad1c3e5c))
+
 ## [1.1.64](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.63...v1.1.64) (2026-11-04)
 
 
