@@ -142,7 +142,7 @@ Enterprise-grade cloud platform with **gRPC-first architecture** (2.78x faster t
 - **Python**: 3.15.2 (Latest stable)
 - **Flask**: 3.1.3 with Application Factory pattern
 - **SQLAlchemy**: 2.1.8 (ORM with type hints)
-- **Marshmallow**: 4.3.1 (Schema validation)
+- **Marshmallow**: 4.4.0 (Schema validation)
 
 ### Communication Layers
 - **gRPC (Default)**: 1.85.1 with Protocol Buffers 6.31.1 - 2.78x faster on average
