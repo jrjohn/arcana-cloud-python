@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.67](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.66...v1.1.67) (2026-11-06)
+
+
+### Bug Fixes
+
+* **deps:** update dependency celery to v5.7.0 ([#243](https://github.com/jrjohn/arcana-cloud-python/issues/243)) ([95d6f9d](https://github.com/jrjohn/arcana-cloud-python/commit/95d6f9dad3c7c385875493c855ec6ba5f220043d))
+
 ## [1.1.66](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.65...v1.1.66) (2026-11-05)
 
 
