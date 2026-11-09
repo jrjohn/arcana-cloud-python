@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.68](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.67...v1.1.68) (2026-11-09)
+
+
+### Bug Fixes
+
+* **deps:** update dependency pymysql to v1.2.4 ([#245](https://github.com/jrjohn/arcana-cloud-python/issues/245)) ([e9e7a92](https://github.com/jrjohn/arcana-cloud-python/commit/e9e7a9215ec15d9c5b73abc204ff7b9fce131a8f))
+
 ## [1.1.67](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.66...v1.1.67) (2026-11-06)
 
 
