@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.70](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.69...v1.1.70) (2026-11-11)
+
+
+### Bug Fixes
+
+* **deps:** update dependency faker to v40.54.0 ([#250](https://github.com/jrjohn/arcana-cloud-python/issues/250)) ([2bab797](https://github.com/jrjohn/arcana-cloud-python/commit/2bab797316de12c091923bf65b3e8a1d1d26e099))
+* **deps:** update dependency gunicorn to v27 ([#249](https://github.com/jrjohn/arcana-cloud-python/issues/249)) ([4f9341b](https://github.com/jrjohn/arcana-cloud-python/commit/4f9341b22548cc2a75ee7e8cb0b9cabc93e34ed8))
+
 ## [1.1.69](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.68...v1.1.69) (2026-11-09)
 
 
