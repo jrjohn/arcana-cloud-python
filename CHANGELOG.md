@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.72](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.71...v1.1.72) (2026-11-13)
+
+
+### Bug Fixes
+
+* **deps:** update dependency pytest-asyncio to v1.5.0 ([#256](https://github.com/jrjohn/arcana-cloud-python/issues/256)) ([0aebb73](https://github.com/jrjohn/arcana-cloud-python/commit/0aebb73ed466deff12c56e5f6e4f451b6950a941))
+* **deps:** update dependency ruff to v0.17.5 ([#255](https://github.com/jrjohn/arcana-cloud-python/issues/255)) ([6473d88](https://github.com/jrjohn/arcana-cloud-python/commit/6473d8867505df3b7773d7bb115f6c7258d9a256))
+
 ## [1.1.71](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.70...v1.1.71) (2026-11-13)
 
 
