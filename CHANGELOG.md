@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.71](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.70...v1.1.71) (2026-11-13)
+
+
+### Bug Fixes
+
+* **deps:** update dependency coverage to v7.17.3 ([#252](https://github.com/jrjohn/arcana-cloud-python/issues/252)) ([ca10837](https://github.com/jrjohn/arcana-cloud-python/commit/ca10837c7a1a4005b78ddf35eaafb316b8cf9c41))
+* **deps:** update dependency gunicorn to v27.0.1 ([#253](https://github.com/jrjohn/arcana-cloud-python/issues/253)) ([311cf6e](https://github.com/jrjohn/arcana-cloud-python/commit/311cf6e6e7d1caf1fc1b659389ccbe86ec317f40))
+
 ## [1.1.70](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.69...v1.1.70) (2026-11-11)
 
 
