@@ -11,6 +11,6 @@ black==26.10.1
 flake8==7.5.0
 mypy==2.4.1
 coverage==7.17.3
-ruff==0.17.4
+ruff==0.17.5
 bandit==1.9.4
 safety==3.8.1
