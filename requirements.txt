@@ -19,7 +19,7 @@ PyMySQL==1.2.4
 marshmallow==4.4.0
 
 # 認證與安全
-authlib==1.9.5
+authlib==1.9.6
 PyJWT==2.15.1
 cryptography==50.0.2
 
