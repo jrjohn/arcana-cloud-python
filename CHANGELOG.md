@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.73](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.72...v1.1.73) (2026-11-14)
+
+
+### Bug Fixes
+
+* **deps:** update dependency authlib to v1.9.6 ([#258](https://github.com/jrjohn/arcana-cloud-python/issues/258)) ([cf5674e](https://github.com/jrjohn/arcana-cloud-python/commit/cf5674e59e9db0b979b63f05247f9d60c743687e))
+
 ## [1.1.72](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.71...v1.1.72) (2026-11-13)
 
 
