@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.77](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.76...v1.1.77) (2026-11-18)
+
+
+### Bug Fixes
+
+* **deps:** update dependency grpcio to v1.85.3 ([#267](https://github.com/jrjohn/arcana-cloud-python/issues/267)) ([720e235](https://github.com/jrjohn/arcana-cloud-python/commit/720e235ebe084d034d3df1d00270fae4c890eb5c))
+
 ## [1.1.76](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.75...v1.1.76) (2026-11-17)
 
 
