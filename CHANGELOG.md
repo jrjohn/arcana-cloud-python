@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.82](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.81...v1.1.82) (2026-11-23)
+
+
+### Bug Fixes
+
+* **deps:** update dependency redis to v8.2.0 ([#278](https://github.com/jrjohn/arcana-cloud-python/issues/278)) ([61709c6](https://github.com/jrjohn/arcana-cloud-python/commit/61709c621d1217173884682a74c21f0f50bf4ea0))
+
 ## [1.1.81](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.80...v1.1.81) (2026-11-20)
 
 
