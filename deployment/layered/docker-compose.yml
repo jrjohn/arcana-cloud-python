@@ -275,7 +275,7 @@ services:
   # Redis Cache
   # ============================================================================
   redis:
-    image: redis:8.10-alpine
+    image: redis:8.12-alpine
     restart: unless-stopped
     ports:
       - "6379:6379"
