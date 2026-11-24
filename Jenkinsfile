@@ -206,9 +206,10 @@ pipeline {
                     # (arcana-ios PR-14/PR-15, 2026-09-30: "destination ...:/src must be a directory").
                     AQ="arcana-arch-qube-python-$(printf '%s' "${BRANCH_NAME}-${BUILD_NUMBER}" | tr -c 'A-Za-z0-9_.-' '-')"
                     docker rm -f "$AQ" 2>/dev/null || true
+                    # Version pinned in tools/arch-qube.version (shared with tools/arch-check.sh).
                     docker create --name "$AQ" --network devops_default \
                         -v /src -v /output \
-                        arcana.boo/arcana/arch-qube:latest \
+                        arcana.boo/arcana/arch-qube:"$(cat tools/arch-qube.version)" \
                         scan /src --framework python --no-ai --ci \
                         --format json,markdown -o /output --threshold 90 || exit 1
                     tar --exclude=./.git --exclude=./arch-qube-reports -C . -cf - . \
