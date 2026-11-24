@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.83](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.82...v1.1.83) (2026-11-23)
+
+
+### Bug Fixes
+
+* **deps:** update dependency coverage to v7.17.5 ([#280](https://github.com/jrjohn/arcana-cloud-python/issues/280)) ([d991501](https://github.com/jrjohn/arcana-cloud-python/commit/d991501d180731bf1fa7c8c939828766dde0e219))
+* **deps:** update redis docker tag to v8.12 ([#281](https://github.com/jrjohn/arcana-cloud-python/issues/281)) ([e3972d3](https://github.com/jrjohn/arcana-cloud-python/commit/e3972d39adc531a07fc9a532c9ef0bffe6ad2cb9))
+
 ## [1.1.82](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.81...v1.1.82) (2026-11-23)
 
 
