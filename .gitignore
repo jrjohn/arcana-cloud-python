@@ -88,3 +88,6 @@ celerybeat.pid
 # CI env files (contain test credentials - set in CI environment)
 .env.ci
 **/.env.ci
+
+# arch-qube reports (tools/arch-check.sh)
+arch-qube-reports/

@@ -1,3 +1,5 @@
+# The pytest exit code is kept (rc) and returned last: the post-processing in `command`
+# used to end with `|| true`, so this lane (and Jenkins "Unit Tests") passed even when tests failed.
 services:
   test:
     build:
@@ -8,4 +10,4 @@ services:
       - PYTHONPATH=/app
     volumes:
       - ./coverage:/output
-    command: sh -c "pytest tests/unit -q --tb=short --cov=app --cov-report=xml:/app/cov/coverage.xml --no-header 2>&1; sed -i -e 's|<source>/app/app</source>|<source>app</source>|g' -e 's|filename=\"config.py\"|filename=\"Config.py\"|g' -e 's|filename=\"container.py\"|filename=\"Container.py\"|g' -e 's|filename=\"extensions.py\"|filename=\"Extensions.py\"|g' -e 's|filename=\"utils/exceptions.py\"|filename=\"utils/Exceptions.py\"|g' -e 's|filename=\"utils/response.py\"|filename=\"utils/Response.py\"|g' /app/cov/coverage.xml 2>/dev/null; python3 /app/scripts/fix_coverage.py /app/cov/coverage.xml /app 2>/dev/null || true; cp -r /app/cov/* /output/ 2>/dev/null || true"
+    command: sh -c "pytest tests/unit -q --tb=short --cov=app --cov-report=xml:/app/cov/coverage.xml --no-header 2>&1; rc=$$?; sed -i -e 's|<source>/app/app</source>|<source>app</source>|g' -e 's|filename=\"config.py\"|filename=\"Config.py\"|g' -e 's|filename=\"container.py\"|filename=\"Container.py\"|g' -e 's|filename=\"extensions.py\"|filename=\"Extensions.py\"|g' -e 's|filename=\"utils/exceptions.py\"|filename=\"utils/Exceptions.py\"|g' -e 's|filename=\"utils/response.py\"|filename=\"utils/Response.py\"|g' /app/cov/coverage.xml 2>/dev/null; python3 /app/scripts/fix_coverage.py /app/cov/coverage.xml /app 2>/dev/null || true; cp -r /app/cov/* /output/ 2>/dev/null || true; exit $$rc"

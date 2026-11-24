@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# Fast layering check on every commit (no docker, no Python). The full scan is
+# tools/arch-check.sh and the Jenkins stage "Architecture Qube". Rules: AGENTS.md §3.
+#
+# Regex, not `case` globs: in a case pattern `*` also matches `/`, so `app/*.py` would match
+# every correctly layered file too (this exact bug false-blocked good files in an earlier
+# version of this hook in another arcana template).
+set -euo pipefail
+
+fail=0
+LAYER_DIRS='controllers|services|repository|repositories|dao|models|schemas|grpc_protos|communication|decorators|utils|tasks'
+
+# R6 — a NEW .py file under app/ must live in a layer/package directory (AGENTS.md §2).
+# app/__init__.py is the only new file allowed at the app/ root.
+while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    [[ "$f" =~ ^app/.*\.py$ ]] || continue
+    [[ "$f" == app/__init__.py ]] && continue
+    if [[ ! "$f" =~ ^app/($LAYER_DIRS)/ ]]; then
+        echo "pre-commit: $f — new source file outside the layer directories. Put it under app/{$LAYER_DIRS}/ (AGENTS.md §2) or run tools/new-feature.sh" >&2
+        fail=1
+    fi
+done <<< "$(git diff --cached --name-only --diff-filter=AR)"
+
+# R2 — a concrete *Impl class is named only by the DI container (app/di_container.py), by
+# implementation code itself (files under an impl/ directory or named *_impl.py), by package
+# re-exports in __init__.py, and by tests. Only ADDED lines are checked, so editing a legacy
+# file does not fail on old code.
+while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    [[ "$f" =~ \.py$ ]] || continue
+    if [[ "$f" =~ (^|/)di_container\.py$ ]] || [[ "$f" =~ /impl/ ]] || [[ "$f" =~ _impl\.py$ ]] \
+        || [[ "$f" =~ (^|/)__init__\.py$ ]] || [[ "$f" =~ ^tests/ ]]; then
+        continue
+    fi
+    hits="$(git diff --cached -U0 -- "$f" | grep -E '^\+[^+]' | sed 's/^+//' \
+        | grep -E '\b[A-Z][A-Za-z0-9]*Impl\b' | grep -vE '^\s*#' || true)"
+    [ -n "$hits" ] || continue
+    echo "pre-commit: $f names a concrete *Impl class — depend on the interface and get it from app/di_container.py (AGENTS.md R2):" >&2
+    printf '    %s\n' "$hits" >&2
+    fail=1
+done <<< "$(git diff --cached --name-only --diff-filter=ACMR)"
+
+if [ "$fail" -ne 0 ]; then
+    echo "pre-commit: blocked. Full check: tools/arch-check.sh" >&2
+    exit 1
+fi
