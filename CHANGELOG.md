@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.83...v1.2.0) (2026-11-24)
+
+
+### Features
+
+* AGENTS.md + scaffolding + arch-check so AI agents follow the layered architecture ([#283](https://github.com/jrjohn/arcana-cloud-python/issues/283)) ([a075011](https://github.com/jrjohn/arcana-cloud-python/commit/a075011302915f4842a1afd6adcc2e094d55f5f3))
+* make the template self-explaining to AI agents (AGENTS.md, scaffolding, hook, arch-check) ([a075011](https://github.com/jrjohn/arcana-cloud-python/commit/a075011302915f4842a1afd6adcc2e094d55f5f3))
+
 ## [1.1.83](https://github.com/jrjohn/arcana-cloud-python/compare/v1.1.82...v1.1.83) (2026-11-23)
 
 
