@@ -66,14 +66,16 @@ wired in `app/di_container.py` `initialize_dependencies`.
 arch-qube (https://github.com/jrjohn/arcana-arch-qube) is the static architecture gate Jenkins
 runs in stage "Architecture Qube": `--framework python --no-ai --ci --threshold 90` over the
 whole checkout. Usage guide: https://github.com/jrjohn/arcana-skills/tree/main/arch-qube-skill.
-The version is pinned in `tools/arch-qube.version` (0.5.7); the Jenkinsfile and
+The version is pinned in `tools/arch-qube.version`; the Jenkinsfile and
 `tools/arch-check.sh` both read it.
+
+`tools/arch-qube.version` is bumped automatically by Renovate when arch-qube releases; do not edit the version anywhere else.
 
 - Run it: `tools/arch-check.sh` — same image as CI, `ghcr.io/jrjohn/arch-qube:<version>`
   (public, multi-arch) then `arcana.boo/arcana/arch-qube:<version>`, no `:latest` fallback;
   same framework, threshold and exclusions as CI. Exit 0 prints `arch-check: PASS`; exit 2
   means Docker or the image was unavailable — that is NOT a pass.
-- Without Docker: `pipx run --spec git+https://github.com/jrjohn/arcana-arch-qube.git@v0.5.7 arch-qube scan . --framework python --no-ai --ci --format json,markdown -o arch-qube-reports --threshold 90`
+- Without Docker: `pipx run --spec "git+https://github.com/jrjohn/arcana-arch-qube.git@v$(cat tools/arch-qube.version)" arch-qube scan . --framework python --no-ai --ci --format json,markdown -o arch-qube-reports --threshold 90`
   (or `pip install` the same spec into a venv). Use the tag matching `tools/arch-qube.version`.
 - PASS = score ≥ threshold **and** zero violations in every CRITICAL rule — a 99 can still FAIL.
 - `--ci` prints nothing on failure. Rerun without `--ci` (or open `arch-qube.md`) to see why.
