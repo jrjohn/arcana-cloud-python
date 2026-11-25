@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.0](https://github.com/jrjohn/arcana-cloud-python/compare/v1.2.2...v1.3.0) (2026-11-25)
+
+
+### Features
+
+* enforce arch-check locally (Claude Code Stop hook + pre-push) ([#292](https://github.com/jrjohn/arcana-cloud-python/issues/292)) ([a64979a](https://github.com/jrjohn/arcana-cloud-python/commit/a64979acc5669dcf644269ea22e37f34cbe2b9c3))
+
+
+### Documentation
+
+* README start-here (AGENTS.md, new-app, hooks, arch-check) ([#291](https://github.com/jrjohn/arcana-cloud-python/issues/291)) ([014ef7c](https://github.com/jrjohn/arcana-cloud-python/commit/014ef7cab5b8e668fb4a08e7151ab48a3d514f6f))
+
 ## [1.2.2](https://github.com/jrjohn/arcana-cloud-python/compare/v1.2.1...v1.2.2) (2026-11-24)
 
 
