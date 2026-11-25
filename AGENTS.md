@@ -66,18 +66,21 @@ wired in `app/di_container.py` `initialize_dependencies`.
 arch-qube (https://github.com/jrjohn/arcana-arch-qube) is the static architecture gate Jenkins
 runs in stage "Architecture Qube": `--framework python --no-ai --ci --threshold 90` over the
 whole checkout. Usage guide: https://github.com/jrjohn/arcana-skills/tree/main/arch-qube-skill.
-The version is pinned in `tools/arch-qube.version`; the Jenkinsfile and `tools/arch-check.sh`
-both read it.
+The version is pinned in `tools/arch-qube.version` (0.5.6); the Jenkinsfile and
+`tools/arch-check.sh` both read it.
 
-- Run it: `tools/arch-check.sh` — same image `arcana.boo/arcana/arch-qube:<version>`, framework,
-  threshold and exclusions as CI. Exit 0 prints `arch-check: PASS`; exit 2 means Docker or the
-  image was unavailable — that is NOT a pass.
-- Without Docker: `pipx run --spec git+https://github.com/jrjohn/arcana-arch-qube.git@v0.5.5 arch-qube scan . --framework python --no-ai --ci --format json,markdown -o arch-qube-reports --threshold 90`
+- Run it: `tools/arch-check.sh` — same image as CI, `ghcr.io/jrjohn/arch-qube:<version>`
+  (public, multi-arch) then `arcana.boo/arcana/arch-qube:<version>`, no `:latest` fallback;
+  same framework, threshold and exclusions as CI. Exit 0 prints `arch-check: PASS`; exit 2
+  means Docker or the image was unavailable — that is NOT a pass.
+- Without Docker: `pipx run --spec git+https://github.com/jrjohn/arcana-arch-qube.git@v0.5.6 arch-qube scan . --framework python --no-ai --ci --format json,markdown -o arch-qube-reports --threshold 90`
   (or `pip install` the same spec into a venv). Use the tag matching `tools/arch-qube.version`.
+- PASS = score ≥ threshold **and** zero violations in every CRITICAL rule — a 99 can still FAIL.
+- `--ci` prints nothing on failure. Rerun without `--ci` (or open `arch-qube.md`) to see why.
 - Report: `arch-qube-reports/arch-qube.md` and `arch-qube.json`. The score alone is not
   enough: read every FAIL row and the violation list for files you touched. A rule under
-  "Not evaluated" is not a pass. In the JSON check `files_checked` per rule — a rule that
-  checked 0 files said nothing. A project with no recognised layer directories scores 0 on
+  "Not evaluated" (NOT EVALUATED) is not a pass. In the JSON check `files_checked` per
+  rule — a rule that checked 0 files said nothing. A project with no recognised layer directories scores 0 on
   "Layer Direction Enforcement".
 - False positive: open an issue on https://github.com/jrjohn/arcana-arch-qube/issues with the
   report attached. NEVER lower `--threshold`, add exclusions or move code to dodge a rule.
