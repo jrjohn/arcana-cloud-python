@@ -1,27 +1,27 @@
 
 # Arcana Cloud Python - Enterprise Flask Microservices Platform
 
-[![Architecture Rating](https://img.shields.io/badge/Architecture%20Rating-⭐⭐⭐⭐⭐%209.2%2F10-gold.svg)](#architecture-evaluation)
-[![Python](https://img.shields.io/badge/python-3.15-blue.svg?logo=python&logoColor=white)](https://www.python.org/downloads/)
-[![Flask](https://img.shields.io/badge/flask-3.1.3-green.svg?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
-[![gRPC](https://img.shields.io/badge/gRPC-1.85.4-00ADD8.svg?logo=grpc&logoColor=white)](https://grpc.io/)
-[![Architecture](https://img.shields.io/badge/architecture-microservices-orange.svg)]()
-[![Tests](https://img.shields.io/badge/tests-628_passing-brightgreen.svg)]()
-[![Coverage](https://img.shields.io/badge/coverage-96.5%25-brightgreen.svg)]()
-[![PEP 8](https://img.shields.io/badge/code_style-PEP_8-blue.svg)](https://peps.python.org/pep-0008/)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Architecture Rating](.github/badges/architecture-rating-9-2-10-gold-svg-14cd4a12.svg)](#architecture-evaluation)
+[![Python](.github/badges/python-3-15-blue-svg-b08be6b1.svg)](https://www.python.org/downloads/)
+[![Flask](.github/badges/flask-3-1-3-green-svg-4fe465e2.svg)](https://flask.palletsprojects.com/)
+[![gRPC](.github/badges/grpc-1-85-4-00add8-svg-8f8b5887.svg)](https://grpc.io/)
+[![Architecture](.github/badges/architecture-microservices-orange-svg-efb650f0.svg)]()
+[![Tests](.github/badges/tests-628-passing-brightgreen-svg-87704286.svg)]()
+[![Coverage](.github/badges/coverage-96-5-brightgreen-svg-03ea8e16.svg)]()
+[![PEP 8](.github/badges/code-style-pep-8-blue-svg-39f62dc4.svg)](https://peps.python.org/pep-0008/)
+[![License](.github/badges/license-mit-blue-svg-cd905e0a.svg)](LICENSE)
 
 <!-- agent-managed badges START -->
 <p align="center">
-  <a href="https://arcana.boo/sonarqube/dashboard?id=python-app"><img src="https://img.shields.io/badge/Quality_Gate-OK-brightgreen?style=for-the-badge" alt="Quality Gate"></a>
-  <a href="https://arcana.boo/jenkins/job/python-app-pipeline-mb/job/main/"><img src="https://img.shields.io/badge/Build-passing-brightgreen?style=for-the-badge" alt="Build"></a>
+  <a href="https://arcana.boo/sonarqube/dashboard?id=python-app"><img src=".github/badges/quality-gate-ok-brightgreen-7365c32e.svg" alt="Quality Gate"></a>
+  <a href="https://arcana.boo/jenkins/job/python-app-pipeline-mb/job/main/"><img src=".github/badges/build-passing-brightgreen-f2a434e1.svg" alt="Build"></a>
 </p>
 <!-- agent-managed badges END -->
 <!-- arch-rank START -->
 <p align="center">
-  <img src="https://img.shields.io/badge/arch--qube-100%2F100-blue?style=for-the-badge" alt="arch-qube">
-  <img src="https://img.shields.io/badge/Grade-A%2B-brightgreen?style=for-the-badge" alt="Grade">
-  <img src="https://img.shields.io/badge/Arch_Gate-PASS-brightgreen?style=for-the-badge" alt="Architecture Gate">
+  <img src=".github/badges/arch-qube-100-100-blue-2f391344.svg" alt="arch-qube">
+  <img src=".github/badges/grade-a-brightgreen-1f1e6c73.svg" alt="Grade">
+  <img src=".github/badges/arch-gate-pass-brightgreen-887cab17.svg" alt="Architecture Gate">
 </p>
 <!-- arch-rank END -->
 
